@@ -2,13 +2,15 @@ import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
+import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/views/proxies/card.dart';
 import 'package:fl_clash/views/proxies/list.dart';
 import 'package:fl_clash/views/views.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prism_ui/prism_ui.dart';
+import 'package:prism_ui/context.dart';
+import 'package:prism_ui/scaffold.dart';
 
 import '../helpers/glyph_finders.dart';
 import '../helpers/test_app.dart';
