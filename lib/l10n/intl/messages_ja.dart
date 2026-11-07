@@ -1663,6 +1663,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "別のデバイスの FlClash でスキャンすると、このプロファイルをインポートできます。",
     ),
     "show": MessageLookupByLibrary.simpleMessage("表示"),
+    "showHiddenGroups": MessageLookupByLibrary.simpleMessage("非表示のグループを表示"),
     "showLess": MessageLookupByLibrary.simpleMessage("折りたたむ"),
     "showMore": MessageLookupByLibrary.simpleMessage("展開"),
     "showNotificationStopAction": MessageLookupByLibrary.simpleMessage(

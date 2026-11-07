@@ -2096,6 +2096,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Scannez avec FlClash sur un autre appareil pour importer ce profil.",
     ),
     "show": MessageLookupByLibrary.simpleMessage("Afficher"),
+    "showHiddenGroups": MessageLookupByLibrary.simpleMessage(
+      "Afficher les groupes masqués",
+    ),
     "showLess": MessageLookupByLibrary.simpleMessage("Réduire"),
     "showMore": MessageLookupByLibrary.simpleMessage("Développer"),
     "showNotificationStopAction": MessageLookupByLibrary.simpleMessage(
