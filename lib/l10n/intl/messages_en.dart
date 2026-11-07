@@ -1939,6 +1939,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Scan with FlClash on another device to import this profile.",
     ),
     "show": MessageLookupByLibrary.simpleMessage("Show"),
+    "showHiddenGroups": MessageLookupByLibrary.simpleMessage(
+      "Show hidden groups",
+    ),
     "showLess": MessageLookupByLibrary.simpleMessage("Collapse"),
     "showMore": MessageLookupByLibrary.simpleMessage("Expand"),
     "showNotificationStopAction": MessageLookupByLibrary.simpleMessage(

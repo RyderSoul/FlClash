@@ -2746,6 +2746,16 @@ class AppLocalizations {
     return Intl.message('Group by', name: 'groupBy', desc: '', args: []);
   }
 
+  /// `Show hidden groups`
+  String get showHiddenGroups {
+    return Intl.message(
+      'Show hidden groups',
+      name: 'showHiddenGroups',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Hide timed-out proxies`
   String get hideTimeoutProxies {
     return Intl.message(
