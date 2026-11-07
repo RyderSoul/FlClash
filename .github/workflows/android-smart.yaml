@@ -123,6 +123,7 @@ jobs:
 
       - name: Analyze and test Flutter
         run: |
+          dart format --output=none --set-exit-if-changed lib test tool plugins setup.dart
           flutter analyze --no-fatal-infos
           flutter test test/enum/enum_test.dart test/models/config_test.dart \
             test/common/app_update_test.dart \

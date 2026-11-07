@@ -222,6 +222,7 @@ const _$GroupTypeEnumMap = {
   GroupType.URLTest: 'url-test',
   GroupType.Fallback: 'fallback',
   GroupType.LoadBalance: 'load-balance',
+  GroupType.Smart: 'smart',
   GroupType.Relay: 'relay',
 };
 
