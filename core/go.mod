@@ -2,7 +2,7 @@ module core
 
 go 1.27.0
 
-replace github.com/metacubex/mihomo => ./Clash.Meta
+replace github.com/metacubex/mihomo => ./.smart-mihomo
 
 require (
 	github.com/Microsoft/go-winio v0.6.2
@@ -123,6 +123,7 @@ require (
 	github.com/tailscale/peercred v0.0.0-20250107143737-35a0c7bd7edc // indirect
 	github.com/u-root/uio v0.0.0-20230220225925-ffce2a382923 // indirect
 	github.com/ulikunitz/xz v0.5.15 // indirect
+	github.com/vernesong/leaves v0.0.0-20260629081247-2a1c022f37d0 // indirect
 	github.com/vishvananda/netns v0.0.5 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect

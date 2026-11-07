@@ -5,6 +5,27 @@ import 'package:test/test.dart';
 
 void main() {
   group('computeRealSelectedProxyState', () {
+    test('probes an automatic Smart group without inventing a selected node', () {
+      const groups = [
+        Group(
+          name: 'Smart',
+          type: GroupType.Smart,
+          now: '',
+          testUrl: 'https://example.com/generate_204',
+          all: [Proxy(name: 'node-a', type: 'ss')],
+        ),
+      ];
+      final state = computeRealSelectedProxyState(
+        'Smart',
+        groups: groups,
+        selectedMap: {},
+      );
+
+      expect(state.proxyName, 'Smart');
+      expect(state.group, true);
+      expect(state.testUrl, 'https://example.com/generate_204');
+    });
+
     test('returns state unchanged when proxyName is empty', () {
       final state = computeRealSelectedProxyState(
         '',

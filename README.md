@@ -1,3 +1,17 @@
+> **flsmart Android fork:** installs as `com.rydersoul.flclash`, separately from FlClash.
+> The Smart implementation is from `vernesong/mihomo` at the revision in `core/smart-source.json`,
+> applied over the pinned FlClash core to preserve its platform patches. GPL-3.0 notices remain in place.
+>
+> Build with **Actions → flsmart Android APK** on `custom/smart-core`, or push that branch.
+> Add the Actions secrets `KEYSTORE` (base64 keystore), `KEY_ALIAS`, `STORE_PASSWORD` and `KEY_PASSWORD` first.
+> Keep the signing key backed up; later APK updates must use the same key. The workflow uploads an ARM64 APK,
+> checksums, source commit and generated-source patch as an artifact; it does not publish a Release.
+>
+> For local builds, initialize submodules, run `bash tool/prepare_smart_core.sh`, then `flutter pub get` and
+> `dart run build_runner build --delete-conflicting-outputs` before the normal build command below.
+> Smart groups can be imported from a YAML profile using `type: smart`; advanced options remain editable in YAML.
+> LightGBM prediction requires a model in the core data directory; `uselightgbm: false` works without a model.
+
 <div align="center">
 
 <img src="assets/images/icon.png" alt="FlClash" width="88">

@@ -51,7 +51,7 @@ func adapterAs[T any](proxy constant.Proxy) (group T, ok bool) {
 
 func isProxyGroupType(adapterType constant.AdapterType) bool {
 	switch adapterType {
-	case constant.Selector, constant.URLTest, constant.Fallback, constant.Relay, constant.LoadBalance:
+	case constant.Selector, constant.URLTest, constant.Fallback, constant.Relay, constant.LoadBalance, constant.Smart:
 		return true
 	default:
 		return false
@@ -125,12 +125,17 @@ func groupView(proxy constant.Proxy) (json.RawMessage, error) {
 	if err != nil {
 		return nil, err
 	}
-	if isBuiltInGlobal(proxy) {
+	if isBuiltInGlobal(proxy) || proxy.Type() == constant.Smart {
 		view := map[string]any{}
 		if err := json.Unmarshal(data, &view); err != nil {
 			return nil, err
 		}
-		view["hidden"] = true
+		if isBuiltInGlobal(proxy) {
+			view["hidden"] = true
+		}
+		if proxy.Type() == constant.Smart {
+			view["now"] = view["fixed"]
+		}
 		if data, err = json.Marshal(view); err != nil {
 			return nil, err
 		}

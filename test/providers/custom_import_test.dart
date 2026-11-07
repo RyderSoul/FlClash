@@ -302,6 +302,28 @@ rule-providers:
   });
 
   group('proxies and groups', () {
+    test('imports Smart settings without dropping prediction options', () {
+      final imported = _read('''
+proxy-groups:
+  - name: Smart
+    type: smart
+    proxies: [DIRECT]
+    uselightgbm: true
+    collectdata: false
+    sample-rate: 0.5
+    prefer-asn: true
+    policy-priority: 'Premium:1.3'
+''');
+
+      final definition = imported.proxyGroups.single.definition;
+      expect(definition, containsPair('type', 'smart'));
+      expect(definition, containsPair('uselightgbm', true));
+      expect(definition, containsPair('collectdata', false));
+      expect(definition, containsPair('sample-rate', 0.5));
+      expect(definition, containsPair('prefer-asn', true));
+      expect(definition, containsPair('policy-priority', 'Premium:1.3'));
+    });
+
     test('keeps a proxy the app holds as it is under the app name', () {
       final config = _read(
         '''
@@ -746,8 +768,8 @@ tun:
 
     test('a group the app cannot hold, naming it', () {
       expect(
-        () => _read('proxy-groups:\n  - {name: Smart, type: smart}\n'),
-        throwsA(_issue(.entry, item: 'Smart')),
+        () => _read('proxy-groups:\n  - {name: Unknown, type: unknown}\n'),
+        throwsA(_issue(.entry, item: 'Unknown')),
       );
     });
   });
