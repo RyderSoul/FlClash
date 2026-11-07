@@ -152,7 +152,8 @@ extension ProxyGroupExt on ProxyGroup {
           tolerance != null)
         'tolerance': tolerance,
       if (type == GroupType.Smart) ...{
-        if (policyPriority?.isNotEmpty == true) 'policy-priority': policyPriority,
+        if (policyPriority?.isNotEmpty == true)
+          'policy-priority': policyPriority,
         if (useLightGBM != null) 'uselightgbm': useLightGBM,
         if (collectData != null) 'collectdata': collectData,
         if (sampleRate != null) 'sample-rate': sampleRate,
