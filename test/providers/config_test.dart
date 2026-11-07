@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
@@ -234,7 +236,10 @@ void main() {
     container
         .read(proxiesStyleSettingProvider.notifier)
         .update((state) => state.copyWith(showHiddenGroups: true));
-    final saved = Config.fromJson(container.read(configProvider).toJson());
+    final saved = Config.fromJson(
+      jsonDecode(jsonEncode(container.read(configProvider)))
+          as Map<String, Object?>,
+    );
     final restored = ProviderContainer(overrides: buildConfigOverrides(saved));
     addTearDown(restored.dispose);
     expect(restored.read(proxiesStyleSettingProvider).showHiddenGroups, true);
