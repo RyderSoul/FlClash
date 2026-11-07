@@ -119,6 +119,9 @@ SelectedProxyState getRealSelectedProxyState(
     selectedMap[newState.proxyName] ?? '',
   );
   if (currentSelectedName.isEmpty) {
+    if (group.type == GroupType.Smart) {
+      return newState.copyWith(testUrl: group.testUrl);
+    }
     return newState;
   }
   return getRealSelectedProxyState(

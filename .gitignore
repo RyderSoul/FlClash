@@ -71,6 +71,8 @@ docs/
 /macos/build/
 /env.json
 /core_sha256.json
+/core/.smart-mihomo/
+/core/.smart-mihomo.*/
 /plugins/rust_api/.claude/
 /issue-triage/
 devtools_options.yaml

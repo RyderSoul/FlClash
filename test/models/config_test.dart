@@ -1306,6 +1306,31 @@ void main() {
       expect(balanced.containsKey('tolerance'), isFalse);
     });
 
+    test('preserves Smart options through JSON and editable YAML', () {
+      final smart = group.copyWith(
+        type: GroupType.Smart,
+        policyPriority: 'Premium:1.3',
+        useLightGBM: true,
+        collectData: false,
+        sampleRate: 0.5,
+        preferASN: true,
+      );
+
+      expect(smart.definition, containsPair('type', 'smart'));
+      expect(smart.definition, containsPair('tolerance', 50));
+      expect(smart.definition, containsPair('policy-priority', 'Premium:1.3'));
+      expect(smart.definition, containsPair('uselightgbm', true));
+      expect(smart.definition, containsPair('collectdata', false));
+      expect(smart.definition, containsPair('sample-rate', 0.5));
+      expect(smart.definition, containsPair('prefer-asn', true));
+      expect(ProxyGroup.fromJson(smart.toJson()), smart);
+      expect(smart.withDefinitionYaml(smart.definitionYaml), smart);
+      expect(
+        smart.copyWith(type: GroupType.URLTest).definition,
+        isNot(contains('uselightgbm')),
+      );
+    });
+
     test('emits the options mihomo reads for one type only on that type', () {
       final options = group.copyWith(
         defaultSelected: 'A',

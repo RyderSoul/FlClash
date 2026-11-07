@@ -230,6 +230,7 @@ func TestIsProxyGroupType(t *testing.T) {
 		constant.Fallback,
 		constant.Relay,
 		constant.LoadBalance,
+		constant.Smart,
 	}
 	for _, adapterType := range groups {
 		if !isProxyGroupType(adapterType) {
@@ -1104,6 +1105,40 @@ func TestProxyViewKeepsWhatTheHostReads(t *testing.T) {
 	}
 	if _, exist := group["history"]; exist {
 		t.Error("the view still carries delay history")
+	}
+}
+
+func TestSmartGroupViewDistinguishesAutomaticAndPinnedSelection(t *testing.T) {
+	members := []constant.Proxy{namedProxy("node-a"), namedProxy("node-b")}
+	pd, err := provider.NewCompatibleProvider(
+		"smart-provider", members, provider.NewHealthCheck(members, "", 0, 0, true, nil),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	smart := &outboundgroup.Smart{
+		GroupBase: outboundgroup.NewGroupBase(outboundgroup.GroupBaseOption{
+			Name: "Smart", Type: constant.Smart,
+			Providers: []cp.ProxyProvider{pd}, EmptyFallback: namedProxy("DIRECT"),
+		}),
+	}
+	proxy := adapter.NewProxy(smart)
+	for _, selected := range []string{"", "node-b", ""} {
+		smart.ForceSet(selected)
+		data, err := groupView(proxy)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var view map[string]any
+		if err := json.Unmarshal(data, &view); err != nil {
+			t.Fatal(err)
+		}
+		if view["type"] != "Smart" || view["now"] != selected || view["fixed"] != selected {
+			t.Fatalf("Smart selection %q encoded as %v", selected, view)
+		}
+		if fmt.Sprint(view["all"]) != "[node-a node-b]" {
+			t.Fatalf("Smart members = %v", view["all"])
+		}
 	}
 }
 

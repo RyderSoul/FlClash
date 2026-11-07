@@ -97,6 +97,11 @@ abstract class ProxyGroup with _$ProxyGroup {
     @JsonKey(name: 'exclude-type') String? excludeType,
     @JsonKey(name: 'expected-status') String? expectedStatus,
     int? tolerance,
+    @JsonKey(name: 'policy-priority') String? policyPriority,
+    @JsonKey(name: 'uselightgbm') bool? useLightGBM,
+    @JsonKey(name: 'collectdata') bool? collectData,
+    @JsonKey(name: 'sample-rate') double? sampleRate,
+    @JsonKey(name: 'prefer-asn') bool? preferASN,
     LoadBalanceStrategy? strategy,
     @JsonKey(name: 'hash-key') String? hashKey,
     @JsonKey(name: 'default-selected') String? defaultSelected,
@@ -143,8 +148,16 @@ extension ProxyGroupExt on ProxyGroup {
       if (includeAllProviders == true) 'include-all-providers': true,
       if (hidden != null) 'hidden': hidden,
       if (icon?.isNotEmpty == true) 'icon': icon,
-      if (type == GroupType.URLTest && tolerance != null)
+      if ((type == GroupType.URLTest || type == GroupType.Smart) &&
+          tolerance != null)
         'tolerance': tolerance,
+      if (type == GroupType.Smart) ...{
+        if (policyPriority?.isNotEmpty == true) 'policy-priority': policyPriority,
+        if (useLightGBM != null) 'uselightgbm': useLightGBM,
+        if (collectData != null) 'collectdata': collectData,
+        if (sampleRate != null) 'sample-rate': sampleRate,
+        if (preferASN != null) 'prefer-asn': preferASN,
+      },
       if (type == GroupType.Selector && defaultSelected?.isNotEmpty == true)
         'default-selected': defaultSelected,
       if (type == GroupType.LoadBalance && strategy != null)

@@ -46,6 +46,8 @@ enum GroupType {
   Fallback('fallback'),
   @JsonValue('load-balance')
   LoadBalance('load-balance'),
+  @JsonValue('smart')
+  Smart('smart'),
   @JsonValue('relay')
   Relay('relay');
 
@@ -59,6 +61,7 @@ enum GroupType {
       'select' || 'selector' => Selector,
       'fallback' => Fallback,
       'load-balance' || 'loadbalance' => LoadBalance,
+      'smart' => Smart,
       'relay' => Relay,
       String() => throw UnimplementedError(),
     };
@@ -101,7 +104,7 @@ extension GroupTypeExtension on GroupType {
       GroupType.values.map((e) => e.toString().split('.').last).toList();
 
   bool get isComputedSelected {
-    return [GroupType.URLTest, GroupType.Fallback].contains(this);
+    return [GroupType.URLTest, GroupType.Fallback, GroupType.Smart].contains(this);
   }
 
   static GroupType? getGroupType(String value) {

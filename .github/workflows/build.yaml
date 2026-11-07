@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - '**'
+      - '!custom/smart-core'
     tags:
       - 'v*'
   workflow_dispatch:
