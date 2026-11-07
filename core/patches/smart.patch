@@ -1,3 +1,125 @@
+diff --git a/.github/workflows/build.yml b/.github/workflows/build.yml
+index 2b18805c..37d728ff 100644
+--- a/.github/workflows/build.yml
++++ b/.github/workflows/build.yml
+@@ -20,9 +20,13 @@ on:
+ concurrency:
+   group: "${{ github.workflow }}-${{ github.ref }}"
+   cancel-in-progress: true
+-  
++
++permissions:
++  contents: write
++  packages: write
++
+ env:
+-  REGISTRY: docker.io
++  REGISTRY: ghcr.io
+ jobs:
+   build:
+     runs-on: ubuntu-latest
+@@ -188,7 +192,7 @@ jobs:
+ 
+     - name: Set variables
+       run: |
+-        VERSION="${GITHUB_REF_NAME,,}-$(git rev-parse --short HEAD)"
++        VERSION="${GITHUB_REF_NAME,,}-smart-$(git rev-parse --short HEAD)"
+         VERSION="${VERSION//\//-}"
+         PackageVersion="$(curl -s "https://api.github.com/repos/MetaCubeX/mihomo/releases/latest" | jq -r '.tag_name' | sed 's/v//g' | awk -F '.' '{$NF = $NF + 1; print}' OFS='.').${VERSION/-/.}"
+         if [ -n "${{ github.event.inputs.version }}" ]; then
+@@ -196,7 +200,7 @@ jobs:
+           PackageVersion="${VERSION#v}"
+         fi
+         echo "VERSION=${VERSION}" >> $GITHUB_ENV
+-        echo "PackageVersion=${PackageVersion}" >> $GITHUB_ENV
++        echo "PackageVersion=${PackageVersion}-smart" >> $GITHUB_ENV
+       
+         echo "BUILDTIME=$(date)" >> $GITHUB_ENV
+         echo "CGO_ENABLED=0" >> $GITHUB_ENV
+@@ -366,12 +370,18 @@ jobs:
+       
+     - run: |
+         cat > release.txt << 'EOF'
++        **[声明]** 本分支是在上游代码的基础上增加Smart策略组功能，关于Smart策略组的任何问题均与上游无关!
++        **[Announcement]** This branch is based on the upstream code to add Smart Groups functionality, any questions about Smart Groups are not related to the upstream!
++
+         Release created at  ${{ env.BUILDTIME }}
+         Synchronize ${{ github.ref_name }} branch code updates, keeping only the latest version
+         <br>
+         [我应该下载哪个文件? / Which file should I download?](https://github.com/MetaCubeX/mihomo/wiki/FAQ)
+         [二进制文件筛选 / Binary file selector](https://metacubex.github.io/Meta-Docs/startup/#_1)
+         [查看文档 / Docs](https://metacubex.github.io/Meta-Docs/)
++
++        [Smart 策略组使用 / Smart Group Introduce](https://github.com/vernesong/OpenClash/releases/tag/mihomo)
++
+         EOF
+ 
+     - name: Upload Prerelease
+@@ -379,6 +389,7 @@ jobs:
+       if: ${{  success() }}
+       with:
+         tag_name: Prerelease-${{ github.ref_name }}
++        name: "Mihomo ${{ github.ref_name }} with Smart Group"
+         files: |
+           bin/*
+         prerelease: true
+@@ -504,8 +515,8 @@ jobs:
+         uses: docker/login-action@v4
+         with:
+           registry: ${{ env.REGISTRY }}
+-          username: ${{ secrets.DOCKER_HUB_USER }}
+-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
++          username: ${{ github.actor }}
++          password: ${{ secrets.GITHUB_TOKEN }}
+ 
+       # Build and push Docker image with Buildx (don't push on PR)
+       # https://github.com/docker/build-push-action
+diff --git a/.github/workflows/trigger-cmfa-update.yml b/.github/workflows/trigger-cmfa-update.yml
+index 35fd276c..e1a49667 100644
+--- a/.github/workflows/trigger-cmfa-update.yml
++++ b/.github/workflows/trigger-cmfa-update.yml
+@@ -1,15 +1,6 @@
+ name: Trigger CMFA Update
+ on:
+   workflow_dispatch:
+-  push:
+-    paths-ignore:
+-      - "docs/**"
+-      - "README.md"
+-      - ".github/ISSUE_TEMPLATE/**"
+-    branches:
+-      - Alpha
+-    tags:
+-      - "v*"
+       
+ jobs:
+   # Send "core-updated" to MetaCubeX/ClashMetaForAndroid to trigger update-dependencies
+diff --git a/Dockerfile b/Dockerfile
+index 2649bf63..edd758f4 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -15,7 +15,7 @@ RUN FILE_NAME=`sh file-name.sh` && echo $FILE_NAME && \
+     FILE_NAME=`ls bin/ | egrep "$FILE_NAME.gz"|awk NR==1` && echo $FILE_NAME && \
+     mv bin/$FILE_NAME mihomo.gz && gzip -d mihomo.gz && chmod +x mihomo && echo "$FILE_NAME" > /mihomo-config/test
+ FROM alpine:latest
+-LABEL org.opencontainers.image.source="https://github.com/MetaCubeX/mihomo"
++LABEL org.opencontainers.image.source="https://github.com/vernesong/mihomo"
+ 
+ RUN apk add --no-cache ca-certificates tzdata iptables
+ 
+diff --git a/Makefile b/Makefile
+index e1646d35..1660a9f2 100644
+--- a/Makefile
++++ b/Makefile
+@@ -2,7 +2,7 @@ NAME=mihomo
+ BINDIR=bin
+ BRANCH=$(shell git branch --show-current)
+ ifeq ($(BRANCH),Alpha)
+-VERSION=alpha-$(shell git rev-parse --short HEAD)
++VERSION=alpha-smart-$(shell git rev-parse --short HEAD)
+ else ifeq ($(BRANCH),Beta)
+ VERSION=beta-$(shell git rev-parse --short HEAD)
+ else ifeq ($(BRANCH),)
 diff --git a/adapter/adapter.go b/adapter/adapter.go
 index 9cd4fa01..def77016 100644
 --- a/adapter/adapter.go
@@ -314,6 +436,239 @@ index 9cd4fa01..def77016 100644
 +	resp, err := client.Do(req)
 +	return resp, transport, err
 +}
+diff --git a/adapter/inbound/util.go b/adapter/inbound/util.go
+index 0cc1e761..81c3dde6 100644
+--- a/adapter/inbound/util.go
++++ b/adapter/inbound/util.go
+@@ -16,9 +16,11 @@ func parseSocksAddr(target socks5.Addr) *C.Metadata {
+ 
+ 	switch target[0] {
+ 	case socks5.AtypDomainName:
++		// Convert before arithmetic so long domain lengths cannot overflow a byte.
++		domainEnd := 2 + int(target[1])
+ 		// trim for FQDN
+-		metadata.Host = strings.TrimRight(string(target[2:2+target[1]]), ".")
+-		metadata.DstPort = uint16((int(target[2+target[1]]) << 8) | int(target[2+target[1]+1]))
++		metadata.Host = strings.TrimRight(string(target[2:domainEnd]), ".")
++		metadata.DstPort = uint16(target[domainEnd])<<8 | uint16(target[domainEnd+1])
+ 	case socks5.AtypIPv4:
+ 		metadata.DstIP, _ = netip.AddrFromSlice(target[1 : 1+net.IPv4len])
+ 		metadata.DstPort = uint16((int(target[1+net.IPv4len]) << 8) | int(target[1+net.IPv4len+1]))
+diff --git a/adapter/inbound/util_test.go b/adapter/inbound/util_test.go
+new file mode 100644
+index 00000000..7db637fd
+--- /dev/null
++++ b/adapter/inbound/util_test.go
+@@ -0,0 +1,33 @@
++package inbound
++
++import (
++	"fmt"
++	"strings"
++	"testing"
++
++	"github.com/metacubex/mihomo/transport/socks5"
++)
++
++func TestParseSocksAddrDomainLengths(t *testing.T) {
++	for length := 0; length <= 255; length++ {
++		t.Run(fmt.Sprint(length), func(t *testing.T) {
++			host := strings.Repeat("a", length)
++			addr := append(socks5.Addr{socks5.AtypDomainName, byte(length)}, []byte(host)...)
++			addr = append(addr, 0x12, 0x34)
++			got := parseSocksAddr(addr)
++			if got.Host != host || got.DstPort != 0x1234 {
++				t.Fatalf("length %d: host=%q port=%d", length, got.Host, got.DstPort)
++			}
++		})
++	}
++}
++
++func TestParseSocksAddrFQDN(t *testing.T) {
++	host := "example.com."
++	addr := append(socks5.Addr{socks5.AtypDomainName, byte(len(host))}, []byte(host)...)
++	addr = append(addr, 0x01, 0xbb)
++	got := parseSocksAddr(addr)
++	if got.Host != "example.com" || got.DstPort != 443 {
++		t.Fatalf("host=%q port=%d", got.Host, got.DstPort)
++	}
++}
+diff --git a/adapter/outbound/easytier.go b/adapter/outbound/easytier.go
+index b42fc239..23962e6f 100644
+--- a/adapter/outbound/easytier.go
++++ b/adapter/outbound/easytier.go
+@@ -315,9 +315,21 @@ func (e *EasyTier) init() error {
+ 		return err
+ 	}
+ 	log.Infoln("[EasyTier](%s) instance %s running", e.Name(), instance.ID())
++	go e.drainHostPackets(instance)
+ 	return nil
+ }
+ 
++// The outbound uses the core's netstack, not a host TUN device. Drain unused
++// raw IP packets so the bounded host packet queue cannot stall the data plane.
++// ReceivePacket unblocks when the instance closes or the adapter is canceled.
++func (e *EasyTier) drainHostPackets(instance *corehost.Instance) {
++	for {
++		if _, err := instance.ReceivePacket(e.ctx); err != nil {
++			return
++		}
++	}
++}
++
+ func (e *EasyTier) currentInstance() (*corehost.Instance, error) {
+ 	e.mu.Lock()
+ 	defer e.mu.Unlock()
+diff --git a/adapter/outbound/http.go b/adapter/outbound/http.go
+index 0f684488..b5972c59 100644
+--- a/adapter/outbound/http.go
++++ b/adapter/outbound/http.go
+@@ -53,10 +53,13 @@ func (h *Http) StreamConnContext(ctx context.Context, c net.Conn, metadata *C.Me
+ 		}
+ 	}
+ 
+-	if err := h.shakeHandContext(ctx, c, metadata); err != nil {
++	// The proxy may send the target's first bytes right behind its response.
++	// They can end up in br, so the returned conn reads them first.
++	br := bufio.NewReader(c)
++	if err := h.shakeHandContext(ctx, c, br, metadata); err != nil {
+ 		return nil, err
+ 	}
+-	return c, nil
++	return N.WarpConnWithBioReader(c, br), nil
+ }
+ 
+ // DialContext implements C.ProxyAdapter
+@@ -85,7 +88,7 @@ func (h *Http) ProxyInfo() C.ProxyInfo {
+ 	return info
+ }
+ 
+-func (h *Http) shakeHandContext(ctx context.Context, c net.Conn, metadata *C.Metadata) (err error) {
++func (h *Http) shakeHandContext(ctx context.Context, c net.Conn, br *bufio.Reader, metadata *C.Metadata) (err error) {
+ 	if ctx.Done() != nil {
+ 		done := N.SetupContextForConn(ctx, c)
+ 		defer done(&err)
+@@ -120,7 +123,7 @@ func (h *Http) shakeHandContext(ctx context.Context, c net.Conn, metadata *C.Met
+ 		return err
+ 	}
+ 
+-	resp, err := http.ReadResponse(bufio.NewReader(c), nil)
++	resp, err := http.ReadResponse(br, nil)
+ 
+ 	if err != nil {
+ 		return err
+diff --git a/adapter/outbound/snell.go b/adapter/outbound/snell.go
+index 30ef8f96..ce5c58c0 100644
+--- a/adapter/outbound/snell.go
++++ b/adapter/outbound/snell.go
+@@ -26,6 +26,7 @@ type Snell struct {
+ 	restlsConfig    *restls.Config
+ 	jlsConfig       *jls.ClientConfig
+ 	version         int
++	v6Mode          snell.V6Mode
+ 	reuse           bool
+ }
+ 
+@@ -38,6 +39,7 @@ type SnellOption struct {
+ 	UDP               bool           `proxy:"udp,omitempty"`
+ 	Version           int            `proxy:"version,omitempty"`
+ 	Reuse             bool           `proxy:"reuse,omitempty"`
++	Mode              string         `proxy:"mode,omitempty"` // v6 only: default / unshaped / unsafe-raw
+ 	ObfsOpts          map[string]any `proxy:"obfs-opts,omitempty"`
+ 	ClientFingerprint string         `proxy:"client-fingerprint,omitempty"`
+ }
+@@ -66,6 +68,9 @@ func (s *Snell) streamConnContext(ctx context.Context, c net.Conn) (*snell.Snell
+ 			return nil, err
+ 		}
+ 	}
++	if s.version == snell.Version6 {
++		return snell.StreamConnV6(c, s.psk, s.v6Mode), nil
++	}
+ 	return snell.StreamConn(c, s.psk, s.version), nil
+ }
+ 
+@@ -249,16 +254,35 @@ func NewSnell(option SnellOption) (*Snell, error) {
+ 		// Snell v5 servers are backward-compatible with v4 clients.
+ 		option.Version = snell.Version4
+ 	}
+-	reuse := option.Version == snell.Version2 || (option.Version == snell.Version4 && option.Reuse)
++	reuse := option.Version == snell.Version2 ||
++		((option.Version == snell.Version4 || option.Version == snell.Version6) && option.Reuse)
++	var v6Mode snell.V6Mode
+ 	switch option.Version {
+ 	case snell.Version1, snell.Version2:
+ 		if option.UDP {
+ 			return nil, fmt.Errorf("snell version %d not support UDP", option.Version)
+ 		}
+ 	case snell.Version3, snell.Version4:
++	case snell.Version6:
++		if err := snell.ValidateV6PSK(psk); err != nil {
++			return nil, fmt.Errorf("snell %s %w", addr, err)
++		}
++		switch obfsOption.Mode {
++		case "tls", "http":
++			// v6 replaced the simple-obfs layer with PSK-derived traffic shaping
++			return nil, fmt.Errorf("snell %s version 6 does not support obfs mode %s", addr, obfsOption.Mode)
++		}
++		var err error
++		v6Mode, err = snell.ParseV6Mode(option.Mode)
++		if err != nil {
++			return nil, fmt.Errorf("snell %s %w", addr, err)
++		}
+ 	default:
+ 		return nil, fmt.Errorf("snell version error: %d", option.Version)
+ 	}
++	if option.Mode != "" && option.Version != snell.Version6 {
++		return nil, fmt.Errorf("snell %s mode is only supported on version 6", addr)
++	}
+ 
+ 	s := &Snell{
+ 		Base: NewBase(BaseOption{
+@@ -280,6 +304,7 @@ func NewSnell(option SnellOption) (*Snell, error) {
+ 		restlsConfig:    restlsConfig,
+ 		jlsConfig:       jlsConfig,
+ 		version:         option.Version,
++		v6Mode:          v6Mode,
+ 		reuse:           reuse,
+ 	}
+ 	s.dialer = option.NewDialer(s.DialOptions())
+diff --git a/adapter/outbound/ssh.go b/adapter/outbound/ssh.go
+index 601dfc84..325e7239 100644
+--- a/adapter/outbound/ssh.go
++++ b/adapter/outbound/ssh.go
+@@ -74,6 +74,13 @@ func (s *Ssh) connect(ctx context.Context, addr string) (client *ssh.Client, err
+ 		defer done(&err)
+ 	}
+ 
++	// Force the SSH transport to shut down when the underlying connection write
++	// fails. handshakeTransport caches this error without closing the transport,
++	// which can leave the shared client permanently unusable while Wait remains
++	// blocked. Closing the connection lets the read and mux loops exit so the
++	// cached client can be discarded and replaced.
++	c = closeOnWriteErrorConn{Conn: c}
++
+ 	clientConn, chans, reqs, err := ssh.NewClientConn(c, addr, s.config)
+ 	if err != nil {
+ 		return nil, err
+@@ -95,6 +102,18 @@ func (s *Ssh) connect(ctx context.Context, addr string) (client *ssh.Client, err
+ 	return client, nil
+ }
+ 
++type closeOnWriteErrorConn struct {
++	net.Conn
++}
++
++func (c closeOnWriteErrorConn) Write(p []byte) (int, error) {
++	n, err := c.Conn.Write(p)
++	if err != nil {
++		_ = c.Conn.Close()
++	}
++	return n, err
++}
++
+ // ProxyInfo implements C.ProxyAdapter
+ func (s *Ssh) ProxyInfo() C.ProxyInfo {
+ 	info := s.Base.ProxyInfo()
 diff --git a/adapter/outbound/tailscale.go b/adapter/outbound/tailscale.go
 index 2d487da5..b4232df8 100644
 --- a/adapter/outbound/tailscale.go
@@ -3745,6 +4100,163 @@ index 00000000..56885052
 +func RandBrowserPreset() BrowserPreset {
 +	return browserPresets[randv2.IntN(len(browserPresets))]
 +}
+diff --git a/common/convert/converter.go b/common/convert/converter.go
+index 2db43ca6..3861c790 100644
+--- a/common/convert/converter.go
++++ b/common/convert/converter.go
+@@ -190,7 +190,7 @@ func ConvertsV2Ray(buf []byte) ([]map[string]any, error) {
+ 			}
+ 
+ 			switch network {
+-			case "ws":
++			case "ws", "httpupgrade":
+ 				headers := make(map[string]any)
+ 				wsOpts := make(map[string]any)
+ 
+@@ -198,6 +198,10 @@ func ConvertsV2Ray(buf []byte) ([]map[string]any, error) {
+ 
+ 				wsOpts["path"] = query.Get("path")
+ 				wsOpts["headers"] = headers
++				if network == "httpupgrade" {
++					trojan["network"] = "ws"
++					wsOpts["v2ray-http-upgrade"] = true
++				}
+ 
+ 				trojan["ws-opts"] = wsOpts
+ 
+@@ -357,6 +361,10 @@ func ConvertsV2Ray(buf []byte) ([]map[string]any, error) {
+ 				headers := make(map[string]any)
+ 				wsOpts := make(map[string]any)
+ 				wsOpts["path"] = "/"
++				if network == "httpupgrade" {
++					vmess["network"] = "ws"
++					wsOpts["v2ray-http-upgrade"] = true
++				}
+ 				if host, ok := values["host"].(string); ok && host != "" {
+ 					headers["Host"] = host
+ 				}
+diff --git a/common/convert/converter_test.go b/common/convert/converter_test.go
+index c33fb91c..b2df735d 100644
+--- a/common/convert/converter_test.go
++++ b/common/convert/converter_test.go
+@@ -329,3 +329,102 @@ func TestConvertsV2RayVmessBase64HTTPRemappedToH2Transport(t *testing.T) {
+ 	_, err = adapter.ParseProxy(proxies[0])
+ 	assert.NoError(t, err)
+ }
++
++// httpupgrade is a ws-opts mode of the ws transport, not a network of its
++// own, so links with type=httpupgrade must become network ws with
++// v2ray-http-upgrade set.
++func TestConvertsV2RayVlessHTTPUpgrade(t *testing.T) {
++	for _, tt := range []struct {
++		name     string
++		link     string
++		fastOpen bool
++	}{
++		{"without ed", "vless://uuid@example.com:443?security=tls&type=httpupgrade&host=cdn.example.com&path=%2Fup#vless-hu", false},
++		{"with ed", "vless://uuid@example.com:443?security=tls&type=httpupgrade&host=cdn.example.com&path=%2Fup&ed=2048#vless-hu", true},
++	} {
++		t.Run(tt.name, func(t *testing.T) {
++			proxies, err := ConvertsV2Ray([]byte(tt.link))
++			assert.Nil(t, err)
++			assert.Len(t, proxies, 1)
++			assert.Equal(t, "ws", proxies[0]["network"])
++
++			wsOpts, ok := proxies[0]["ws-opts"].(map[string]any)
++			assert.True(t, ok)
++			assert.Equal(t, true, wsOpts["v2ray-http-upgrade"])
++			assert.Equal(t, "/up", wsOpts["path"])
++			assert.Equal(t, "cdn.example.com", wsOpts["headers"].(map[string]any)["Host"])
++			if tt.fastOpen {
++				assert.Equal(t, true, wsOpts["v2ray-http-upgrade-fast-open"])
++			} else {
++				assert.NotContains(t, wsOpts, "v2ray-http-upgrade-fast-open")
++			}
++			assert.NotContains(t, wsOpts, "max-early-data")
++
++			_, err = adapter.ParseProxy(proxies[0])
++			assert.NoError(t, err)
++		})
++	}
++}
++
++func TestConvertsV2RayVlessWSNotHTTPUpgrade(t *testing.T) {
++	proxies, err := ConvertsV2Ray([]byte("vless://uuid@example.com:443?security=tls&type=ws&host=cdn.example.com&path=%2Fws&ed=2048#vless-ws"))
++	assert.Nil(t, err)
++	assert.Len(t, proxies, 1)
++	assert.Equal(t, "ws", proxies[0]["network"])
++	wsOpts := proxies[0]["ws-opts"].(map[string]any)
++	assert.NotContains(t, wsOpts, "v2ray-http-upgrade")
++	assert.Equal(t, 2048, wsOpts["max-early-data"])
++}
++
++func TestConvertsV2RayVmessBase64HTTPUpgrade(t *testing.T) {
++	for _, tt := range []struct {
++		name     string
++		path     string
++		fastOpen bool
++	}{
++		{"without ed", "/up", false},
++		{"with ed", "/up?ed=2048", true},
++	} {
++		t.Run(tt.name, func(t *testing.T) {
++			payload := `{"v":"2","ps":"vmess-hu","add":"server.example.com","port":"443",` +
++				`"id":"b831381d-6324-4d53-ad4f-8cda48b30811","aid":"0","scy":"auto",` +
++				`"net":"httpupgrade","type":"none","host":"cdn.example.com","path":"` + tt.path + `","tls":"tls"}`
++			vmessTest := "vmess://" + base64.StdEncoding.EncodeToString([]byte(payload))
++
++			proxies, err := ConvertsV2Ray([]byte(vmessTest))
++			assert.Nil(t, err)
++			assert.Len(t, proxies, 1)
++			assert.Equal(t, "ws", proxies[0]["network"])
++
++			wsOpts, ok := proxies[0]["ws-opts"].(map[string]any)
++			assert.True(t, ok)
++			assert.Equal(t, true, wsOpts["v2ray-http-upgrade"])
++			assert.Equal(t, "/up", wsOpts["path"])
++			assert.Equal(t, map[string]any{"Host": "cdn.example.com"}, wsOpts["headers"])
++			if tt.fastOpen {
++				assert.Equal(t, true, wsOpts["v2ray-http-upgrade-fast-open"])
++			} else {
++				assert.NotContains(t, wsOpts, "v2ray-http-upgrade-fast-open")
++			}
++			assert.NotContains(t, wsOpts, "max-early-data")
++
++			_, err = adapter.ParseProxy(proxies[0])
++			assert.NoError(t, err)
++		})
++	}
++}
++
++func TestConvertsV2RayTrojanHTTPUpgrade(t *testing.T) {
++	proxies, err := ConvertsV2Ray([]byte("trojan://secret@example.com:443?security=tls&type=httpupgrade&host=cdn.example.com&path=%2Fup#trojan-hu"))
++	assert.Nil(t, err)
++	assert.Len(t, proxies, 1)
++	assert.Equal(t, "ws", proxies[0]["network"])
++
++	wsOpts, ok := proxies[0]["ws-opts"].(map[string]any)
++	assert.True(t, ok)
++	assert.Equal(t, true, wsOpts["v2ray-http-upgrade"])
++	assert.Equal(t, "/up", wsOpts["path"])
++
++	_, err = adapter.ParseProxy(proxies[0])
++	assert.NoError(t, err)
++}
+diff --git a/common/convert/v.go b/common/convert/v.go
+index 5f23b78c..20243834 100644
+--- a/common/convert/v.go
++++ b/common/convert/v.go
+@@ -114,6 +114,10 @@ func handleVShareLink(names map[string]int, url *url.URL, scheme string, proxy m
+ 		headers["Host"] = query.Get("host")
+ 		wsOpts["path"] = query.Get("path")
+ 		wsOpts["headers"] = headers
++		if network == "httpupgrade" {
++			proxy["network"] = "ws"
++			wsOpts["v2ray-http-upgrade"] = true
++		}
+ 
+ 		if earlyData := query.Get("ed"); earlyData != "" {
+ 			med, err := strconv.Atoi(earlyData)
 diff --git a/common/lru/lrucache.go b/common/lru/lrucache.go
 index 4afe8e0c..596a628d 100644
 --- a/common/lru/lrucache.go
@@ -3858,6 +4370,71 @@ index ad586080..cce62da8 100644
  // It is safe to use plain stores here because the destination bucket must be
  // either locked or exclusively written to by the helper during resize.
  func appendToBucket[K comparable, V any](h2 uint8, e *entry[K, V], b *bucketPadded) {
+diff --git a/component/generator/cmd.go b/component/generator/cmd.go
+index fd30c078..52277ef1 100644
+--- a/component/generator/cmd.go
++++ b/component/generator/cmd.go
+@@ -3,6 +3,7 @@ package generator
+ import (
+ 	"encoding/base64"
+ 	"fmt"
++	"strconv"
+ 
+ 	"github.com/metacubex/mihomo/component/ech"
+ 	"github.com/metacubex/mihomo/transport/sudoku"
+@@ -13,7 +14,7 @@ import (
+ 
+ func Main(args []string) {
+ 	if len(args) < 1 {
+-		panic("Using: generate uuid/reality-keypair/wg-keypair/ech-keypair/vless-mlkem768/vless-x25519/sudoku-keypair")
++		panic("Using: generate uuid/ss-password/reality-keypair/wg-keypair/ech-keypair/vless-mlkem768/vless-x25519/sudoku-keypair")
+ 	}
+ 	switch args[0] {
+ 	case "uuid":
+@@ -22,6 +23,19 @@ func Main(args []string) {
+ 			panic(err)
+ 		}
+ 		fmt.Println(newUUID.String())
++	case "ss-password":
++		if len(args) != 2 {
++			panic("Using: generate ss-password <128|256|512>")
++		}
++		bits, err := strconv.Atoi(args[1])
++		if err != nil || (bits != 128 && bits != 256 && bits != 512) {
++			panic("Using: generate ss-password <128|256|512>")
++		}
++		password, err := GenShadowsocksPassword(bits)
++		if err != nil {
++			panic(err)
++		}
++		fmt.Println(password)
+ 	case "reality-keypair":
+ 		privateKey, err := GenX25519PrivateKey()
+ 		if err != nil {
+diff --git a/component/generator/ss.go b/component/generator/ss.go
+new file mode 100644
+index 00000000..ceb4589e
+--- /dev/null
++++ b/component/generator/ss.go
+@@ -0,0 +1,18 @@
++package generator
++
++import (
++	"crypto/rand"
++	"encoding/base64"
++	"errors"
++)
++
++func GenShadowsocksPassword(bits int) (string, error) {
++	if bits%8 != 0 {
++		return "", errors.New("bits must be multiple of 8")
++	}
++	password := make([]byte, bits/8)
++	if _, err := rand.Read(password); err != nil {
++		return "", err
++	}
++	return base64.StdEncoding.EncodeToString(password), nil
++}
 diff --git a/component/geodata/memconservative/decode.go b/component/geodata/decode.go
 similarity index 68%
 rename from component/geodata/memconservative/decode.go
@@ -4336,6 +4913,38 @@ index ee7946a6..858ac7d5 100644
  	})
  	if err != nil {
  		if !shared {
+diff --git a/component/memory/memory_windows.go b/component/memory/memory_windows.go
+index 04dad084..f593ba28 100644
+--- a/component/memory/memory_windows.go
++++ b/component/memory/memory_windows.go
+@@ -17,18 +17,18 @@ const processQueryInformation = windows.PROCESS_QUERY_LIMITED_INFORMATION
+ type PROCESS_MEMORY_COUNTERS struct {
+ 	CB                         uint32
+ 	PageFaultCount             uint32
+-	PeakWorkingSetSize         uint64
+-	WorkingSetSize             uint64
+-	QuotaPeakPagedPoolUsage    uint64
+-	QuotaPagedPoolUsage        uint64
+-	QuotaPeakNonPagedPoolUsage uint64
+-	QuotaNonPagedPoolUsage     uint64
+-	PagefileUsage              uint64
+-	PeakPagefileUsage          uint64
++	PeakWorkingSetSize         uintptr
++	WorkingSetSize             uintptr
++	QuotaPeakPagedPoolUsage    uintptr
++	QuotaPagedPoolUsage        uintptr
++	QuotaPeakNonPagedPoolUsage uintptr
++	QuotaNonPagedPoolUsage     uintptr
++	PagefileUsage              uintptr
++	PeakPagefileUsage          uintptr
+ }
+ 
+ func getProcessMemoryInfo(h windows.Handle, mem *PROCESS_MEMORY_COUNTERS) (err error) {
+-	r1, _, e1 := syscall.Syscall(procGetProcessMemoryInfo.Addr(), 3, uintptr(h), uintptr(unsafe.Pointer(mem)), uintptr(unsafe.Sizeof(*mem)))
++	r1, _, e1 := syscall.SyscallN(procGetProcessMemoryInfo.Addr(), uintptr(h), uintptr(unsafe.Pointer(mem)), uintptr(unsafe.Sizeof(*mem)))
+ 	if r1 == 0 {
+ 		if e1 != 0 {
+ 			err = error(e1)
 diff --git a/component/profile/cachefile/cache.go b/component/profile/cachefile/cache.go
 index 89ce1917..a1905c10 100644
 --- a/component/profile/cachefile/cache.go
@@ -14160,10 +14769,128 @@ index 05ea8ebd..2f58ad56 100644
  func (rt RuleType) String() string {
  	switch rt {
  	case Domain:
+diff --git a/docs/config.yaml b/docs/config.yaml
+index 9ee60878..944e570b 100644
+--- a/docs/config.yaml
++++ b/docs/config.yaml
+@@ -414,20 +414,21 @@ proxies: # socks5
+     server: server
+     port: 44046
+     psk: yourpsk
+-    # version: 4 # support 1/2/3/4/5
+-    # udp: true # support UDP on version 3/4/5
+-    # reuse: false # v4/5 only
++    # version: 4 # support 1/2/3/4/5/6
++    # udp: true # support UDP on version 3/4/5/6
++    # reuse: false # v4/5/6 only
++    # mode: default # v6 only, default / unshaped / unsafe-raw, must match the server
+     # obfs-opts:
+-    #   mode: http # or tls/shadow-tls/restls/jls
++    #   mode: http # or tls/shadow-tls/restls/jls (http/tls are not available on v6)
+ 
+   - name: "snell-shadow-tls"
+     type: snell
+     server: server
+     port: 44046
+     psk: yourpsk
+-    # version: 4 # support 1/2/3/4/5
+-    # udp: true # support UDP on version 3/4/5
+-    # reuse: false # v4/5 only
++    # version: 4 # support 1/2/3/4/5/6
++    # udp: true # support UDP on version 3/4/5/6
++    # reuse: false # v4/5/6 only
+     # client-fingerprint: chrome
+     obfs-opts:
+       mode: shadow-tls
+@@ -441,7 +442,7 @@ proxies: # socks5
+     server: server
+     port: 44046
+     psk: yourpsk
+-    # version: 4 # support 1/2/3/4/5
++    # version: 4 # support 1/2/3/4/5/6
+     # client-fingerprint: chrome
+     obfs-opts:
+       mode: restls
+@@ -454,7 +455,7 @@ proxies: # socks5
+     server: server
+     port: 44046
+     psk: yourpsk
+-    # version: 4 # support 1/2/3/4/5
++    # version: 4 # support 1/2/3/4/5/6
+     # client-fingerprint: chrome
+     obfs-opts:
+       mode: jls
+@@ -2132,6 +2133,12 @@ listeners:
+     # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
+     password: vlmpIPSyHH6f4S8WVPdRIHIlzmB+GIRfoH3aNJ/t9Gg=
+     cipher: 2022-blake3-aes-256-gcm
++    # users: # 多用户，匹配到的用户名可用于 IN-USER 规则，仅支持 AEAD 加密及 2022-blake3-aes-* 加密
++    #        # 2022-blake3-aes-*: 上方 password 为服务端 PSK，此处为用户 PSK，客户端密码填写 "服务端PSK:用户PSK"
++    #        # AEAD 加密: 上方 password 需留空，客户端密码直接填写此处的密码
++    #        # 注意: AEAD 加密的数据包中不含用户标识，服务端需对每个包逐个尝试所有用户的密码，UDP 处理开销随用户数线性增长（且无效包会尝试全部用户），用户较多时请使用 2022-blake3-aes-*
++    #   username1: 6NNH4wlU1Sg+r8uILmCzg9qogjbKGDh/RXT7SYwFx1g=
++    #   username2: 9x0ZrXIZTB5+nwF4QzF+Rn4KfJ2kchNm74aOYhZ+8Sg=
+     # simple-obfs:
+     #   enable: false # 设置为true时开启
+     #   mode: http # Available: http, tls
+@@ -2195,10 +2202,11 @@ listeners:
+     listen: 0.0.0.0
+     # routing-mark: 0 # 为监听socket设置routing-mark（仅支持linux）
+     psk: your-password
+-    version: 4 # 支持 1/2/3/4/5
++    version: 4 # 支持 1/2/3/4/5/6
+     udp: true # UDP over TCP tunnel，默认 true
++    # mode: default # 仅 v6：default / unshaped / unsafe-raw，需与客户端一致；v6 的 psk 长度须为 12 到 255 字节
+     # obfs-opts:
+-    #   mode: http # 可选：http / tls
++    #   mode: http # 可选：http / tls（v6 不支持，配置时会报错）
+     #   host: bing.com
+     # shadow-tls:
+     #   enable: false # 设置为true时开启
+@@ -2591,6 +2599,8 @@ listeners:
+     # traffic-pattern: ""
+     # 如果开启，且客户端不发送用户提示，代理服务器将拒绝连接
+     # user-hint-is-mandatory: false
++    # 在上行和下行同时空闲这个秒数后，关闭底层TCP连接。最小值为60。
++    # tcp-idle-timeout: 1800
+ 
+   - name: sudoku-in-1
+     type: sudoku
 diff --git a/go.mod b/go.mod
-index 661c0bdf..8bcc5a3c 100644
+index 661c0bdf..98f082ac 100644
 --- a/go.mod
 +++ b/go.mod
+@@ -7,7 +7,7 @@ require (
+ 	github.com/coreos/go-iptables v0.8.0
+ 	github.com/dlclark/regexp2 v1.12.0
+ 	github.com/easytier/easytier/easytier-go v0.0.0-20260910071355-3d0c9c3ca5e2
+-	github.com/enfein/mieru/v3 v3.38.1
++	github.com/enfein/mieru/v3 v3.39.0
+ 	github.com/gobwas/ws v1.4.0
+ 	github.com/gofrs/uuid/v5 v5.4.0
+ 	github.com/golang/snappy v1.0.0
+@@ -34,18 +34,18 @@ require (
+ 	github.com/metacubex/randv2 v0.2.0
+ 	github.com/metacubex/restls-client-go v0.1.9
+ 	github.com/metacubex/sevenzip v1.6.4
+-	github.com/metacubex/sing v0.5.8
++	github.com/metacubex/sing v0.5.9
+ 	github.com/metacubex/sing-mux v0.3.12
+ 	github.com/metacubex/sing-quic v0.0.0-20260904234848-1c242664697a
+ 	github.com/metacubex/sing-shadowsocks v0.2.13
+ 	github.com/metacubex/sing-shadowsocks2 v0.2.8
+-	github.com/metacubex/sing-tun v0.4.28
++	github.com/metacubex/sing-tun v0.4.29
+ 	github.com/metacubex/sing-vmess v0.2.5
+ 	github.com/metacubex/sing-wireguard v0.0.0-20261002050126-e5fa1a607406
+ 	github.com/metacubex/smux v0.0.0-20260105030934-d0c8756d3141
+ 	github.com/metacubex/ssh v0.1.0
+ 	github.com/metacubex/tailscale v0.0.0-20260821153257-ff0ecd818181
+-	github.com/metacubex/tfo-go v0.0.0-20260623020846-376a77860b8c
++	github.com/metacubex/tfo-go v0.0.0-20261026151606-08d83ec08c84
+ 	github.com/metacubex/tls v0.1.9
+ 	github.com/metacubex/utls v1.8.8
+ 	github.com/metacubex/wireguard-go v0.0.0-20250820062549-a6cecdd7f57f
 @@ -56,6 +56,7 @@ require (
  	github.com/samber/lo v1.53.0
  	github.com/sirupsen/logrus v1.9.4
@@ -14173,9 +14900,53 @@ index 661c0bdf..8bcc5a3c 100644
  	github.com/yosida95/uritemplate/v3 v3.0.2
  	gitlab.com/go-extension/aes-ccm v0.0.0-20230221065045-e58665ef23c7
 diff --git a/go.sum b/go.sum
-index e42e954f..e81b7bf8 100644
+index e42e954f..7ce4cd13 100644
 --- a/go.sum
 +++ b/go.sum
+@@ -29,8 +29,8 @@ github.com/dunglas/httpsfv v1.0.2 h1:iERDp/YAfnojSDJ7PW3dj1AReJz4MrwbECSSE59JWL0
+ github.com/dunglas/httpsfv v1.0.2/go.mod h1:zID2mqw9mFsnt7YC3vYQ9/cjq30q41W+1AnDwH8TiMg=
+ github.com/easytier/easytier/easytier-go v0.0.0-20260910071355-3d0c9c3ca5e2 h1:2/9iRUcMR3QPrT2XFf/i7QV5YoSHPFjkgBM5tP8xbcc=
+ github.com/easytier/easytier/easytier-go v0.0.0-20260910071355-3d0c9c3ca5e2/go.mod h1:fCEi5+K2yt+sPDONSWO1uNpOifrwPgFGvm3J0YrFRvk=
+-github.com/enfein/mieru/v3 v3.38.1 h1:UZ5zAJi0caSmaOniVy33pyY7ANxyf4PmPeLSuYZpDro=
+-github.com/enfein/mieru/v3 v3.38.1/go.mod h1:zJBUCsi5rxyvHM8fjFf+GLaEl4OEjjBXr1s5F6Qd3hM=
++github.com/enfein/mieru/v3 v3.39.0 h1:22WJN9i7I4FrY1cTAVp5KfKOFm4sWrXVOXhqf5fkdr8=
++github.com/enfein/mieru/v3 v3.39.0/go.mod h1:zJBUCsi5rxyvHM8fjFf+GLaEl4OEjjBXr1s5F6Qd3hM=
+ github.com/ericlagergren/aegis v0.0.0-20250325060835-cd0defd64358 h1:kXYqH/sL8dS/FdoFjr12ePjnLPorPo2FsnrHNuXSDyo=
+ github.com/ericlagergren/aegis v0.0.0-20250325060835-cd0defd64358/go.mod h1:hkIFzoiIPZYxdFOOLyDho59b7SrDfo+w3h+yWdlg45I=
+ github.com/ericlagergren/polyval v0.0.0-20220411101811-e25bc10ba391 h1:8j2RH289RJplhA6WfdaPqzg1MjH2K8wX5e0uhAxrw2g=
+@@ -153,8 +153,8 @@ github.com/metacubex/restls-client-go v0.1.9 h1:QmLKwVFuAjB6rL9lQNKj8CuwHqGMJjV3
+ github.com/metacubex/restls-client-go v0.1.9/go.mod h1:BN/U52vPw7j8VTSh2vleD/MnmVKCov84mS5VcjVHH4g=
+ github.com/metacubex/sevenzip v1.6.4 h1:OIL+DeOeSAbKNsjqxcYUMiarRmX6Kaxakb0GT7E9Oik=
+ github.com/metacubex/sevenzip v1.6.4/go.mod h1:FP3X9bzFKj9wPxifGN9B3w2fIEicMjzKYIGIhnu+1pw=
+-github.com/metacubex/sing v0.5.8 h1:OwJDSPP+pza6Ywt7NMR4kEYq+UNrsIywSk/eAMlqxz8=
+-github.com/metacubex/sing v0.5.8/go.mod h1:ypf0mjwlZm0sKdQSY+yQvmsbWa0hNPtkeqyRMGgoN+w=
++github.com/metacubex/sing v0.5.9 h1:R4JVFIHnkbRsvvrZs/sYAdoZ9K/P6DqlD8ZoSQAejFs=
++github.com/metacubex/sing v0.5.9/go.mod h1:ynXUNwUt4dfOFO805EWzw3ORmNWXoexziwn5XYCfsq8=
+ github.com/metacubex/sing-mux v0.3.12 h1:80jrJsGgRW7ZHpJCRpwJhG3yzT5muEHIWjaOsDJZ2wE=
+ github.com/metacubex/sing-mux v0.3.12/go.mod h1:8bT7ZKT3clRrJjYc/x5CRYibC1TX/bK73a3r3+2E+Fc=
+ github.com/metacubex/sing-quic v0.0.0-20260904234848-1c242664697a h1:qZzQwtWDrPU1LXoMow0/iLHY3mb7uauS/mho8hYcenE=
+@@ -163,8 +163,8 @@ github.com/metacubex/sing-shadowsocks v0.2.13 h1:PKmInHy9+4nY3FLhmKcWdASUBo9WZ/K
+ github.com/metacubex/sing-shadowsocks v0.2.13/go.mod h1:2e5EIaw0rxKrm1YTRmiMnDulwbGxH9hAFlrwQLQMQkU=
+ github.com/metacubex/sing-shadowsocks2 v0.2.8 h1:6MoODu7BAcnwIC0w9muq+2LZVz01wWD07L5IRhOty9Q=
+ github.com/metacubex/sing-shadowsocks2 v0.2.8/go.mod h1:vOEbfKC60txi0ca+yUlqEwOGc3Obl6cnSgx9Gf45KjE=
+-github.com/metacubex/sing-tun v0.4.28 h1:IWcH13jEbsxzM5SZrRat3IeJG31WiF9fOj3r18yGHw4=
+-github.com/metacubex/sing-tun v0.4.28/go.mod h1:t2cK1AjogLda3/XxesmG0l7r1HzagLaUPBdNovhsb4Q=
++github.com/metacubex/sing-tun v0.4.29 h1:KIULEuW0iFXxLegOgrW8orq5Sx4TCBBhwo6j8+CIFBs=
++github.com/metacubex/sing-tun v0.4.29/go.mod h1:eCWMOzQLc804EJBORaOxUOHzqTjb8qbCnO2tbsQF1vA=
+ github.com/metacubex/sing-vmess v0.2.5 h1:m9Zt5I27lB9fmLMZfism9sH2LcnAfShZfwSkf6/KJoE=
+ github.com/metacubex/sing-vmess v0.2.5/go.mod h1:AwtlzUgf8COe9tRYAKqWZ+leDH7p5U98a0ZUpYehl8Q=
+ github.com/metacubex/sing-wireguard v0.0.0-20261002050126-e5fa1a607406 h1:sronRtbNXPCT9sOpcsISq87w4mLufxP7mQFUEg+zUCY=
+@@ -177,8 +177,8 @@ github.com/metacubex/tailscale v0.0.0-20260821153257-ff0ecd818181 h1:hWsSSzuCHe+
+ github.com/metacubex/tailscale v0.0.0-20260821153257-ff0ecd818181/go.mod h1:fMMYScJPYt8Ss3D4VhontA2uV2N9NPZbbXsPP6LgQeo=
+ github.com/metacubex/tailscale-wireguard-go v0.0.0-20260725073821-e61ab99cede2 h1:nKyLVJEU4jsLVx+rdqbDUbEKTX/Sdu161AeVoZC9tlY=
+ github.com/metacubex/tailscale-wireguard-go v0.0.0-20260725073821-e61ab99cede2/go.mod h1:W00EeoPdd2jbV3+ZUa0m2b7FdKx5B1LFsXvEpy7cToQ=
+-github.com/metacubex/tfo-go v0.0.0-20260623020846-376a77860b8c h1:+2C1UshSLzaogLY/IDz1XhOLxjhs3rkhVHB4eCN9Zto=
+-github.com/metacubex/tfo-go v0.0.0-20260623020846-376a77860b8c/go.mod h1:l9oLnLoEXyGZ5RVLsh7QCC5XsouTUyKk4F2nLm2DHLw=
++github.com/metacubex/tfo-go v0.0.0-20261026151606-08d83ec08c84 h1:mWjqcMU28lJ1+J9lkk/INJ1TIJbYvtarrsYiLlmEo48=
++github.com/metacubex/tfo-go v0.0.0-20261026151606-08d83ec08c84/go.mod h1:l9oLnLoEXyGZ5RVLsh7QCC5XsouTUyKk4F2nLm2DHLw=
+ github.com/metacubex/tls v0.1.9 h1:pcHJSwFeHNswF96Z5RQW+j5cmwI2AYPdsNumK6JJSls=
+ github.com/metacubex/tls v0.1.9/go.mod h1:0XeVdL0cBw+8i5Hqy3lVeP9IyD/LFTq02ExvHM6rzEM=
+ github.com/metacubex/utls v1.8.8 h1:7fiMYahL+tT1I/vG1MWidv88r/3A5NnPrurjzApZGyQ=
 @@ -255,6 +255,8 @@ github.com/tailscale/peercred v0.0.0-20250107143737-35a0c7bd7edc h1:24heQPtnFR+y
  github.com/tailscale/peercred v0.0.0-20250107143737-35a0c7bd7edc/go.mod h1:f93CXfllFsO9ZQVq+Zocb1Gp4G5Fz0b0rXHLOzt/Djc=
  github.com/u-root/uio v0.0.0-20230220225925-ffce2a382923 h1:tHNk7XK9GkmKUR6Gh8gVBKXc2MVSZ4G/NnWLtzw4gNA=
@@ -14562,6 +15333,767 @@ index b3593669..03180f09 100644
 +		f.Flush()
 +	}
 +}
+diff --git a/listener/config/shadowsocks.go b/listener/config/shadowsocks.go
+index 06450e59..d5b43e08 100644
+--- a/listener/config/shadowsocks.go
++++ b/listener/config/shadowsocks.go
+@@ -10,6 +10,7 @@ type ShadowsocksServer struct {
+ 	Enable     bool
+ 	Listen     string
+ 	Password   string
++	Users      map[string]string `yaml:"users" json:"users,omitempty"`
+ 	Cipher     string
+ 	Udp        bool
+ 	MuxOption  sing.MuxOption `yaml:"mux-option" json:"mux-option,omitempty"`
+diff --git a/listener/config/snell.go b/listener/config/snell.go
+index d4f9aef7..99f4a772 100644
+--- a/listener/config/snell.go
++++ b/listener/config/snell.go
+@@ -6,6 +6,7 @@ type SnellServer struct {
+ 	Listen    string
+ 	Psk       string
+ 	Version   int
++	Mode      string // v6 only: default / unshaped / unsafe-raw
+ 	UDP       bool
+ 	ObfsMode  string
+ 	ObfsHost  string
+diff --git a/listener/inbound/mieru.go b/listener/inbound/mieru.go
+index 7e9be228..9f214a38 100644
+--- a/listener/inbound/mieru.go
++++ b/listener/inbound/mieru.go
+@@ -2,6 +2,7 @@ package inbound
+ 
+ import (
+ 	"fmt"
++	"strconv"
+ 	"sync"
+ 
+ 	"github.com/metacubex/mihomo/adapter/inbound"
+@@ -25,10 +26,11 @@ type Mieru struct {
+ 
+ type MieruOption struct {
+ 	BaseOption
+-	Transport           string            `inbound:"transport"`
+-	Users               map[string]string `inbound:"users"`
+-	TrafficPattern      string            `inbound:"traffic-pattern,omitempty"`
+-	UserHintIsMandatory bool              `inbound:"user-hint-is-mandatory,omitempty"`
++	Transport            string            `inbound:"transport"`
++	Users                map[string]string `inbound:"users"`
++	TrafficPattern       string            `inbound:"traffic-pattern,omitempty"`
++	UserHintIsMandatory  bool              `inbound:"user-hint-is-mandatory,omitempty"`
++	TCPIdleTimeoutSecond int               `inbound:"tcp-idle-timeout,omitempty"`
+ }
+ 
+ func NewMieru(option *MieruOption) (*Mieru, error) {
+@@ -147,11 +149,12 @@ func buildMieruServerConfig(option *MieruOption, ports utils.IntRanges[uint16])
+ 	}
+ 	var trafficPattern *mierupb.TrafficPattern
+ 	trafficPattern, _ = mierutp.Decode(option.TrafficPattern)
+-	var advancedSettings *mierupb.ServerAdvancedSettings
++	advancedSettings := &mierupb.ServerAdvancedSettings{}
+ 	if option.UserHintIsMandatory {
+-		advancedSettings = &mierupb.ServerAdvancedSettings{
+-			UserHintIsMandatory: proto.Bool(true),
+-		}
++		advancedSettings.UserHintIsMandatory = proto.Bool(true)
++	}
++	if option.TCPIdleTimeoutSecond != 0 {
++		advancedSettings.TcpIdleTimeout = proto.String(strconv.Itoa(option.TCPIdleTimeoutSecond) + "s")
+ 	}
+ 	lc := option.ListenConfig()
+ 	return &mieruserver.ServerConfig{
+@@ -191,5 +194,8 @@ func validateMieruOption(option *MieruOption) error {
+ 			return fmt.Errorf("invalid traffic pattern %q: %w", option.TrafficPattern, err)
+ 		}
+ 	}
++	if option.TCPIdleTimeoutSecond != 0 && option.TCPIdleTimeoutSecond < 60 {
++		return fmt.Errorf("invalid TCP idle timeout: mininum supported value is 60")
++	}
+ 	return nil
+ }
+diff --git a/listener/inbound/mieru_test.go b/listener/inbound/mieru_test.go
+index bfe37474..015a868e 100644
+--- a/listener/inbound/mieru_test.go
++++ b/listener/inbound/mieru_test.go
+@@ -74,6 +74,20 @@ func TestNewMieru(t *testing.T) {
+ 			},
+ 			wantErr: false,
+ 		},
++		{
++			name: "valid TCP idle timeout",
++			args: args{
++				option: &inbound.MieruOption{
++					BaseOption: inbound.BaseOption{
++						Port: "8080",
++					},
++					Transport:            "TCP",
++					Users:                map[string]string{"user": "pass"},
++					TCPIdleTimeoutSecond: 60,
++				},
++			},
++			wantErr: false,
++		},
+ 		{
+ 			name: "invalid - no port",
+ 			args: args{
+@@ -162,6 +176,20 @@ func TestNewMieru(t *testing.T) {
+ 			},
+ 			wantErr: true,
+ 		},
++		{
++			name: "invalid TCP idle timeout",
++			args: args{
++				option: &inbound.MieruOption{
++					BaseOption: inbound.BaseOption{
++						Port: "8080",
++					},
++					Transport:            "TCP",
++					Users:                map[string]string{"user": "pass"},
++					TCPIdleTimeoutSecond: 10,
++				},
++			},
++			wantErr: true,
++		},
+ 	}
+ 	for _, tt := range tests {
+ 		t.Run(tt.name, func(t *testing.T) {
+diff --git a/listener/inbound/shadowsocks.go b/listener/inbound/shadowsocks.go
+index 4657a54c..13f06f64 100644
+--- a/listener/inbound/shadowsocks.go
++++ b/listener/inbound/shadowsocks.go
+@@ -1,6 +1,7 @@
+ package inbound
+ 
+ import (
++	"errors"
+ 	"strings"
+ 
+ 	C "github.com/metacubex/mihomo/constant"
+@@ -11,15 +12,16 @@ import (
+ 
+ type ShadowSocksOption struct {
+ 	BaseOption
+-	Password   string     `inbound:"password"`
+-	Cipher     string     `inbound:"cipher"`
+-	UDP        bool       `inbound:"udp,omitempty"`
+-	MuxOption  MuxOption  `inbound:"mux-option,omitempty"`
+-	ShadowTLS  ShadowTLS  `inbound:"shadow-tls,omitempty"`
+-	ResTLS     ResTLS     `inbound:"res-tls,omitempty"`
+-	JLSConfig  JLSConfig  `inbound:"jls-config,omitempty"`
+-	KcpTun     KcpTun     `inbound:"kcp-tun,omitempty"`
+-	SimpleObfs SimpleObfs `inbound:"simple-obfs,omitempty"`
++	Password   string            `inbound:"password,omitempty"`
++	Users      map[string]string `inbound:"users,omitempty"`
++	Cipher     string            `inbound:"cipher"`
++	UDP        bool              `inbound:"udp,omitempty"`
++	MuxOption  MuxOption         `inbound:"mux-option,omitempty"`
++	ShadowTLS  ShadowTLS         `inbound:"shadow-tls,omitempty"`
++	ResTLS     ResTLS            `inbound:"res-tls,omitempty"`
++	JLSConfig  JLSConfig         `inbound:"jls-config,omitempty"`
++	KcpTun     KcpTun            `inbound:"kcp-tun,omitempty"`
++	SimpleObfs SimpleObfs        `inbound:"simple-obfs,omitempty"`
+ }
+ 
+ type SimpleObfs struct {
+@@ -50,6 +52,9 @@ func NewShadowSocks(options *ShadowSocksOption) (*ShadowSocks, error) {
+ 	if err != nil {
+ 		return nil, err
+ 	}
++	if options.Password == "" && len(options.Users) == 0 {
++		return nil, errors.New("shadowsocks: missing password")
++	}
+ 	return &ShadowSocks{
+ 		Base:   base,
+ 		config: options,
+@@ -57,6 +62,7 @@ func NewShadowSocks(options *ShadowSocksOption) (*ShadowSocks, error) {
+ 			Enable:     true,
+ 			Listen:     base.RawAddress(),
+ 			Password:   options.Password,
++			Users:      options.Users,
+ 			Cipher:     options.Cipher,
+ 			Udp:        options.UDP,
+ 			MuxOption:  options.MuxOption.Build(),
+diff --git a/listener/inbound/shadowsocks_test.go b/listener/inbound/shadowsocks_test.go
+index 86b70b5d..c74d3232 100644
+--- a/listener/inbound/shadowsocks_test.go
++++ b/listener/inbound/shadowsocks_test.go
+@@ -1,14 +1,19 @@
+ package inbound_test
+ 
+ import (
++	"context"
+ 	"crypto/rand"
+ 	"encoding/base64"
+ 	"net"
+ 	"net/netip"
+ 	"strings"
++	"sync"
+ 	"testing"
++	"time"
+ 
+ 	"github.com/metacubex/mihomo/adapter/outbound"
++	"github.com/metacubex/mihomo/component/generator"
++	C "github.com/metacubex/mihomo/constant"
+ 	"github.com/metacubex/mihomo/listener/inbound"
+ 	"github.com/metacubex/mihomo/transport/jls"
+ 	"github.com/metacubex/mihomo/transport/kcptun"
+@@ -249,6 +254,185 @@ func TestInboundShadowSocks_SimpleObfs_Tls(t *testing.T) {
+ 	testInboundShadowSocks(t, inboundOptions, outboundOptions, shadowsocksCipherShortLists, false)
+ }
+ 
++var shadowsocksMultiUserCipherList = append(append([]string{}, shadowaead.List...),
++	"2022-blake3-aes-128-gcm",
++	"2022-blake3-aes-256-gcm",
++	"2022-blake3-aes-128-ccm",
++	"2022-blake3-aes-256-ccm",
++)
++
++func TestInboundShadowSocks_MultiUsers(t *testing.T) {
++	t.Parallel()
++	t.Run("InvalidConfigs", func(t *testing.T) {
++		t.Parallel()
++		tests := []struct {
++			name     string
++			cipher   string
++			password string
++			users    map[string]string
++		}{
++			{"None", shadowsocks.MethodNone, "", map[string]string{"user1": "password"}},
++			{"Stream", shadowstream.List[0], "", map[string]string{"user1": "password"}},
++			{"2022Chacha20", "2022-blake3-chacha20-poly1305", shadowsocksPassword32, map[string]string{"user1": shadowsocksPassword32}},
++			{"2022MissingServerPassword", "2022-blake3-aes-128-gcm", "", map[string]string{"user1": shadowsocksPassword16}},
++			{"2022ShortUserKey", "2022-blake3-aes-256-gcm", shadowsocksPassword32, map[string]string{"user1": shadowsocksPassword16}},
++			{"AEADWithPassword", "aes-128-gcm", "password", map[string]string{"user1": "password1"}},
++			{"AEADEmptyUserPassword", "aes-128-gcm", "", map[string]string{"user1": ""}},
++		}
++		for _, test := range tests {
++			test := test
++			t.Run(test.name, func(t *testing.T) {
++				t.Parallel()
++				in, err := inbound.NewShadowSocks(&inbound.ShadowSocksOption{
++					BaseOption: inbound.BaseOption{
++						NameStr: "shadowsocks_inbound",
++						Listen:  "127.0.0.1",
++						Port:    "0",
++					},
++					Password: test.password,
++					Users:    test.users,
++					Cipher:   test.cipher,
++				})
++				if !assert.NoError(t, err) {
++					return
++				}
++				err = in.Listen(nil)
++				if !assert.Error(t, err) {
++					_ = in.Close()
++				}
++			})
++		}
++	})
++	for _, cipher := range shadowsocksMultiUserCipherList {
++		cipher := cipher
++		t.Run(cipher, func(t *testing.T) {
++			t.Parallel()
++
++			newShadowSocksKey := func(cipher string) string {
++				bits := 256
++				if strings.Contains(cipher, "-128-") {
++					bits = 128
++				}
++				key, err := generator.GenShadowsocksPassword(bits)
++				if err != nil {
++					panic(err)
++				}
++				return key
++			}
++
++			is2022 := strings.HasPrefix(cipher, "2022-")
++			var serverPassword string
++			if is2022 {
++				serverPassword = newShadowSocksKey(cipher)
++			}
++			users := map[string]string{
++				"user1": newShadowSocksKey(cipher),
++				"user2": newShadowSocksKey(cipher),
++			}
++			inboundOptions := inbound.ShadowSocksOption{
++				BaseOption: inbound.BaseOption{
++					NameStr: "shadowsocks_inbound",
++					Listen:  "127.0.0.1",
++					Port:    "0",
++				},
++				Password: serverPassword,
++				Users:    users,
++				Cipher:   cipher,
++			}
++			in, err := inbound.NewShadowSocks(&inboundOptions)
++			if !assert.NoError(t, err) {
++				return
++			}
++
++			tunnel := NewHttpTestTunnel()
++			defer tunnel.Close()
++
++			var inUsers []string
++			var inUsersMu sync.Mutex
++			handleTCPConn := tunnel.HandleTCPConnFn
++			tunnel.HandleTCPConnFn = func(conn net.Conn, metadata *C.Metadata) {
++				inUsersMu.Lock()
++				inUsers = append(inUsers, metadata.InUser)
++				inUsersMu.Unlock()
++				handleTCPConn(conn, metadata)
++			}
++			takeInUsers := func() []string {
++				inUsersMu.Lock()
++				defer inUsersMu.Unlock()
++				users := inUsers
++				inUsers = nil
++				return users
++			}
++
++			err = in.Listen(tunnel)
++			if !assert.NoError(t, err) {
++				return
++			}
++			defer in.Close()
++
++			addrPort, err := netip.ParseAddrPort(in.Address())
++			if !assert.NoError(t, err) {
++				return
++			}
++
++			newOutbound := func(password string) (*outbound.ShadowSocks, error) {
++				if is2022 {
++					password = serverPassword + ":" + password
++				}
++				outboundOptions := outbound.ShadowSocksOption{
++					Name:     "shadowsocks_outbound",
++					Server:   addrPort.Addr().String(),
++					Port:     int(addrPort.Port()),
++					Password: password,
++					Cipher:   cipher,
++				}
++				outboundOptions.DialerForAPI = tunnel.NewDialer()
++				outboundOptions.TunnelForAPI = tunnel
++				return outbound.NewShadowSocks(outboundOptions)
++			}
++
++			for username, password := range users {
++				username, password := username, password
++				t.Run(username, func(t *testing.T) {
++					out, err := newOutbound(password)
++					if !assert.NoError(t, err) {
++						return
++					}
++					defer out.Close()
++
++					tunnel.DoTest(t, out)
++
++					inUsers := takeInUsers()
++					assert.NotEmpty(t, inUsers)
++					for _, inUser := range inUsers {
++						assert.Equal(t, username, inUser)
++					}
++				})
++			}
++
++			t.Run("UnknownUser", func(t *testing.T) {
++				out, err := newOutbound(newShadowSocksKey(cipher))
++				if !assert.NoError(t, err) {
++					return
++				}
++				defer out.Close()
++
++				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
++				defer cancel()
++				conn, err := out.DialContext(ctx, &C.Metadata{NetWork: C.TCP, DstIP: remoteAddr, DstPort: 80})
++				if err == nil {
++					_ = conn.SetDeadline(time.Now().Add(5 * time.Second))
++					_, _ = conn.Write([]byte("GET / HTTP/1.1\r\nHost: 1.2.3.4\r\n\r\n"))
++					_, err = conn.Read(make([]byte, 1))
++					_ = conn.Close()
++				}
++				assert.Error(t, err)
++				assert.Empty(t, takeInUsers())
++			})
++		})
++	}
++}
++
+ func TestInboundShadowSocks_KcpTun(t *testing.T) {
+ 	if winGo120 {
+ 		t.Skip("skip kcptun test on windows go1.20")
+diff --git a/listener/inbound/snell.go b/listener/inbound/snell.go
+index 93c52d3c..36d3bc08 100644
+--- a/listener/inbound/snell.go
++++ b/listener/inbound/snell.go
+@@ -14,6 +14,7 @@ type SnellOption struct {
+ 	BaseOption
+ 	Psk       string          `inbound:"psk"`
+ 	Version   int             `inbound:"version,omitempty"`
++	Mode      string          `inbound:"mode,omitempty"` // v6 only: default / unshaped / unsafe-raw
+ 	UDP       bool            `inbound:"udp,omitempty"`
+ 	ObfsOpts  SnellObfsOption `inbound:"obfs-opts,omitempty"`
+ 	ShadowTLS ShadowTLS       `inbound:"shadow-tls,omitempty"`
+@@ -45,7 +46,7 @@ func NewSnell(options *SnellOption) (*Snell, error) {
+ 	if options.Version == 0 {
+ 		options.Version = 4
+ 	}
+-	if options.Version < 1 || options.Version > 5 {
++	if options.Version < 1 || options.Version > 6 {
+ 		return nil, fmt.Errorf("snell inbound version %d is not supported", options.Version)
+ 	}
+ 
+@@ -56,6 +57,7 @@ func NewSnell(options *SnellOption) (*Snell, error) {
+ 			Listen:    base.RawAddress(),
+ 			Psk:       options.Psk,
+ 			Version:   options.Version,
++			Mode:      options.Mode,
+ 			UDP:       options.UDP,
+ 			ObfsMode:  options.ObfsOpts.Mode,
+ 			ObfsHost:  options.ObfsOpts.Host,
+diff --git a/listener/inbound/snell_test.go b/listener/inbound/snell_test.go
+index ff53a202..929dab57 100644
+--- a/listener/inbound/snell_test.go
++++ b/listener/inbound/snell_test.go
+@@ -1,11 +1,16 @@
+ package inbound_test
+ 
+ import (
++	"bytes"
++	"context"
++	"crypto/rand"
+ 	"net"
+ 	"net/netip"
+ 	"testing"
++	"time"
+ 
+ 	"github.com/metacubex/mihomo/adapter/outbound"
++	C "github.com/metacubex/mihomo/constant"
+ 	"github.com/metacubex/mihomo/listener/inbound"
+ 	"github.com/metacubex/mihomo/transport/jls"
+ 	"github.com/metacubex/mihomo/transport/restls"
+@@ -157,3 +162,171 @@ func TestInboundSnell_JLS(t *testing.T) {
+ 	}
+ 	testInboundSnellUTLS(t, inboundOptions, outboundOptions)
+ }
++
++func TestInboundSnell_V6(t *testing.T) {
++	for _, mode := range []string{"default", "unshaped", "unsafe-raw"} {
++		mode := mode
++		t.Run(mode, func(t *testing.T) {
++			t.Parallel()
++			t.Run("TCP", func(t *testing.T) {
++				inboundOptions := inbound.SnellOption{Version: 6, Mode: mode}
++				outboundOptions := outbound.SnellOption{Version: 6, Mode: mode}
++				testInboundSnell(t, inboundOptions, outboundOptions)
++			})
++			t.Run("TCPReuse", func(t *testing.T) {
++				inboundOptions := inbound.SnellOption{Version: 6, Mode: mode}
++				outboundOptions := outbound.SnellOption{Version: 6, Mode: mode, Reuse: true}
++				testInboundSnell(t, inboundOptions, outboundOptions)
++			})
++			t.Run("UDP", func(t *testing.T) {
++				testInboundSnellV6UDP(t, mode)
++			})
++		})
++	}
++}
++
++func TestInboundSnell_V6_ShadowTlsv3(t *testing.T) {
++	inboundOptions := inbound.SnellOption{
++		Version: 6,
++		ShadowTLS: inbound.ShadowTLS{
++			Enable:    true,
++			Version:   3,
++			Users:     []inbound.ShadowTLSUser{{Name: "test", Password: shadowsocksPassword16}},
++			Handshake: inbound.ShadowTLSHandshakeOptions{Dest: net.JoinHostPort(realityDest, "443")},
++		},
++	}
++	outboundOptions := outbound.SnellOption{
++		Version:  6,
++		ObfsOpts: map[string]any{"mode": shadowtls.Mode, "host": realityDest, "password": shadowsocksPassword16, "fingerprint": tlsFingerprint, "version": 3},
++	}
++	testInboundSnellUTLS(t, inboundOptions, outboundOptions)
++}
++
++// testInboundSnellV6UDP runs a UDP-over-TCP echo through the v6 inbound: the
++// test tunnel reflects every datagram back to the source it came from.
++func testInboundSnellV6UDP(t *testing.T, mode string) {
++	t.Parallel()
++	inboundOptions := inbound.SnellOption{
++		BaseOption: inbound.BaseOption{
++			NameStr: "snell_inbound_udp",
++			Listen:  "127.0.0.1",
++			Port:    "0",
++		},
++		Psk:     userUUID,
++		Version: 6,
++		Mode:    mode,
++		UDP:     true,
++	}
++	in, err := inbound.NewSnell(&inboundOptions)
++	if !assert.NoError(t, err) {
++		return
++	}
++
++	tunnel := NewHttpTestTunnel()
++	defer tunnel.Close()
++	tunnel.HandleUDPPacketFn = func(packet C.UDPPacket, metadata *C.Metadata) {
++		defer packet.Drop()
++		if !assert.Equal(t, C.SNELL, metadata.Type) {
++			return
++		}
++		_, err := packet.WriteBack(packet.Data(), metadata.UDPAddr())
++		assert.NoError(t, err)
++	}
++
++	err = in.Listen(tunnel)
++	if !assert.NoError(t, err) {
++		return
++	}
++	defer in.Close()
++
++	addrPort, err := netip.ParseAddrPort(in.Address())
++	if !assert.NoError(t, err) {
++		return
++	}
++
++	outboundOptions := outbound.SnellOption{
++		Name:    "snell_outbound_udp",
++		Server:  addrPort.Addr().String(),
++		Port:    int(addrPort.Port()),
++		Psk:     userUUID,
++		Version: 6,
++		Mode:    mode,
++		UDP:     true,
++	}
++	outboundOptions.DialerForAPI = tunnel.NewDialer()
++	outboundOptions.TunnelForAPI = tunnel
++	out, err := outbound.NewSnell(outboundOptions)
++	if !assert.NoError(t, err) {
++		return
++	}
++	defer out.Close()
++
++	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
++	defer cancel()
++	target := &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 53}
++	pc, err := out.ListenPacketContext(ctx, &C.Metadata{
++		NetWork: C.UDP,
++		DstIP:   netip.MustParseAddr("127.0.0.1"),
++		DstPort: 53,
++	})
++	if !assert.NoError(t, err) {
++		return
++	}
++	defer pc.Close()
++
++	for round := 0; round < 5; round++ {
++		message := make([]byte, 1200)
++		_, err = rand.Read(message)
++		if !assert.NoError(t, err) {
++			return
++		}
++		_, err = pc.WriteTo(message, target)
++		if !assert.NoError(t, err) {
++			return
++		}
++
++		received := make([]byte, 2048)
++		if !assert.NoError(t, pc.SetReadDeadline(time.Now().Add(10*time.Second))) {
++			return
++		}
++		n, from, err := pc.ReadFrom(received)
++		if !assert.NoError(t, err, "round %d", round) {
++			return
++		}
++		assert.Equal(t, target.String(), from.String())
++		assert.True(t, bytes.Equal(message, received[:n]), "round %d payload mismatch", round)
++	}
++}
++
++func TestInboundSnell_V6_Validation(t *testing.T) {
++	t.Parallel()
++	newInbound := func(options inbound.SnellOption) error {
++		options.BaseOption = inbound.BaseOption{
++			NameStr: "snell_inbound_validation",
++			Listen:  "127.0.0.1",
++			Port:    "0",
++		}
++		if options.Psk == "" {
++			options.Psk = userUUID
++		}
++		in, err := inbound.NewSnell(&options)
++		if err != nil {
++			return err
++		}
++		tunnel := NewHttpTestTunnel()
++		defer tunnel.Close()
++		err = in.Listen(tunnel)
++		if err == nil {
++			_ = in.Close()
++		}
++		return err
++	}
++
++	assert.Error(t, newInbound(inbound.SnellOption{Version: 6, Psk: "short"}), "psk shorter than 12 bytes must be rejected")
++	assert.Error(t, newInbound(inbound.SnellOption{Version: 6, ObfsOpts: inbound.SnellObfsOption{Mode: "http"}}), "v6 has no simple-obfs layer")
++	assert.Error(t, newInbound(inbound.SnellOption{Version: 6, ObfsOpts: inbound.SnellObfsOption{Mode: "tls"}}), "v6 has no simple-obfs layer")
++	assert.Error(t, newInbound(inbound.SnellOption{Version: 6, Mode: "bogus"}), "unknown mode must be rejected")
++	assert.Error(t, newInbound(inbound.SnellOption{Version: 4, Mode: "unshaped"}), "mode is v6 only")
++	assert.Error(t, newInbound(inbound.SnellOption{Version: 7}), "unknown version must be rejected")
++	assert.NoError(t, newInbound(inbound.SnellOption{Version: 6, Mode: "unshaped"}))
++}
+diff --git a/listener/sing_shadowsocks/server.go b/listener/sing_shadowsocks/server.go
+index ee169280..d9aeee16 100644
+--- a/listener/sing_shadowsocks/server.go
++++ b/listener/sing_shadowsocks/server.go
+@@ -2,8 +2,10 @@ package sing_shadowsocks
+ 
+ import (
+ 	"context"
++	"errors"
+ 	"fmt"
+ 	"net"
++	"os"
+ 	"strings"
+ 
+ 	"github.com/metacubex/mihomo/adapter/inbound"
+@@ -36,10 +38,16 @@ type Listener struct {
+ 	config       LC.ShadowsocksServer
+ 	listeners    []net.Listener
+ 	udpListeners []net.PacketConn
+-	service      shadowsocks.Service
++	service      service
+ 	simpleObfs   func(net.Conn) net.Conn
+ }
+ 
++// service is the common part of shadowsocks.Service and shadowsocks.MultiService
++type service interface {
++	network.TCPConnectionHandler
++	network.UDPHandler
++}
++
+ var _listener *Listener
+ 
+ func New(config LC.ShadowsocksServer, lc C.InboundListenConfig, tunnel C.Tunnel, additions ...inbound.Addition) (C.MultiAddrListener, error) {
+@@ -71,6 +79,8 @@ func New(config LC.ShadowsocksServer, lc C.InboundListenConfig, tunnel C.Tunnel,
+ 	sl.config = config
+ 
+ 	switch {
++	case len(config.Users) > 0:
++		sl.service, err = newMultiService(config, udpTimeout, h)
+ 	case config.Cipher == shadowsocks.MethodNone:
+ 		sl.service = shadowsocks.NewNoneService(udpTimeout, h)
+ 	case common.Contains(shadowaead.List, config.Cipher):
+@@ -233,6 +243,48 @@ func New(config LC.ShadowsocksServer, lc C.InboundListenConfig, tunnel C.Tunnel,
+ 	return sl, nil
+ }
+ 
++// newMultiService creates a service that identifies the user by its password,
++// the matched username is passed to the tunnel as metadata.InUser.
++//
++// For 2022-blake3-aes-* methods, config.Password is the server PSK (iPSK) and each user password is
++// the user PSK (uPSK), so the client password is "iPSK:uPSK".
++// For legacy AEAD methods, each user password is used directly and config.Password must be empty.
++// Legacy AEAD has no user identity in the packet, so every user is tried for each packet, which makes
++// the cost grow linearly with the number of users.
++func newMultiService(config LC.ShadowsocksServer, udpTimeout int64, handler shadowsocks.Handler) (service, error) {
++	var multiService shadowsocks.MultiService[string]
++	var err error
++	switch {
++	case common.Contains(shadowaead.List, config.Cipher):
++		if config.Password != "" {
++			return nil, fmt.Errorf("shadowsocks: password must be empty when users is set for method: %s", config.Cipher)
++		}
++		multiService, err = shadowaead.NewMultiService[string](config.Cipher, udpTimeout, handler)
++	case common.Contains(shadowaead_2022.List, config.Cipher):
++		multiService, err = shadowaead_2022.NewMultiServiceWithPassword[string](config.Cipher, config.Password, udpTimeout, handler, ntp.Now)
++		if errors.Is(err, os.ErrInvalid) { // 2022-blake3-chacha*-poly1305 can't identify users
++			err = fmt.Errorf("shadowsocks: users is not supported for method: %s", config.Cipher)
++		}
++	default:
++		err = fmt.Errorf("shadowsocks: users is not supported for method: %s", config.Cipher)
++	}
++	if err != nil {
++		return nil, err
++	}
++
++	userNameList := make([]string, 0, len(config.Users))
++	userPasswordList := make([]string, 0, len(config.Users))
++	for name, password := range config.Users {
++		userNameList = append(userNameList, name)
++		userPasswordList = append(userPasswordList, password)
++	}
++	err = multiService.UpdateUsersWithPasswords(userNameList, userPasswordList)
++	if err != nil {
++		return nil, err
++	}
++	return multiService, nil
++}
++
+ func (l *Listener) Close() error {
+ 	l.closed = true
+ 	var retErr error
+diff --git a/listener/snell/server.go b/listener/snell/server.go
+index e8c0a87a..0c68e14f 100644
+--- a/listener/snell/server.go
++++ b/listener/snell/server.go
+@@ -31,6 +31,7 @@ type Listener struct {
+ 	closed    bool
+ 	config    LC.SnellServer
+ 	listeners []net.Listener
++	v6Mode    snell.V6Mode // only used for version 6
+ }
+ 
+ func New(config LC.SnellServer, lc C.InboundListenConfig, tunnel C.Tunnel, additions ...inbound.Addition) (C.MultiAddrListener, error) {
+@@ -39,6 +40,10 @@ func New(config LC.SnellServer, lc C.InboundListenConfig, tunnel C.Tunnel, addit
+ 	}
+ 	switch config.Version {
+ 	case snell.Version1, snell.Version2, snell.Version3, snell.Version4, snell.Version5:
++		if config.Mode != "" {
++			return nil, errors.New("snell inbound mode is only supported on version 6")
++		}
++	case snell.Version6:
+ 	default:
+ 		return nil, fmt.Errorf("snell inbound version %d is not supported", config.Version)
+ 	}
+@@ -52,6 +57,20 @@ func New(config LC.SnellServer, lc C.InboundListenConfig, tunnel C.Tunnel, addit
+ 	}
+ 
+ 	l := &Listener{config: config}
++	if config.Version == snell.Version6 {
++		if err := snell.ValidateV6PSK([]byte(config.Psk)); err != nil {
++			return nil, fmt.Errorf("snell inbound %w", err)
++		}
++		if config.ObfsMode != "" {
++			// v6 replaced the simple-obfs layer with PSK-derived traffic shaping
++			return nil, fmt.Errorf("snell inbound version 6 does not support obfs mode %s", config.ObfsMode)
++		}
++		var err error
++		l.v6Mode, err = snell.ParseV6Mode(config.Mode)
++		if err != nil {
++			return nil, fmt.Errorf("snell inbound %w", err)
++		}
++	}
+ 
+ 	securityModes := make([]string, 0, 3)
+ 	if config.ShadowTLS.Enable {
+@@ -162,7 +181,12 @@ func (l *Listener) HandleConn(rawConn net.Conn, tunnel C.Tunnel, additions ...in
+ 	default:
+ 		return
+ 	}
+-	stream := snell.ServerStreamConn(conn, []byte(l.config.Psk), l.config.Version)
++	var stream *snell.Snell
++	if l.config.Version == snell.Version6 {
++		stream = snell.ServerStreamConnV6(conn, []byte(l.config.Psk), l.v6Mode)
++	} else {
++		stream = snell.ServerStreamConn(conn, []byte(l.config.Psk), l.config.Version)
++	}
+ 	for {
+ 		reuse, err := l.handleRequest(stream, tunnel, additions...)
+ 		if err != nil || !reuse {
 diff --git a/main.go b/main.go
 index 972caf8b..1c162f4f 100644
 --- a/main.go
@@ -14647,6 +16179,1582 @@ index d220758d..6a5ac5e2 100644
  func (s *wrappedQUICStream) StreamID() quic.StreamID {
  	return s.Stream.StreamID()
  }
+diff --git a/transport/snell/snell.go b/transport/snell/snell.go
+index 12548dd8..a05a3d9f 100644
+--- a/transport/snell/snell.go
++++ b/transport/snell/snell.go
+@@ -20,6 +20,7 @@ const (
+ 	Version3            = 3
+ 	Version4            = 4
+ 	Version5            = 5
++	Version6            = 6
+ 	DefaultSnellVersion = Version1
+ 
+ 	// max packet length
+@@ -154,6 +155,9 @@ func HalfClose(conn net.Conn) error {
+ }
+ 
+ func StreamConn(conn net.Conn, psk []byte, version int) *Snell {
++	if version >= Version6 {
++		return StreamConnV6(conn, psk, V6ModeDefault)
++	}
+ 	if version >= Version4 {
+ 		return &Snell{Conn: newV4Conn(conn, psk)}
+ 	}
+@@ -173,6 +177,18 @@ func ServerStreamConn(conn net.Conn, psk []byte, version int) *Snell {
+ 	return stream
+ }
+ 
++// StreamConnV6 wraps conn with the Snell v6 record layer in the given mode.
++// The request/reply layer above it is shared with the other versions.
++func StreamConnV6(conn net.Conn, psk []byte, mode V6Mode) *Snell {
++	return &Snell{Conn: newV6Conn(conn, psk, mode)}
++}
++
++func ServerStreamConnV6(conn net.Conn, psk []byte, mode V6Mode) *Snell {
++	stream := StreamConnV6(conn, psk, mode)
++	stream.reply = true
++	return stream
++}
++
+ func PacketConn(conn net.Conn) net.PacketConn {
+ 	return &packetConn{
+ 		Conn: conn,
+diff --git a/transport/snell/v6.go b/transport/snell/v6.go
+new file mode 100644
+index 00000000..0b382d7c
+--- /dev/null
++++ b/transport/snell/v6.go
+@@ -0,0 +1,663 @@
++package snell
++
++import (
++	"crypto/cipher"
++	cryptorand "crypto/rand"
++	"encoding/binary"
++	"errors"
++	"fmt"
++	"io"
++	"net"
++	"sync"
++	"time"
++
++	"github.com/metacubex/mihomo/transport/shadowsocks/shadowaead"
++)
++
++// Snell v6 keeps the v4 record layout (7-byte header sealed with AES-128-GCM,
++// followed by the sealed payload) but wraps it in a PSK-derived "profile": the
++// salt is scattered inside a padded block, every record carries an unencrypted
++// prefix that doubles as the header's AAD, padding is interleaved with the
++// payload ciphertext and record sizes follow a shaped schedule. The `unshaped`
++// mode drops the profile layer and the `unsafe-raw` mode drops the crypto as
++// well; both must match the server's configured mode.
++
++type V6Mode int
++
++const (
++	V6ModeDefault V6Mode = iota
++	V6ModeUnshaped
++	V6ModeUnsafeRaw
++)
++
++func ParseV6Mode(name string) (V6Mode, error) {
++	switch name {
++	case "", "default":
++		return V6ModeDefault, nil
++	case "unshaped":
++		return V6ModeUnshaped, nil
++	case "unsafe-raw":
++		return V6ModeUnsafeRaw, nil
++	default:
++		return 0, fmt.Errorf("snell v6 unknown mode: %s", name)
++	}
++}
++
++func (m V6Mode) String() string {
++	switch m {
++	case V6ModeDefault:
++		return "default"
++	case V6ModeUnshaped:
++		return "unshaped"
++	case V6ModeUnsafeRaw:
++		return "unsafe-raw"
++	default:
++		return fmt.Sprintf("mode(%d)", int(m))
++	}
++}
++
++const (
++	v6SaltSize         = 16
++	v6NonceSize        = 12
++	v6TagSize          = 16
++	v6HeaderVersion    = 4
++	v6HeaderPlainSize  = 7
++	v6HeaderCipherSize = v6HeaderPlainSize + v6TagSize
++	v6MaxPayload       = 0xffff
++	// the official server rejects PSKs outside this range
++	V6MinPSKLength = 12
++	V6MaxPSKLength = 255
++)
++
++var (
++	errV6BadHeader      = errors.New("snell v6 invalid record header")
++	errV6RecordPadding  = errors.New("snell v6 unexpected padding in record")
++	errV6PayloadTooLong = errors.New("snell v6 payload too large")
++)
++
++func ValidateV6PSK(psk []byte) error {
++	if len(psk) < V6MinPSKLength || len(psk) > V6MaxPSKLength {
++		return fmt.Errorf("snell v6 psk length must be between %d and %d bytes", V6MinPSKLength, V6MaxPSKLength)
++	}
++	return nil
++}
++
++type v6RecordReader interface {
++	// readRecord returns the payload of the next record, or
++	// shadowaead.ErrZeroChunk for an end-of-stream record.
++	readRecord() ([]byte, error)
++}
++
++type v6RecordWriter interface {
++	// write splits p into as many records as the mode requires
++	write(p []byte) error
++	// writePacket emits p as exactly one record
++	writePacket(p []byte) error
++	writeZeroChunk() error
++}
++
++type v6Conn struct {
++	net.Conn
++	psk     []byte
++	mode    V6Mode
++	profile *v6Profile
++
++	r    v6RecordReader
++	rBuf []byte
++	rMux sync.Mutex
++
++	w    v6RecordWriter
++	wMux sync.Mutex
++}
++
++func newV6Conn(conn net.Conn, psk []byte, mode V6Mode) *v6Conn {
++	c := &v6Conn{Conn: conn, psk: psk, mode: mode}
++	if mode == V6ModeDefault {
++		c.profile = newV6Profile(psk)
++	}
++	return c
++}
++
++func (c *v6Conn) initReader() {
++	switch c.mode {
++	case V6ModeUnsafeRaw:
++		c.r = &v6RawReader{Reader: c.Conn}
++	case V6ModeUnshaped:
++		c.r = &v6UnshapedReader{Reader: c.Conn, psk: c.psk}
++	default:
++		c.r = &v6ShapedReader{Reader: c.Conn, psk: c.psk, profile: c.profile}
++	}
++}
++
++func (c *v6Conn) initWriter() error {
++	switch c.mode {
++	case V6ModeUnsafeRaw:
++		c.w = &v6RawWriter{Writer: c.Conn}
++		return nil
++	case V6ModeUnshaped:
++		w, err := newV6UnshapedWriter(c.Conn, c.psk)
++		if err != nil {
++			return err
++		}
++		c.w = w
++		return nil
++	default:
++		w, err := newV6ShapedWriter(c.Conn, c.psk, c.profile)
++		if err != nil {
++			return err
++		}
++		c.w = w
++		return nil
++	}
++}
++
++func (c *v6Conn) Read(b []byte) (int, error) {
++	c.rMux.Lock()
++	defer c.rMux.Unlock()
++
++	if c.r == nil {
++		c.initReader()
++	}
++	if len(c.rBuf) == 0 {
++		payload, err := c.r.readRecord()
++		if err != nil {
++			return 0, err
++		}
++		c.rBuf = payload
++	}
++	n := copy(b, c.rBuf)
++	c.rBuf = c.rBuf[n:]
++	return n, nil
++}
++
++func (c *v6Conn) Write(b []byte) (int, error) {
++	c.wMux.Lock()
++	defer c.wMux.Unlock()
++
++	if c.w == nil {
++		if err := c.initWriter(); err != nil {
++			return 0, err
++		}
++	}
++	if len(b) == 0 {
++		return 0, c.w.writeZeroChunk()
++	}
++	if err := c.w.write(b); err != nil {
++		return 0, err
++	}
++	return len(b), nil
++}
++
++func (c *v6Conn) WritePacketFrame(b []byte) (int, error) {
++	if len(b) > v6MaxPayload {
++		return 0, errV6PayloadTooLong
++	}
++	c.wMux.Lock()
++	defer c.wMux.Unlock()
++
++	if c.w == nil {
++		if err := c.initWriter(); err != nil {
++			return 0, err
++		}
++	}
++	if err := c.w.writePacket(b); err != nil {
++		return 0, err
++	}
++	return len(b), nil
++}
++
++func (c *v6Conn) WriteTo(w io.Writer) (int64, error) {
++	var written int64
++	buf := make([]byte, v6MaxPayload)
++	for {
++		n, err := c.Read(buf)
++		if n > 0 {
++			nw, ew := w.Write(buf[:n])
++			written += int64(nw)
++			if ew != nil {
++				return written, ew
++			}
++			if nw != n {
++				return written, io.ErrShortWrite
++			}
++		}
++		if err != nil {
++			if err == io.EOF {
++				err = nil
++			}
++			return written, err
++		}
++	}
++}
++
++func (c *v6Conn) ReadFrom(r io.Reader) (int64, error) {
++	var read int64
++	buf := make([]byte, v6MaxPayload)
++	for {
++		n, err := r.Read(buf)
++		if n > 0 {
++			read += int64(n)
++			if _, ew := c.Write(buf[:n]); ew != nil {
++				return read, ew
++			}
++		}
++		if err != nil {
++			if err == io.EOF {
++				err = nil
++			}
++			return read, err
++		}
++	}
++}
++
++func v6AEAD(psk, salt []byte) (cipher.AEAD, error) {
++	return aesGCM(snellKDF(psk, salt, 16))
++}
++
++func v6RandomSalt() ([]byte, error) {
++	salt := make([]byte, v6SaltSize)
++	if _, err := io.ReadFull(cryptorand.Reader, salt); err != nil {
++		return nil, err
++	}
++	return salt, nil
++}
++
++func v6PutHeader(header []byte, paddingLength, payloadLength int) {
++	header[0] = v6HeaderVersion
++	header[1] = 0
++	header[2] = 0
++	binary.BigEndian.PutUint16(header[3:5], uint16(paddingLength))
++	binary.BigEndian.PutUint16(header[5:7], uint16(payloadLength))
++}
++
++// v6ParseHeader validates a plain header. strict additionally requires the two
++// reserved bytes to be zero, which the official server only checks outside of
++// the default mode.
++func v6ParseHeader(header []byte, strict bool) (paddingLength, payloadLength int, err error) {
++	if header[0] != v6HeaderVersion {
++		return 0, 0, errV6BadHeader
++	}
++	if strict && (header[1] != 0 || header[2] != 0) {
++		return 0, 0, errV6BadHeader
++	}
++	return int(binary.BigEndian.Uint16(header[3:5])), int(binary.BigEndian.Uint16(header[5:7])), nil
++}
++
++// --- unsafe-raw ---------------------------------------------------------------
++
++type v6RawReader struct {
++	io.Reader
++}
++
++func (r *v6RawReader) readRecord() ([]byte, error) {
++	var header [v6HeaderPlainSize]byte
++	if _, err := io.ReadFull(r.Reader, header[:]); err != nil {
++		return nil, err
++	}
++	paddingLength, payloadLength, err := v6ParseHeader(header[:], true)
++	if err != nil {
++		return nil, err
++	}
++	if paddingLength != 0 {
++		return nil, errV6RecordPadding
++	}
++	if payloadLength == 0 {
++		return nil, shadowaead.ErrZeroChunk
++	}
++	payload := make([]byte, payloadLength)
++	if _, err := io.ReadFull(r.Reader, payload); err != nil {
++		return nil, err
++	}
++	return payload, nil
++}
++
++type v6RawWriter struct {
++	io.Writer
++}
++
++func (w *v6RawWriter) writeRecord(payload []byte) error {
++	record := make([]byte, v6HeaderPlainSize+len(payload))
++	v6PutHeader(record, 0, len(payload))
++	copy(record[v6HeaderPlainSize:], payload)
++	_, err := w.Writer.Write(record)
++	return err
++}
++
++func (w *v6RawWriter) write(p []byte) error {
++	for len(p) > 0 {
++		n := minInt(len(p), v6MaxPayload)
++		if err := w.writeRecord(p[:n]); err != nil {
++			return err
++		}
++		p = p[n:]
++	}
++	return nil
++}
++
++func (w *v6RawWriter) writePacket(p []byte) error {
++	return w.writeRecord(p)
++}
++
++func (w *v6RawWriter) writeZeroChunk() error {
++	return w.writeRecord(nil)
++}
++
++// --- unshaped -------------------------------------------------------------------
++
++type v6UnshapedReader struct {
++	io.Reader
++	psk   []byte
++	aead  cipher.AEAD
++	nonce [v6NonceSize]byte
++}
++
++func (r *v6UnshapedReader) readRecord() ([]byte, error) {
++	if r.aead == nil {
++		salt := make([]byte, v6SaltSize)
++		if _, err := io.ReadFull(r.Reader, salt); err != nil {
++			return nil, err
++		}
++		aead, err := v6AEAD(r.psk, salt)
++		if err != nil {
++			return nil, err
++		}
++		r.aead = aead
++	}
++
++	headerCipher := make([]byte, v6HeaderCipherSize)
++	if _, err := io.ReadFull(r.Reader, headerCipher); err != nil {
++		return nil, err
++	}
++	header, err := r.aead.Open(headerCipher[:0], r.nonce[:], headerCipher, nil)
++	incrementV4Nonce(r.nonce[:])
++	if err != nil {
++		return nil, err
++	}
++	paddingLength, payloadLength, err := v6ParseHeader(header, true)
++	if err != nil {
++		return nil, err
++	}
++	if paddingLength != 0 {
++		return nil, errV6RecordPadding
++	}
++	if payloadLength == 0 {
++		return nil, shadowaead.ErrZeroChunk
++	}
++
++	payloadCipher := make([]byte, payloadLength+v6TagSize)
++	if _, err := io.ReadFull(r.Reader, payloadCipher); err != nil {
++		return nil, err
++	}
++	payload, err := r.aead.Open(payloadCipher[:0], r.nonce[:], payloadCipher, nil)
++	incrementV4Nonce(r.nonce[:])
++	if err != nil {
++		return nil, err
++	}
++	return payload, nil
++}
++
++type v6UnshapedWriter struct {
++	io.Writer
++	aead     cipher.AEAD
++	nonce    [v6NonceSize]byte
++	salt     []byte
++	saltSent bool
++}
++
++func newV6UnshapedWriter(w io.Writer, psk []byte) (*v6UnshapedWriter, error) {
++	salt, err := v6RandomSalt()
++	if err != nil {
++		return nil, err
++	}
++	aead, err := v6AEAD(psk, salt)
++	if err != nil {
++		return nil, err
++	}
++	return &v6UnshapedWriter{Writer: w, aead: aead, salt: salt}, nil
++}
++
++// appendRecord seals payload as one record and appends it to out.
++func (w *v6UnshapedWriter) appendRecord(out []byte, payload []byte) []byte {
++	start := len(out)
++	out = append(out, make([]byte, v6HeaderPlainSize)...)
++	v6PutHeader(out[start:], 0, len(payload))
++	out = w.aead.Seal(out[:start], w.nonce[:], out[start:start+v6HeaderPlainSize], nil)
++	incrementV4Nonce(w.nonce[:])
++	if len(payload) > 0 {
++		out = w.aead.Seal(out, w.nonce[:], payload, nil)
++		incrementV4Nonce(w.nonce[:])
++	}
++	return out
++}
++
++func (w *v6UnshapedWriter) writeRecords(payloads [][]byte) error {
++	size := 0
++	if !w.saltSent {
++		size += v6SaltSize
++	}
++	for _, payload := range payloads {
++		size += v6HeaderCipherSize + len(payload)
++		if len(payload) > 0 {
++			size += v6TagSize
++		}
++	}
++	out := make([]byte, 0, size)
++	if !w.saltSent {
++		out = append(out, w.salt...)
++		w.saltSent = true
++	}
++	for _, payload := range payloads {
++		out = w.appendRecord(out, payload)
++	}
++	_, err := w.Writer.Write(out)
++	return err
++}
++
++func (w *v6UnshapedWriter) write(p []byte) error {
++	var payloads [][]byte
++	for len(p) > 0 {
++		n := minInt(len(p), v6MaxPayload)
++		payloads = append(payloads, p[:n])
++		p = p[n:]
++	}
++	return w.writeRecords(payloads)
++}
++
++func (w *v6UnshapedWriter) writePacket(p []byte) error {
++	return w.writeRecords([][]byte{p})
++}
++
++func (w *v6UnshapedWriter) writeZeroChunk() error {
++	return w.writeRecords([][]byte{nil})
++}
++
++// --- default (shaped) ------------------------------------------------------------
++
++type v6ShapedReader struct {
++	io.Reader
++	psk     []byte
++	profile *v6Profile
++	aead    cipher.AEAD
++	nonce   [v6NonceSize]byte
++	seq     uint32
++}
++
++func (r *v6ShapedReader) readRecord() ([]byte, error) {
++	if r.aead == nil {
++		block := make([]byte, r.profile.saltBlockLen)
++		if _, err := io.ReadFull(r.Reader, block); err != nil {
++			return nil, err
++		}
++		salt := r.profile.extractSalt(block)
++		aead, err := v6AEAD(r.psk, salt[:])
++		if err != nil {
++			return nil, err
++		}
++		r.aead = aead
++	}
++
++	prefixLength := r.profile.recordPrefixLen(r.seq)
++	head := make([]byte, prefixLength+v6HeaderCipherSize)
++	if _, err := io.ReadFull(r.Reader, head); err != nil {
++		return nil, err
++	}
++	prefix := head[:prefixLength]
++	headerCipher := head[prefixLength:]
++	header, err := r.aead.Open(headerCipher[:0], r.nonce[:], headerCipher, prefix)
++	incrementV4Nonce(r.nonce[:])
++	if err != nil {
++		return nil, err
++	}
++	// the reserved header bytes are ignored in default mode
++	paddingLength, payloadLength, err := v6ParseHeader(header, false)
++	if err != nil {
++		return nil, err
++	}
++	seq := r.seq
++	r.seq++
++
++	if payloadLength == 0 {
++		if paddingLength > 0 {
++			if _, err := io.CopyN(io.Discard, r.Reader, int64(paddingLength)); err != nil {
++				return nil, err
++			}
++		}
++		return nil, shadowaead.ErrZeroChunk
++	}
++
++	body := make([]byte, paddingLength+payloadLength+v6TagSize)
++	if _, err := io.ReadFull(r.Reader, body); err != nil {
++		return nil, err
++	}
++	padding := body[:paddingLength]
++	payloadCipher := body[paddingLength:]
++	r.profile.mixPaddingPayload(seq, padding, payloadCipher)
++	payload, err := r.aead.Open(payloadCipher[:0], r.nonce[:], payloadCipher, padding)
++	incrementV4Nonce(r.nonce[:])
++	if err != nil {
++		return nil, err
++	}
++	return payload, nil
++}
++
++type v6ShapedWriter struct {
++	io.Writer
++	profile       *v6Profile
++	aead          cipher.AEAD
++	nonce         [v6NonceSize]byte
++	salt          []byte
++	saltSent      bool
++	seq           uint32
++	chunkSize     int
++	lastWriteUnix int64
++}
++
++func newV6ShapedWriter(w io.Writer, psk []byte, profile *v6Profile) (*v6ShapedWriter, error) {
++	salt, err := v6RandomSalt()
++	if err != nil {
++		return nil, err
++	}
++	aead, err := v6AEAD(psk, salt)
++	if err != nil {
++		return nil, err
++	}
++	return &v6ShapedWriter{Writer: w, profile: profile, aead: aead, salt: salt}, nil
++}
++
++// payloadLimitFor advances the shaped chunk schedule and returns how much
++// payload the next record may carry. The idle reset is second-granular.
++func (w *v6ShapedWriter) payloadLimitFor(now time.Time) int {
++	nowUnix := now.Unix()
++	if w.lastWriteUnix == 0 || nowUnix-w.lastWriteUnix > int64(w.profile.idleResetSec) {
++		w.chunkSize = w.profile.chunkInitial
++	}
++	if w.chunkSize == 0 {
++		w.chunkSize = w.profile.chunkInitial
++	}
++	payloadLimit := w.profile.chunkPayloadLimit(w.seq, w.chunkSize)
++	if w.seq == 0 {
++		payloadLimit = minInt(payloadLimit, w.profile.firstRecordCap)
++	}
++	w.chunkSize = w.profile.nextChunkSize(w.chunkSize)
++	w.lastWriteUnix = nowUnix
++	return maxInt(1, minInt(payloadLimit, v6MaxPayload))
++}
++
++// appendRecord builds one shaped record for payload and appends it to out.
++func (w *v6ShapedWriter) appendRecord(out []byte, payload []byte) []byte {
++	prefixLength := w.profile.recordPrefixLen(w.seq)
++	saltBlockLength := 0
++	saltPrefixLength := 0
++	if !w.saltSent {
++		saltBlockLength = w.profile.saltBlockLen
++		saltPrefixLength = saltBlockLength - v6SaltSize
++	}
++	paddingLength := w.profile.paddingLen(w.seq, len(payload), prefixLength, saltPrefixLength, saltBlockLength)
++	payloadCipherLength := 0
++	if len(payload) > 0 {
++		payloadCipherLength = len(payload) + v6TagSize
++	}
++
++	start := len(out)
++	out = append(out, make([]byte, saltBlockLength+prefixLength+v6HeaderCipherSize+paddingLength+payloadCipherLength)...)
++	record := out[start:]
++
++	if saltBlockLength > 0 {
++		block := record[:saltBlockLength]
++		// the salt block is shaped padding generated for the sentinel sequence 0xffffffff
++		// with the salt bytes scattered over it
++		w.profile.fillPadding(0xffffffff, block)
++		w.profile.writeSaltBlock(w.salt, block)
++		w.saltSent = true
++	}
++	offset := saltBlockLength
++	prefix := record[offset : offset+prefixLength]
++	w.profile.fillPadding(w.seq, prefix)
++	offset += prefixLength
++
++	header := record[offset : offset+v6HeaderCipherSize]
++	v6PutHeader(header, paddingLength, len(payload))
++	w.aead.Seal(header[:0], w.nonce[:], header[:v6HeaderPlainSize], prefix)
++	incrementV4Nonce(w.nonce[:])
++	offset += v6HeaderCipherSize
++
++	padding := record[offset : offset+paddingLength]
++	w.profile.fillPadding(w.seq, padding)
++	offset += paddingLength
++
++	if len(payload) > 0 {
++		region := record[offset : offset+payloadCipherLength]
++		copy(region, payload)
++		w.aead.Seal(region[:0], w.nonce[:], region[:len(payload)], padding)
++		incrementV4Nonce(w.nonce[:])
++		w.profile.mixPaddingPayload(w.seq, padding, region)
++	}
++	w.seq++
++	return out
++}
++
++func (w *v6ShapedWriter) write(p []byte) error {
++	now := time.Now()
++	var out []byte
++	for len(p) > 0 {
++		n := minInt(len(p), w.payloadLimitFor(now))
++		out = w.appendRecord(out, p[:n])
++		p = p[n:]
++	}
++	_, err := w.Writer.Write(out)
++	return err
++}
++
++func (w *v6ShapedWriter) writePacket(p []byte) error {
++	// packet mode still advances the chunk schedule but emits the whole
++	// datagram as a single record regardless of the current limit
++	w.payloadLimitFor(time.Now())
++	_, err := w.Writer.Write(w.appendRecord(nil, p))
++	return err
++}
++
++func (w *v6ShapedWriter) writeZeroChunk() error {
++	w.payloadLimitFor(time.Now())
++	_, err := w.Writer.Write(w.appendRecord(nil, nil))
++	return err
++}
+diff --git a/transport/snell/v6_profile.go b/transport/snell/v6_profile.go
+new file mode 100644
+index 00000000..58a36501
+--- /dev/null
++++ b/transport/snell/v6_profile.go
+@@ -0,0 +1,650 @@
++package snell
++
++import (
++	"encoding/binary"
++	"math/bits"
++
++	"golang.org/x/crypto/blake2b"
++)
++
++// Snell v6 derives a deployment specific "profile" from the PSK. The profile
++// decides how the salt is scattered inside the first block, how long the
++// per-record prefix and padding are, how padding bytes look and how padding is
++// interleaved with the ciphertext. Both peers derive the same profile, so every
++// value below must be computed exactly the same way as the official
++// implementation. The constants and the derivation order follow the protocol
++// notes published by SagerNet/sing-snell (GPL-3.0-or-later), which reference
++// the corresponding routines in Surge 6.7.0 (11520).
++
++const (
++	v6GoldenGamma = 0x9e3779b97f4a7c15
++
++	v6LabelPadding       = 0
++	v6LabelBitPercent    = 1
++	v6LabelMotif         = 2
++	v6LabelMixOffset     = 3
++	v6LabelSalt          = 3
++	v6LabelProfileID     = 5
++	v6LabelGenerator     = 6
++	v6LabelPadMin        = 7
++	v6LabelPadMax        = 8
++	v6LabelPadCount      = 9
++	v6LabelPadInterval   = 10
++	v6LabelSmallLimit    = 11
++	v6LabelBitMin        = 12
++	v6LabelBitMax        = 13
++	v6LabelPrefixMin     = 14
++	v6LabelPrefixMax     = 15
++	v6LabelMixMode       = 16
++	v6LabelMixRounds     = 17
++	v6LabelMixStride     = 18
++	v6LabelMixOffsetBase = 19
++	v6LabelMixBlock      = 20
++	v6LabelChunkPolicy   = 21
++	v6LabelChunkInitial  = 22
++	v6LabelChunkFirstCap = 22
++	v6LabelChunkMax      = 23
++	v6LabelChunkStep     = 24
++	v6LabelChunkJitter   = 25
++	v6LabelChunkBucket   = 26
++	v6LabelIdleReset     = 27
++	v6LabelWritePolicy   = 28
++	v6LabelWriteFirst    = 29
++	v6LabelWriteBucket   = 30
++	v6LabelWriteSeq      = 31
++	v6LabelWriteJitter   = 32
++	v6LabelRecordPrefix  = 33
++	v6LabelPayloadPad    = 34
++	v6LabelWriteTarget   = 35
++	v6LabelWriteJitterV  = 36
++	v6LabelWriteNext     = 37
++	v6LabelChunkSize     = 38
++	v6LabelChunkJitterV  = 39
++
++	// domain separators for handshake and chunk profile values
++	v6HandshakeDomain    = 0x7053
++	v6MixHandshakeDomain = 0x51a7
++	v6ChunkInitialDomain = 0xf17c
++
++	// namespace seeds
++	v6NSSeedProfile = 0xb46c2e7d9a1538f1
++	v6NSSeedPrefix  = 0x5d9217c083e64ab9
++	v6NSSeedMotif   = 0xa71f0c54d8396e2b
++	v6NSSeedSalt    = 0x3e8a91b52740f6cd
++	v6NSSeedMix     = 0xc9f4260b7d1e835a
++	v6NSSeedChunk   = 0x62d0b5e19c4a783f
++	v6NSSeedWrite   = 0x917b3c48e6a205d4
++
++	// arithmetic constants of the profile PRFs
++	v6DomainMul    = 0xd6e8feb86659fd93
++	v6NamespaceAdd = 0xa0761d6478bd642f
++	v6CoefB        = 0x589965cc75374cc3
++	v6AddB         = 0x33a213ec50ffe2e9
++	v6CoefA        = 0xe7037ed1a0b428db
++	v6AddA         = 0x8f3907f7b2b80c35
++
++	// salt shuffle/mask namespace xor
++	v6SaltNSXor = 0xdaa66d2c7ddf743f
++
++	v6MaxExtraPadding = 0x02da
++)
++
++// v6ProfileSeed is the BLAKE2b prefix mixed with the PSK to derive the profile secret.
++var v6ProfileSeed = [...]byte{
++	0x8d, 0x41, 0xa7, 0x13, 0x5c, 0xe2, 0x09, 0xbb, 0x70, 0x2f, 0xd6, 0x94,
++	0x33, 0x18, 0xc0, 0x6e, 0x4a, 0x91, 0x25, 0xfd, 0xb8, 0x03, 0x77, 0xac,
++}
++
++// v6BitRotateTable maps low nibbles through bit rotations for padding generator 0.
++var v6BitRotateTable = [...]byte{
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80,
++	0x03, 0x05, 0x09, 0x11, 0x21, 0x41, 0x81, 0x06, 0x0a, 0x12, 0x22, 0x42, 0x82, 0x0c, 0x18, 0x24,
++	0x07, 0x0b, 0x13, 0x23, 0x43, 0x83, 0x0d, 0x19, 0x31, 0x61, 0xc1, 0x0e, 0x1c, 0x38, 0x70, 0xe0,
++	0x0f, 0x17, 0x27, 0x47, 0x87, 0x1b, 0x33, 0x63, 0xc3, 0x1d, 0x39, 0x71, 0xe1, 0x3c, 0x78, 0xf0,
++	0xf8, 0xf4, 0xec, 0xdc, 0xbc, 0x7c, 0xf2, 0xe6, 0xce, 0x9e, 0x3e, 0xf1, 0xe3, 0xc7, 0x8f, 0x1f,
++	0xfc, 0xfa, 0xf6, 0xee, 0xde, 0xbe, 0x7e, 0xf9, 0xf5, 0xed, 0xdd, 0xbd, 0x7d, 0xf3, 0xe7, 0xdb,
++	0xfe, 0xfd, 0xfb, 0xf7, 0xef, 0xdf, 0xbf, 0x7f, 0xfe, 0xfd, 0xfb, 0xf7, 0xef, 0xdf, 0xbf, 0x7f,
++}
++
++func minInt(a, b int) int {
++	if a < b {
++		return a
++	}
++	return b
++}
++
++func maxInt(a, b int) int {
++	if a > b {
++		return a
++	}
++	return b
++}
++
++func v6SplitMix64(x uint64) uint64 {
++	x ^= x >> 30
++	x *= 0xbf58476d1ce4e5b9
++	x ^= x >> 27
++	x *= 0x94d049bb133111eb
++	x ^= x >> 31
++	return x
++}
++
++func v6PRF32Fold(namespace uint64, label uint32, a uint64, b uint64) uint32 {
++	x := namespace ^ (b*v6CoefB + v6AddB) ^ (uint64(label) * v6GoldenGamma) ^ (a*v6CoefA + v6AddA)
++	y := v6SplitMix64(x)
++	return uint32(y ^ (y >> 32))
++}
++
++func v6Pick(raw uint32, lo int, hi int) int {
++	if hi < lo {
++		panic("snell v6: invalid profile range")
++	}
++	return lo + int(uint64(raw)%uint64(hi-lo+1))
++}
++
++func v6PickU32(raw uint32, lo uint32, hi uint32) uint32 {
++	if hi < lo {
++		panic("snell v6: invalid profile range")
++	}
++	return lo + raw%(hi-lo+1)
++}
++
++type v6Namespaces struct {
++	profile uint64
++	prefix  uint64
++	motif   uint64
++	salt    uint64
++	mix     uint64
++	chunk   uint64
++	write   uint64
++}
++
++func v6DeriveNamespace(secret []byte, label uint32, seedConst uint64) uint64 {
++	s0 := binary.LittleEndian.Uint64(secret[0:])
++	s1 := binary.LittleEndian.Uint64(secret[8:])
++	s2 := binary.LittleEndian.Uint64(secret[16:])
++	s3 := binary.LittleEndian.Uint64(secret[24:])
++	mixed := uint64(label)*v6DomainMul ^
++		(seedConst + v6NamespaceAdd) ^
++		s0 ^
++		(s1 + v6GoldenGamma) ^
++		bits.RotateLeft64(s2, 17) ^
++		bits.RotateLeft64(s3, -11)
++	return v6SplitMix64(mixed)
++}
++
++func newV6Namespaces(secret []byte) v6Namespaces {
++	return v6Namespaces{
++		profile: v6DeriveNamespace(secret, v6LabelProfileID, v6NSSeedProfile),
++		prefix:  v6DeriveNamespace(secret, v6LabelPadding, v6NSSeedPrefix),
++		motif:   v6DeriveNamespace(secret, v6LabelMotif, v6NSSeedMotif),
++		salt:    v6DeriveNamespace(secret, v6LabelSalt, v6NSSeedSalt),
++		mix:     v6DeriveNamespace(secret, v6LabelMixMode, v6NSSeedMix),
++		chunk:   v6DeriveNamespace(secret, v6LabelChunkPolicy, v6NSSeedChunk),
++		write:   v6DeriveNamespace(secret, v6LabelWritePolicy, v6NSSeedWrite),
++	}
++}
++
++func (n v6Namespaces) forLabel(label uint32) uint64 {
++	switch label {
++	case v6LabelPadding, v6LabelBitPercent, v6LabelPrefixMin, v6LabelPrefixMax, v6LabelRecordPrefix, v6LabelPayloadPad:
++		return n.prefix
++	case v6LabelMotif:
++		return n.motif
++	case v6LabelMixOffset, v6LabelMixMode, v6LabelMixRounds, v6LabelMixStride, v6LabelMixOffsetBase, v6LabelMixBlock:
++		return n.mix
++	case v6LabelChunkPolicy, v6LabelChunkInitial, v6LabelChunkMax, v6LabelChunkStep, v6LabelChunkJitter, v6LabelChunkBucket, v6LabelChunkSize, v6LabelChunkJitterV:
++		return n.chunk
++	case v6LabelWritePolicy, v6LabelWriteFirst, v6LabelWriteBucket, v6LabelWriteSeq, v6LabelWriteJitter, v6LabelWriteTarget, v6LabelWriteJitterV, v6LabelWriteNext:
++		return n.write
++	default:
++		return n.profile
++	}
++}
++
++func (n v6Namespaces) prf32(label uint32, a uint32, b uint32) uint32 {
++	return v6PRF32Fold(n.forLabel(label), label, uint64(a), uint64(b))
++}
++
++func (n v6Namespaces) prfBytes(label uint32, a uint32, output []byte) {
++	seed := n.forLabel(label) ^
++		(uint64(a)*v6DomainMul + 0xb57de1f3f82cb33f) ^
++		(uint64(label) * 0xa24baed4963ee407) ^
++		(uint64(len(output))*0x165667b19e3779f9 + 0x0d4cd3e7b14a36d7)
++	offset := 0
++	for offset < len(output) {
++		seed += v6GoldenGamma
++		block := v6SplitMix64(seed)
++		for shift := 0; shift < 64 && offset < len(output); shift += 8 {
++			output[offset] = byte(block >> shift)
++			offset++
++		}
++	}
++}
++
++func (n v6Namespaces) prfStatic(label uint32, domain uint32) uint32 {
++	return v6PRF32Fold(n.forLabel(label), label, 0, uint64(domain))
++}
++
++type v6Profile struct {
++	namespaces v6Namespaces
++
++	generator       uint32
++	padMin          int
++	padMax          int
++	padCount        uint32
++	padInterval     uint32
++	smallLimit      int
++	bitMin          uint32
++	bitMax          uint32
++	prefixMinRecord int
++	prefixMaxRecord int
++	mixMode         uint32
++	mixRounds       uint32
++	mixStride       int
++	mixOffsetBase   int
++	mixBlock        int
++	chunkPolicy     uint32
++	chunkInitial    int
++	firstRecordCap  int
++	chunkMax        int
++	chunkStep       int
++	chunkJitter     int
++	idleResetSec    int
++	writePolicy     uint32
++	writeFirst      uint32
++	chunkBuckets    [8]int
++	writeBuckets    [8]int
++	writeSeq        [8]int
++	writeJitter     int
++	writeJitterPct  int
++	g1              int
++	g2              int
++	g3              int
++	g4              int
++	g5              int
++	g6              int
++
++	saltBlockLen       int
++	mixStrideHandshake int
++	mixRoundsHandshake uint32
++}
++
++func v6ProfileSecret(psk []byte) [32]byte {
++	input := make([]byte, len(v6ProfileSeed)+len(psk))
++	copy(input, v6ProfileSeed[:])
++	copy(input[len(v6ProfileSeed):], psk)
++	return blake2b.Sum256(input)
++}
++
++func newV6Profile(psk []byte) *v6Profile {
++	secret := v6ProfileSecret(psk)
++	ns := newV6Namespaces(secret[:])
++
++	padMin := v6Pick(ns.prfStatic(v6LabelPadMin, 0), 0x18, 0xa0)
++	padMax := minInt(padMin+v6Pick(ns.prfStatic(v6LabelPadMax, 0), 0xa0, 0x3c0), v6MaxExtraPadding)
++
++	prefixMinHS := v6Pick(ns.prfStatic(v6LabelPrefixMin, v6HandshakeDomain), 0x10, 0x60)
++	prefixMaxHS := minInt(prefixMinHS+v6Pick(ns.prfStatic(v6LabelPrefixMax, v6HandshakeDomain), 0x10, 0xa0), 0x80)
++	prefixMinHS = minInt(prefixMinHS, prefixMaxHS)
++	saltPrefixLen := v6Pick(ns.prfStatic(v6LabelRecordPrefix, v6HandshakeDomain), prefixMinHS, prefixMaxHS)
++	saltBlockLen := v6SaltSize + saltPrefixLen
++
++	mixRoundsHS := v6PickU32(ns.prfStatic(v6LabelMixRounds, v6MixHandshakeDomain), 1, 4)
++	mixStrideHS := v6Pick(ns.prfStatic(v6LabelMixStride, v6MixHandshakeDomain), 0x11, 0xfb)
++
++	prefixMinRecord := v6Pick(ns.prfStatic(v6LabelPrefixMin, 0), 0x08, 0x50)
++	prefixMaxRecord := minInt(prefixMinRecord+v6Pick(ns.prfStatic(v6LabelPrefixMax, 0), 0x10, 0xa0), 0x80)
++	prefixMinRecord = minInt(prefixMinRecord, prefixMaxRecord)
++
++	chunkInitial := maxInt(0x60, minInt(v6Pick(ns.prfStatic(v6LabelChunkInitial, 0), 0x200, 0x05b4), 0x05b4))
++	firstRecordCap := maxInt(0x100, minInt(v6Pick(ns.prfStatic(v6LabelChunkFirstCap, v6ChunkInitialDomain), 0x100, 0x300), minInt(chunkInitial, 0x300)))
++	chunkMax := maxInt(v6Pick(ns.prfStatic(v6LabelChunkMax, 0), 0x2000, 0x3fff), chunkInitial)
++
++	profile := &v6Profile{
++		namespaces:         ns,
++		generator:          ns.prfStatic(v6LabelGenerator, 0) & 3,
++		padMin:             padMin,
++		padMax:             padMax,
++		padCount:           v6PickU32(ns.prfStatic(v6LabelPadCount, 0), 2, 8),
++		padInterval:        v6PickU32(ns.prfStatic(v6LabelPadInterval, 0), 2, 0x0b),
++		smallLimit:         v6Pick(ns.prfStatic(v6LabelSmallLimit, 0), 0x60, 0x300),
++		bitMin:             v6PickU32(ns.prfStatic(v6LabelBitMin, 0), 0x18, 0x29),
++		bitMax:             v6PickU32(ns.prfStatic(v6LabelBitMax, 0), 0x3a, 0x4c),
++		prefixMinRecord:    prefixMinRecord,
++		prefixMaxRecord:    prefixMaxRecord,
++		mixMode:            ns.prfStatic(v6LabelMixMode, 0) % 3,
++		mixRounds:          v6PickU32(ns.prfStatic(v6LabelMixRounds, 0), 1, 3),
++		mixStride:          v6Pick(ns.prfStatic(v6LabelMixStride, 0), 2, 13),
++		mixOffsetBase:      v6Pick(ns.prfStatic(v6LabelMixOffsetBase, 0), 0, 15),
++		mixBlock:           v6Pick(ns.prfStatic(v6LabelMixBlock, 0), 8, 0x40),
++		chunkPolicy:        ns.prfStatic(v6LabelChunkPolicy, 0) % 3,
++		chunkInitial:       chunkInitial,
++		firstRecordCap:     firstRecordCap,
++		chunkMax:           chunkMax,
++		chunkStep:          minInt(v6Pick(ns.prfStatic(v6LabelChunkStep, 0), 0x400, 0x1000), 0x0b68),
++		chunkJitter:        minInt(v6Pick(ns.prfStatic(v6LabelChunkJitter, 0), 0x10, 0xc0), 0x0b6),
++		idleResetSec:       v6Pick(ns.prfStatic(v6LabelIdleReset, 0), 0x0c, 0x5a),
++		writePolicy:        ns.prfStatic(v6LabelWritePolicy, 0) % 3,
++		writeFirst:         v6PickU32(ns.prfStatic(v6LabelWriteFirst, 0), 4, 8),
++		writeJitter:        v6Pick(ns.prfStatic(v6LabelWriteJitter, 0), 0x08, 0x60),
++		writeJitterPct:     v6Pick(ns.prfStatic(v6LabelWritePolicy, 0x504c), 8, 0x30),
++		g1:                 v6Pick(ns.prfStatic(v6LabelGenerator, 1), 0x18, 0x80),
++		g2:                 v6Pick(ns.prfStatic(v6LabelGenerator, 2), 0x10, 0x60),
++		g3:                 v6Pick(ns.prfStatic(v6LabelGenerator, 3), 0x10, 0x60),
++		g4:                 v6Pick(ns.prfStatic(v6LabelGenerator, 4), 0x00, 0x09),
++		g5:                 v6Pick(ns.prfStatic(v6LabelGenerator, 5), 0x01, 0x08),
++		g6:                 v6Pick(ns.prfStatic(v6LabelGenerator, 6), 0x07, 0x17),
++		saltBlockLen:       saltBlockLen,
++		mixStrideHandshake: mixStrideHS,
++		mixRoundsHandshake: mixRoundsHS,
++	}
++
++	for index := 0; index < 8; index++ {
++		profile.chunkBuckets[index] = v6Pick(ns.prfStatic(v6LabelChunkBucket, uint32(index)), 0x1000, chunkMax)
++		profile.writeBuckets[index] = v6Pick(ns.prfStatic(v6LabelWriteBucket, uint32(index)), 0x140, 0x05b4)
++		profile.writeSeq[index] = v6Pick(ns.prfStatic(v6LabelWriteSeq, uint32(index)), 0x168, 0x05b4)
++	}
++
++	return profile
++}
++
++// recordPrefixLen returns the length of the unencrypted prefix in front of the
++// header of the record with the given sequence number.
++func (p *v6Profile) recordPrefixLen(seq uint32) int {
++	return v6Pick(p.namespaces.prf32(v6LabelRecordPrefix, seq, 0), p.prefixMinRecord, p.prefixMaxRecord)
++}
++
++func (p *v6Profile) chunkPayloadLimit(seq uint32, chunkSize int) int {
++	if chunkSize == 0 {
++		chunkSize = p.chunkInitial
++	}
++	switch p.chunkPolicy {
++	case 1:
++		chunkSize = p.chunkBuckets[p.namespaces.prf32(v6LabelChunkSize, seq, uint32(chunkSize))%uint32(len(p.chunkBuckets))]
++	case 2:
++		rawJitter := p.namespaces.prf32(v6LabelChunkJitterV, seq, uint32(chunkSize))
++		chunkSize += int(rawJitter%uint32(p.chunkJitter*2+1)) - p.chunkJitter
++	}
++	return maxInt(0x40, minInt(chunkSize, p.chunkMax))
++}
++
++func (p *v6Profile) nextChunkSize(chunkSize int) int {
++	if chunkSize == 0 {
++		return p.chunkInitial
++	}
++	return minInt(chunkSize+p.chunkStep, p.chunkMax)
++}
++
++// paddingLen decides how much padding the record with sequence number seq
++// carries. totalLen is the salt block length when this is the first record.
++func (p *v6Profile) paddingLen(seq uint32, payloadLen int, prefixLen int, saltPrefixLen int, totalLen int) int {
++	paddingLen := 0
++	if seq < p.padCount || (payloadLen > 0 && payloadLen <= p.smallLimit) || (p.padInterval > 0 && seq%p.padInterval == 0) {
++		paddingLen = v6Pick(p.namespaces.prf32(v6LabelPayloadPad, seq, uint32(payloadLen)), p.padMin, p.padMax)
++	}
++	payloadTagLen := 0
++	if payloadLen > 0 {
++		payloadTagLen = v6TagSize
++	}
++	frameLen := totalLen + prefixLen + v6HeaderCipherSize + paddingLen + payloadLen + payloadTagLen
++	targetLen := p.writeTarget(seq, frameLen)
++	if targetLen > frameLen {
++		paddingLen += minInt(targetLen-frameLen, v6MaxExtraPadding)
++	}
++	if totalLen > 0 {
++		paddingLen = p.firstRecordPaddingLen(paddingLen, prefixLen, saltPrefixLen, payloadLen)
++	}
++	return minInt(paddingLen, 0xffff)
++}
++
++func (p *v6Profile) writeTarget(seq uint32, frameLen int) int {
++	if frameLen > 0x05b3 {
++		if frameLen <= 0xffff {
++			return frameLen
++		}
++		return 0xffff
++	}
++	var targetLen int
++	if seq < p.writeFirst {
++		targetLen = p.writeSeq[seq]
++	} else {
++		targetLen = p.writeBuckets[p.namespaces.prf32(v6LabelWriteTarget, seq, uint32(frameLen))%uint32(len(p.writeBuckets))]
++	}
++	if p.writePolicy == 2 {
++		rawJitter := p.namespaces.prf32(v6LabelWriteJitterV, seq, 0)
++		jitter := int(rawJitter%uint32(p.writeJitter*2+1)) - p.writeJitter
++		targetLen = maxInt(targetLen+jitter, 1)
++	}
++	spread := minInt(v6MaxExtraPadding, int(uint64(frameLen)*uint64(p.writeJitterPct)/100))
++	if p.namespaces.prf32(v6LabelWriteTarget, seq, uint32(spread))&1 == 0 {
++		if targetLen+spread <= 0xffff {
++			targetLen += spread
++		} else {
++			targetLen = 0xffff
++		}
++	} else {
++		halfSpread := spread >> 1
++		if targetLen > halfSpread {
++			targetLen -= halfSpread
++		}
++	}
++	for targetLen >= 0 && frameLen > targetLen {
++		nextLen := p.writeBuckets[p.namespaces.prf32(v6LabelWriteNext, seq, uint32(targetLen))%uint32(len(p.writeBuckets))]
++		if nextLen <= targetLen {
++			nextLen = targetLen + p.padMax
++			if nextLen > 0xffff {
++				return 0xffff
++			}
++		}
++		targetLen = nextLen
++	}
++	return targetLen
++}
++
++func (p *v6Profile) firstRecordPaddingLen(paddingLen int, prefixLen int, saltPrefixLen int, payloadLen int) int {
++	overheadLen := saltPrefixLen + prefixLen + paddingLen
++	thresholdInput := payloadLen + 0x37
++	if payloadLen == 0 {
++		thresholdInput = payloadLen + 0x27
++	}
++	threshold := maxInt((thresholdInput*25+0x4a)/75, 0xc0)
++	if overheadLen >= threshold {
++		return paddingLen
++	}
++	targetPaddingLen := threshold - saltPrefixLen - prefixLen
++	maxPaddingLen := p.padMax + v6MaxExtraPadding
++	if maxPaddingLen <= targetPaddingLen {
++		targetPaddingLen = maxPaddingLen
++	}
++	if targetPaddingLen > 0xfffe {
++		return paddingLen
++	}
++	return targetPaddingLen
++}
++
++// fillPadding generates the deterministic padding bytes of a record.
++func (p *v6Profile) fillPadding(seq uint32, output []byte) {
++	if len(output) == 0 {
++		return
++	}
++	p.namespaces.prfBytes(v6LabelPadding, seq, output)
++	switch p.generator {
++	case 0:
++		bitCount := v6PickU32(p.namespaces.prf32(v6LabelBitPercent, seq, 0), p.bitMin, p.bitMax)
++		rotate := 1
++		scaled := int(bitCount) * 8
++		if scaled > 0x31 {
++			rotate = 7
++			if scaled <= 0x02ed {
++				rotate = (scaled + 0x32) / 100
++			}
++		}
++		for index, value := range output {
++			raw := byte(int(value) + index)
++			tableRow := maxInt(rotate, 1)
++			tableValue := v6BitRotateTable[tableRow*16+int((raw^value)&0x0f)]
++			output[index] = bits.RotateLeft8(tableValue, int((raw^(value>>4))&7))
++		}
++	case 1:
++		for index, value := range output {
++			bucket := int(value) % (p.g1 + p.g2 + p.g3)
++			switch {
++			case bucket < p.g1:
++				// the byte/index mix is truncated to a byte before being reduced into the printable range
++				output[index] = byte(v6Pick(uint32(byte(int(value)+index)), 0x20, 0x7e))
++			case bucket < p.g1+p.g2:
++				output[index] = byte(v6Pick(uint32(byte(int(value)^index)), 0x80, 0xbf))
++			default:
++				output[index] = byte(v6Pick(uint32(byte(int(value)+index*7)), 0xc0, 0xff))
++			}
++		}
++	case 2:
++		for index, value := range output {
++			low := (int(value&0x0f) + p.g4 + (index & 1)) % 10
++			high := (int(value) + ((index & 3) << 4) + 0x30) & 0xf0
++			output[index] = byte(high | low)
++		}
++	case 3:
++		motif := make([]byte, 32)
++		p.namespaces.prfBytes(v6LabelMotif, seq, motif)
++		motifLen := p.g5 * 4
++		if motifLen == 0 {
++			motifLen = 4
++		}
++		period := maxInt(p.g6, 5)
++		blockOffset := 0
++		motifOffset := 0
++		for index, value := range output {
++			switch {
++			case blockOffset < period-3:
++				output[index] = byte((p.g5+3)*index) ^ motif[motifOffset%len(motif)]
++			case blockOffset < period-1:
++				output[index] = byte(0x30 | (int(value) % 10))
++			}
++			blockOffset++
++			if blockOffset == period {
++				blockOffset = 0
++			}
++			motifOffset++
++			if motifOffset == motifLen {
++				motifOffset = 0
++			}
++		}
++	}
++}
++
++// --- salt block -------------------------------------------------------------
++
++func v6SaltShufflePRF(nsSalt uint64, domain uint32, index uint32) uint32 {
++	rdx := uint64(index)*v6CoefB + v6AddB
++	rdi := nsSalt ^ v6SaltNSXor
++	rsi := uint64(domain)*v6CoefA + v6AddA
++	y := v6SplitMix64((rdx ^ rdi) ^ rsi)
++	return uint32(y ^ (y >> 32))
++}
++
++func v6ShufflePerm(nsSalt uint64, rounds uint8, length int) []byte {
++	out := make([]byte, length)
++	for index := range out {
++		out[index] = byte(index)
++	}
++	if length == 0 {
++		return out
++	}
++	if rounds == 0 {
++		rounds = 1
++	}
++	for round := uint32(0); round < uint32(rounds); round++ {
++		domain := uint32(v6MixHandshakeDomain) + round
++		for i := 0; i < length; i++ {
++			span := uint64(length - i)
++			raw := uint64(v6SaltShufflePRF(nsSalt, domain, uint32(i)))
++			j := i + int(raw%span)
++			out[i], out[j] = out[j], out[i]
++		}
++	}
++	return out
++}
++
++func v6SaltMask(nsSalt uint64, mixStride uint8, index uint32) byte {
++	prf := v6PRF32Fold(nsSalt, v6LabelMotif, uint64(v6MixHandshakeDomain), uint64(index))
++	return byte(index)*mixStride ^ byte(prf)
++}
++
++// extractSalt recovers the 16-byte salt scattered inside the first block.
++func (p *v6Profile) extractSalt(block []byte) [v6SaltSize]byte {
++	perm := v6ShufflePerm(p.namespaces.salt, byte(p.mixRoundsHandshake), len(block))
++	var out [v6SaltSize]byte
++	for i := 0; i < v6SaltSize; i++ {
++		out[i] = v6SaltMask(p.namespaces.salt, byte(p.mixStrideHandshake), uint32(i)) ^ block[perm[i]]
++	}
++	return out
++}
++
++// writeSaltBlock scatters the salt into block, which must already hold the
++// shaped padding generated for the sentinel sequence 0xffffffff.
++func (p *v6Profile) writeSaltBlock(salt []byte, block []byte) {
++	perm := v6ShufflePerm(p.namespaces.salt, byte(p.mixRoundsHandshake), len(block))
++	for i := 0; i < v6SaltSize; i++ {
++		block[perm[i]] = v6SaltMask(p.namespaces.salt, byte(p.mixStrideHandshake), uint32(i)) ^ salt[i]
++	}
++}
++
++// --- padding / ciphertext interleave -----------------------------------------
++
++// mixPaddingPayload swaps bytes between the padding and the payload ciphertext.
++// The operation is its own inverse, so the reader applies it before decrypting.
++func (p *v6Profile) mixPaddingPayload(seq uint32, padding []byte, payloadCipher []byte) {
++	n := minInt(len(padding), len(payloadCipher))
++	if n == 0 {
++		return
++	}
++	for round := uint32(0); round < p.mixRounds; round++ {
++		switch p.mixMode {
++		case 0:
++			p.mixFixedStride(round, padding, payloadCipher, n)
++		case 1:
++			p.mixAlternatingBlock(round, padding, payloadCipher, n)
++		case 2:
++			p.mixPRFStride(seq, round, padding, payloadCipher, n)
++		}
++	}
++}
++
++func (p *v6Profile) mixFixedStride(round uint32, padding []byte, payloadCipher []byte, n int) {
++	stride := maxInt(p.mixStride+int(round%3), 1)
++	if stride == 1 {
++		for i := 0; i < n; i++ {
++			padding[i], payloadCipher[i] = payloadCipher[i], padding[i]
++		}
++		return
++	}
++	for off := p.mixOffsetBase % stride; off < n; off += stride {
++		padding[off], payloadCipher[off] = payloadCipher[off], padding[off]
++	}
++}
++
++func (p *v6Profile) mixAlternatingBlock(round uint32, padding []byte, payloadCipher []byte, n int) {
++	block := p.mixBlock
++	for off := int(round&1) * block; off+block <= n; off += block * 2 {
++		for i := off; i < off+block; i++ {
++			padding[i], payloadCipher[i] = payloadCipher[i], padding[i]
++		}
++	}
++}
++
++func (p *v6Profile) mixPRFStride(seq uint32, round uint32, padding []byte, payloadCipher []byte, n int) {
++	stride := maxInt(p.mixStride+int(round%3), 1)
++	off := int((uint64(p.namespaces.prf32(v6LabelMixOffset, seq, round)) + uint64(p.mixOffsetBase)) % uint64(stride))
++	if stride == 1 {
++		for i := 0; i < n; i++ {
++			padding[i], payloadCipher[i] = payloadCipher[i], padding[i]
++		}
++		return
++	}
++	for ; off < n; off += stride {
++		padding[off], payloadCipher[off] = payloadCipher[off], padding[off]
++	}
++}
+diff --git a/transport/snell/v6_test.go b/transport/snell/v6_test.go
+new file mode 100644
+index 00000000..513168b0
+--- /dev/null
++++ b/transport/snell/v6_test.go
+@@ -0,0 +1,204 @@
++package snell
++
++import (
++	"bytes"
++	"crypto/rand"
++	"errors"
++	"io"
++	"net"
++	"reflect"
++	"testing"
++	"time"
++
++	"github.com/metacubex/mihomo/transport/shadowsocks/shadowaead"
++
++	"github.com/stretchr/testify/require"
++)
++
++var v6TestModes = map[string]V6Mode{
++	"default":    V6ModeDefault,
++	"unshaped":   V6ModeUnshaped,
++	"unsafe-raw": V6ModeUnsafeRaw,
++}
++
++const v6TestPSK = "snell-v6-test-psk-0123456789"
++
++func TestV6ParseMode(t *testing.T) {
++	for _, name := range []string{"", "default", "unshaped", "unsafe-raw"} {
++		_, err := ParseV6Mode(name)
++		require.NoError(t, err, name)
++	}
++	_, err := ParseV6Mode("bogus")
++	require.Error(t, err)
++	require.Equal(t, "unshaped", V6ModeUnshaped.String())
++}
++
++func TestV6ProfileDeterministic(t *testing.T) {
++	a := newV6Profile([]byte(v6TestPSK))
++	b := newV6Profile([]byte(v6TestPSK))
++	require.True(t, reflect.DeepEqual(a, b), "same psk must derive the same profile")
++
++	c := newV6Profile([]byte(v6TestPSK + "x"))
++	require.False(t, reflect.DeepEqual(a.namespaces, c.namespaces), "different psk must derive a different profile")
++}
++
++func TestV6SaltBlockRoundTrip(t *testing.T) {
++	for i := 0; i < 32; i++ {
++		psk := make([]byte, 24)
++		_, err := rand.Read(psk)
++		require.NoError(t, err)
++		profile := newV6Profile(psk)
++
++		salt, err := v6RandomSalt()
++		require.NoError(t, err)
++		block := make([]byte, profile.saltBlockLen)
++		profile.fillPadding(0xffffffff, block)
++		profile.writeSaltBlock(salt, block)
++		extracted := profile.extractSalt(block)
++		require.Equal(t, salt, extracted[:])
++	}
++}
++
++func TestV6MixRoundTrip(t *testing.T) {
++	for i := 0; i < 32; i++ {
++		psk := make([]byte, 16)
++		_, err := rand.Read(psk)
++		require.NoError(t, err)
++		profile := newV6Profile(psk)
++
++		padding := make([]byte, 300)
++		payload := make([]byte, 700)
++		_, _ = rand.Read(padding)
++		_, _ = rand.Read(payload)
++		origPadding := append([]byte(nil), padding...)
++		origPayload := append([]byte(nil), payload...)
++
++		profile.mixPaddingPayload(uint32(i), padding, payload)
++		profile.mixPaddingPayload(uint32(i), padding, payload)
++		require.Equal(t, origPadding, padding)
++		require.Equal(t, origPayload, payload)
++	}
++}
++
++// v6Pair returns a client and a server side wrapped with the v6 record layer
++// over a real loopback TCP connection.
++func v6Pair(t *testing.T, mode V6Mode) (client, server *Snell) {
++	t.Helper()
++	listener, err := net.Listen("tcp", "127.0.0.1:0")
++	require.NoError(t, err)
++	defer listener.Close()
++
++	accepted := make(chan net.Conn, 1)
++	go func() {
++		conn, err := listener.Accept()
++		if err != nil {
++			close(accepted)
++			return
++		}
++		accepted <- conn
++	}()
++	clientConn, err := net.Dial("tcp", listener.Addr().String())
++	require.NoError(t, err)
++	serverConn, ok := <-accepted
++	require.True(t, ok)
++	t.Cleanup(func() {
++		clientConn.Close()
++		serverConn.Close()
++	})
++	return StreamConnV6(clientConn, []byte(v6TestPSK), mode), ServerStreamConnV6(serverConn, []byte(v6TestPSK), mode)
++}
++
++func TestV6ConnStream(t *testing.T) {
++	for name, mode := range v6TestModes {
++		t.Run(name, func(t *testing.T) {
++			client, server := v6Pair(t, mode)
++			payload := make([]byte, 300*1024)
++			_, err := rand.Read(payload)
++			require.NoError(t, err)
++
++			errCh := make(chan error, 1)
++			go func() {
++				_, err := client.Write(payload)
++				if err == nil {
++					err = HalfClose(client)
++				}
++				errCh <- err
++			}()
++
++			received := make([]byte, len(payload))
++			require.NoError(t, server.SetReadDeadline(time.Now().Add(10*time.Second)))
++			_, err = io.ReadFull(server.Conn, received)
++			require.NoError(t, err)
++			require.True(t, bytes.Equal(payload, received), "payload mismatch")
++			require.NoError(t, <-errCh)
++
++			// the zero chunk ends the stream
++			_, err = server.Conn.Read(received[:1])
++			require.True(t, errors.Is(err, shadowaead.ErrZeroChunk), "expected zero chunk, got %v", err)
++
++			// and the other direction works independently
++			reply := []byte("hello from server")
++			_, err = server.Write(reply)
++			require.NoError(t, err)
++			got := make([]byte, len(reply))
++			require.NoError(t, client.SetReadDeadline(time.Now().Add(10*time.Second)))
++			_, err = io.ReadFull(client.Conn, got)
++			require.NoError(t, err)
++			require.Equal(t, reply, got)
++		})
++	}
++}
++
++func TestV6ConnPacketFrames(t *testing.T) {
++	for name, mode := range v6TestModes {
++		t.Run(name, func(t *testing.T) {
++			client, server := v6Pair(t, mode)
++			for round := 0; round < 20; round++ {
++				// sizes above the shaped chunk limit must still arrive as one record
++				packet := make([]byte, 1400+round*97)
++				_, err := rand.Read(packet)
++				require.NoError(t, err)
++				_, err = client.WritePacketFrame(packet)
++				require.NoError(t, err)
++
++				buf := make([]byte, 64*1024)
++				require.NoError(t, server.SetReadDeadline(time.Now().Add(10*time.Second)))
++				n, err := server.Conn.Read(buf)
++				require.NoError(t, err)
++				require.Equal(t, len(packet), n, "a packet frame must be read back in one piece")
++				require.True(t, bytes.Equal(packet, buf[:n]))
++			}
++		})
++	}
++}
++
++func TestV6ConnWrongPSK(t *testing.T) {
++	listener, err := net.Listen("tcp", "127.0.0.1:0")
++	require.NoError(t, err)
++	defer listener.Close()
++	go func() {
++		conn, err := listener.Accept()
++		if err != nil {
++			return
++		}
++		defer conn.Close()
++		server := ServerStreamConnV6(conn, []byte(v6TestPSK+"-other"), V6ModeDefault)
++		buf := make([]byte, 16)
++		_, _ = server.Conn.Read(buf)
++	}()
++	conn, err := net.Dial("tcp", listener.Addr().String())
++	require.NoError(t, err)
++	defer conn.Close()
++	client := StreamConnV6(conn, []byte(v6TestPSK), V6ModeDefault)
++	_, err = client.Write([]byte("hello"))
++	require.NoError(t, err)
++	require.NoError(t, client.SetReadDeadline(time.Now().Add(5*time.Second)))
++	_, err = client.Conn.Read(make([]byte, 16))
++	require.Error(t, err, "the server must not produce a readable reply with a different psk")
++}
++
++func TestValidateV6PSK(t *testing.T) {
++	require.Error(t, ValidateV6PSK([]byte("short")))
++	require.Error(t, ValidateV6PSK(make([]byte, 256)))
++	require.NoError(t, ValidateV6PSK([]byte(v6TestPSK)))
++}
 diff --git a/transport/tuic/types/stream.go b/transport/tuic/types/stream.go
 index 2f6c18a8..dd1bc823 100644
 --- a/transport/tuic/types/stream.go
@@ -14738,7 +17846,7 @@ index eeb3cd4f..7d8cc2da 100644
 +	}
 +}
 diff --git a/tunnel/statistic/tracker.go b/tunnel/statistic/tracker.go
-index 78a53c8c..99c2b8f9 100644
+index 78a53c8c..347a4fed 100644
 --- a/tunnel/statistic/tracker.go
 +++ b/tunnel/statistic/tracker.go
 @@ -3,6 +3,7 @@ package statistic
@@ -14791,13 +17899,15 @@ index 78a53c8c..99c2b8f9 100644
  }
  
  type tcpTracker struct {
-@@ -40,6 +57,9 @@ type tcpTracker struct {
+@@ -39,7 +56,10 @@ type tcpTracker struct {
+ 	manager *Manager
  
  	pushToManager bool `json:"-"`
- 	direct        bool `json:"-"`
+-	direct        bool `json:"-"`
 +
 +	uploadBucketWindow   *bucketWindow
 +	downloadBucketWindow *bucketWindow
++	direct               bool `json:"-"`
  }
  
  func (tt *tcpTracker) ID() string {
@@ -14887,13 +17997,15 @@ index 78a53c8c..99c2b8f9 100644
  	}
  
  	if pushToManager {
-@@ -162,6 +195,9 @@ type udpTracker struct {
+@@ -161,7 +194,10 @@ type udpTracker struct {
+ 	manager *Manager
  
  	pushToManager bool `json:"-"`
- 	direct        bool `json:"-"`
+-	direct        bool `json:"-"`
 +
 +	uploadBucketWindow   *bucketWindow
 +	downloadBucketWindow *bucketWindow
++	direct               bool `json:"-"`
  }
  
  func (ut *udpTracker) ID() string {

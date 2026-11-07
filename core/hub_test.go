@@ -340,6 +340,25 @@ func TestHandleDecryptConfigReadsAnAgeEncryptedFile(t *testing.T) {
 	}
 }
 
+func TestHandleValidateSnellV6Modes(t *testing.T) {
+	for _, mode := range []string{"", "default", "unshaped", "unsafe-raw", "invalid"} {
+		t.Run(mode, func(t *testing.T) {
+			proxy := map[string]any{
+				"name": "Snell6", "type": "snell", "server": "127.0.0.1", "port": 443,
+				"psk": "snell-v6-test-psk-0123456789", "version": 6, "mode": mode, "udp": true,
+			}
+			issues := handleValidateProxies(ProxiesParams{Proxies: []map[string]any{proxy}})
+			if mode == "invalid" {
+				if len(issues) != 1 || !strings.Contains(issues[0].Message, "unknown mode") {
+					t.Fatalf("invalid Snell v6 mode accepted: %v", issues)
+				}
+			} else if len(issues) != 0 {
+				t.Fatalf("Snell v6 mode %q rejected: %v", mode, issues)
+			}
+		})
+	}
+}
+
 func TestHandleValidateProxiesReportsEachProxyInPlace(t *testing.T) {
 	issues := handleValidateProxies(ProxiesParams{Proxies: []map[string]any{
 		{"name": "ok", "type": "socks5", "server": "127.0.0.1", "port": 1080},

@@ -344,6 +344,7 @@
   "iconStyleHidden": "Masquées",
   "filter": "Filtrer",
   "groupBy": "Regrouper par",
+  "showHiddenGroups": "Afficher les groupes masqués",
   "hideTimeoutProxies": "Masquer les proxys expirés",
   "stackMode": "Mode de pile",
   "network": "Réseau",

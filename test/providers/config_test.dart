@@ -230,6 +230,16 @@ void main() {
     });
   });
 
+  test('hidden group visibility survives config save and restore', () {
+    container
+        .read(proxiesStyleSettingProvider.notifier)
+        .update((state) => state.copyWith(showHiddenGroups: true));
+    final saved = Config.fromJson(container.read(configProvider).toJson());
+    final restored = ProviderContainer(overrides: buildConfigOverrides(saved));
+    addTearDown(restored.dispose);
+    expect(restored.read(proxiesStyleSettingProvider).showHiddenGroups, true);
+  });
+
   group('buildConfigOverrides', () {
     test('produces correct overrides', () {
       const config = Config(themeProps: ThemeProps(), currentProfileId: 7);

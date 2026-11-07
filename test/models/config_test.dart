@@ -819,6 +819,8 @@ void main() {
       expect(props.type, ProxiesType.list);
       expect(props.sortType, ProxiesSortType.none);
       expect(props.layout, ProxiesLayout.standard);
+      expect(props.showHiddenGroups, false);
+      expect(ProxiesStyleProps.fromJson({}).showHiddenGroups, false);
     });
 
     test('round-trip with custom values', () {
@@ -889,6 +891,14 @@ void main() {
         );
         expect(restored.cardType, cardType);
       }
+    });
+
+    test('round-trip keeps hidden group visibility', () {
+      final restored = roundTrip(
+        () => const ProxiesStyleProps(showHiddenGroups: true).toJson(),
+        ProxiesStyleProps.fromJson,
+      );
+      expect(restored.showHiddenGroups, true);
     });
 
     test('round-trip keeps the timed-out node filter', () {

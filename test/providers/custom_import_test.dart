@@ -62,6 +62,28 @@ Matcher _issue(CustomImportIssue issue, {String? item}) =>
         .having((error) => error.item, 'item', item ?? anything);
 
 void main() {
+  test('Snell v6 import retains version and mode', () {
+    final config = _read('''
+proxies:
+  - name: Snell6
+    type: snell
+    server: example.com
+    port: 443
+    psk: snell-v6-test-psk-0123456789
+    version: 6
+    mode: unshaped
+    reuse: true
+    udp: true
+proxy-groups:
+  - {name: Proxy, type: select, proxies: [Snell6]}
+''');
+    final proxy = config.proxies.single;
+    expect(proxy['version'], 6);
+    expect(proxy['mode'], 'unshaped');
+    expect(proxy['reuse'], true);
+    expect(proxy['udp'], true);
+  });
+
   group('proxy providers', () {
     test('uses a provider the app already has under its label', () {
       final config = _read('''

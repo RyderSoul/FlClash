@@ -344,6 +344,7 @@
   "iconStyleHidden": "隐藏",
   "filter": "筛选",
   "groupBy": "分类",
+  "showHiddenGroups": "显示隐藏策略组",
   "hideTimeoutProxies": "隐藏超时代理",
   "stackMode": "栈模式",
   "network": "网络",

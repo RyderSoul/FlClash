@@ -9,7 +9,7 @@ fingerprint="$(shasum -a 256 "$patch" | cut -d ' ' -f 1)"
 destination="$core/.smart-mihomo"
 
 if [[ "$(git -C "$core/Clash.Meta" rev-parse HEAD)" != "$revision" ]]; then
-  echo 'The FlClash core changed; rebase the Smart patch before building.' >&2
+  echo 'The FlClash core changed; rebase the full Alpha integration before building.' >&2
   exit 1
 fi
 if [[ -f "$destination/.smart-fingerprint" ]] &&
@@ -26,4 +26,4 @@ git -C "$stage" apply "$patch"
 printf '%s\n' "$fingerprint" > "$stage/.smart-fingerprint"
 rm -rf "$destination"
 mv "$stage" "$destination"
-echo 'Prepared the pinned Smart core with FlClash platform patches.'
+echo 'Prepared the complete pinned Alpha core with FlClash platform patches.'

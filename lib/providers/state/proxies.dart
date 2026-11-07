@@ -5,11 +5,16 @@ GroupsState currentGroupsState(Ref ref) {
   final mode = ref.watch(
     patchClashConfigProvider.select((state) => state.mode),
   );
+  final showHiddenGroups = ref.watch(
+    proxiesStyleSettingProvider.select((state) => state.showHiddenGroups),
+  );
   final groups = ref.watch(groupsProvider);
   final shown = switch (mode) {
     Mode.direct => const <Group>[],
     Mode.global => groups,
-    Mode.rule => groups.where((item) => item.hidden == false),
+    Mode.rule => groups.where(
+      (item) => showHiddenGroups || item.hidden == false,
+    ),
   };
   return GroupsState(value: shown.map(_withoutSelection).toList());
 }

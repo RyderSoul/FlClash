@@ -64,6 +64,24 @@ void main() {
     expect(ruleGroups.single.all.single.now, isEmpty);
 
     container
+        .read(proxiesStyleSettingProvider.notifier)
+        .update((state) => state.copyWith(showHiddenGroups: true));
+    expect(container.read(currentGroupsStateProvider).value, hasLength(3));
+    expect(container.read(visibleGroupsStateProvider).value, hasLength(3));
+    expect(container.read(proxiesListStateProvider).groups, hasLength(3));
+    expect(container.read(proxiesTabStateProvider).groups, hasLength(3));
+    expect(
+      container.read(filterGroupsStateProvider('Hidden')).value.single.name,
+      'Hidden',
+    );
+    container
+        .read(proxiesStyleSettingProvider.notifier)
+        .update((state) => state.copyWith(showHiddenGroups: false));
+    expect(container.read(proxiesListStateProvider).groups, hasLength(1));
+    expect(container.read(proxiesTabStateProvider).groups, hasLength(1));
+    expect(container.read(filterGroupsStateProvider('Hidden')).value, isEmpty);
+
+    container
         .read(patchClashConfigProvider.notifier)
         .update((state) => state.copyWith(mode: Mode.global));
     expect(container.read(currentGroupsStateProvider).value, hasLength(3));

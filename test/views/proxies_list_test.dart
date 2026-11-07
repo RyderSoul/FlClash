@@ -8,13 +8,66 @@ import 'package:fl_clash/views/views.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prism_ui/context.dart';
-import 'package:prism_ui/scaffold.dart';
+import 'package:prism_ui/prism_ui.dart';
 
+import '../helpers/glyph_finders.dart';
 import '../helpers/test_app.dart';
 import '../helpers/test_profiles.dart';
 
 void main() {
+  for (final type in ProxiesType.values) {
+    testWidgets('the more menu toggles hidden groups in ${type.name} layout', (
+      tester,
+    ) async {
+      final profile = Profile.normal().copyWith(currentGroupName: 'Hidden');
+      final groups = [
+        const Group(name: 'Visible', type: GroupType.Selector, hidden: false),
+        const Group(name: 'Hidden', type: GroupType.Selector, hidden: true),
+      ];
+      final container = ProviderContainer(
+        overrides: [
+          profilesProvider.overrideWith(() => TestProfiles([profile])),
+          currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
+          groupsProvider.overrideWithValue(groups),
+          proxiesStyleSettingProvider.overrideWithBuild(
+            (_, _) => ProxiesStyleProps(type: type),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      globalState.container = container;
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const TestApp(child: ProxiesView()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Hidden'), findsNothing);
+
+      await tester.tap(find.byGlyph(Glyphs.more));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Show hidden groups'));
+      await tester.pumpAndSettle();
+      expect(
+        container.read(proxiesStyleSettingProvider).showHiddenGroups,
+        true,
+      );
+      expect(find.text('Hidden'), findsWidgets);
+
+      await tester.tap(find.byGlyph(Glyphs.more));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Show hidden groups'));
+      await tester.pumpAndSettle();
+      expect(
+        container.read(proxiesStyleSettingProvider).showHiddenGroups,
+        false,
+      );
+      expect(find.text('Hidden'), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets('the list scrolls its rows under the bar, pinning the header '
       'at its foot', (tester) async {
     tester.view.physicalSize = const Size(500, 1000);
