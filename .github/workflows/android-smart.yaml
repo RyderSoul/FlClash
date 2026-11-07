@@ -111,7 +111,7 @@ jobs:
         working-directory: core/.smart-mihomo
         env:
           CGO_ENABLED: 0
-        run: go test ./adapter/outboundgroup ./component/smart/... ./component/updater
+        run: go test ./adapter/outboundgroup ./adapter/provider ./component/smart/... ./component/updater ./transport/snell ./adapter/outbound ./listener/snell ./dns ./component/proxydialer ./tunnel/statistic
 
       - name: Resolve Flutter dependencies
         run: flutter pub get
@@ -119,7 +119,20 @@ jobs:
       - name: Generate models
         run: |
           yq -i '.hooks.user_defines.setup.build_assets = false' pubspec.yaml
+          dart run intl_utils:generate
           dart run build_runner build --delete-conflicting-outputs
+
+      - name: Collect generated source
+        run: |
+          git diff --binary HEAD -- lib/models/generated lib/providers/generated \
+            lib/database/generated lib/l10n > /tmp/generated-source.patch
+
+      - name: Upload generated source
+        uses: actions/upload-artifact@v4
+        with:
+          name: flsmart-generated-source-${{ github.run_number }}
+          path: /tmp/generated-source.patch
+          retention-days: 7
 
       - name: Analyze and test Flutter
         run: |
@@ -129,8 +142,11 @@ jobs:
             test/common/app_update_test.dart \
             test/common/compute_test.dart \
             test/providers/custom_import_test.dart test/providers/proxies_action_test.dart \
+            test/providers/state_derived_test.dart test/providers/config_test.dart \
+            test/l10n test/lint/dynamic_message_key_test.dart \
             test/core/protocol_contract_test.dart test/views/proxies_list_test.dart \
             test/widgets/proxies_tab_test.dart test/widgets/proxies_list_test.dart
+          dart run tool/test.dart test/widgets -- --reporter expanded
 
       - name: Build ARM64 APK
         env:
@@ -161,7 +177,7 @@ jobs:
           cp "$apk" "dist/flsmart-${GITHUB_RUN_NUMBER}-android-arm64-v8a.apk"
           cp core/smart-source.json dist/
           git diff --binary HEAD -- lib/models/generated lib/providers/generated \
-            lib/database/generated > dist/generated-source.patch
+            lib/database/generated lib/l10n > dist/generated-source.patch
           git rev-parse HEAD > dist/source-commit.txt
           (cd dist && sha256sum ./*.apk > SHA256SUMS)
 

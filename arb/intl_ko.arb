@@ -344,6 +344,7 @@
   "iconStyleHidden": "숨김",
   "filter": "필터",
   "groupBy": "분류",
+  "showHiddenGroups": "숨겨진 그룹 표시",
   "hideTimeoutProxies": "시간 초과된 프록시 숨기기",
   "stackMode": "스택 모드",
   "network": "네트워크",

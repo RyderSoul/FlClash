@@ -344,6 +344,7 @@
   "iconStyleHidden": "Hidden",
   "filter": "Filter",
   "groupBy": "Group by",
+  "showHiddenGroups": "Show hidden groups",
   "hideTimeoutProxies": "Hide timed-out proxies",
   "stackMode": "Stack mode",
   "network": "Network",

@@ -344,6 +344,7 @@
   "iconStyleHidden": "非表示",
   "filter": "フィルター",
   "groupBy": "分類",
+  "showHiddenGroups": "非表示のグループを表示",
   "hideTimeoutProxies": "タイムアウトしたプロキシを隠す",
   "stackMode": "スタックモード",
   "network": "ネットワーク",

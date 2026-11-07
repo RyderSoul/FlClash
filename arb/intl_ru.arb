@@ -344,6 +344,7 @@
   "iconStyleHidden": "Скрыто",
   "filter": "Фильтр",
   "groupBy": "Группировка",
+  "showHiddenGroups": "Показывать скрытые группы",
   "hideTimeoutProxies": "Скрывать прокси с таймаутом",
   "stackMode": "Режим стека",
   "network": "Сеть",
