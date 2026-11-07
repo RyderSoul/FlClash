@@ -46,7 +46,12 @@ void main() {
         hidden: false,
         all: [Proxy(name: 'Selected', type: 'Direct', now: 'runtime')],
       ),
-      const Group(name: 'Hidden', type: GroupType.Selector, hidden: true),
+      const Group(
+        name: 'Hidden',
+        type: GroupType.Selector,
+        hidden: true,
+        all: [Proxy(name: 'Hidden node', type: 'ss')],
+      ),
       Group(
         name: GroupName.GLOBAL.name,
         type: GroupType.Selector,
