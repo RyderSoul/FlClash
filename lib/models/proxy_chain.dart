@@ -12,8 +12,16 @@ abstract class ProxyChain with _$ProxyChain {
     @Default(true) bool enabled,
     @Default(false) bool hidden,
     String? targetGroup,
+    @Default([]) List<String> targetGroups,
   }) = _ProxyChain;
 
   factory ProxyChain.fromJson(Map<String, Object?> json) =>
       _$ProxyChainFromJson(json);
+}
+
+extension ProxyChainTargets on ProxyChain {
+  Set<String> get targets => {
+    if (targetGroup?.isNotEmpty == true) targetGroup!,
+    ...targetGroups,
+  };
 }

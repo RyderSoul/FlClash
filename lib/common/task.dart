@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/common/mitm_module.dart';
 import 'package:fl_clash/common/proxy_chain.dart';
+import 'package:fl_clash/common/profile_binding.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:flutter/foundation.dart';
@@ -398,7 +399,37 @@ Future<RealProfile> _makeRealProfileTask(MakeRealProfileState data) async {
         .toList();
   }
   rawConfig['rules'] = [...mitm.rules, ...rules];
+  final bound = buildProfileBindings(
+    (
+      config: rawConfig,
+      subscriptions: overrides.subscriptions,
+      sources: data.subscriptionConfigs,
+      rules: overrides.ruleBindings,
+      ruleSources: data.ruleDefinitions,
+    ),
+    plannedPolicies: {
+      for (final chain in overrides.chains.where((item) => item.enabled))
+        chain.name,
+    },
+  );
+  rawConfig.addAll(bound);
+  final providerMap = rawConfig['proxy-providers'] as Map? ?? const {};
+  for (final entry in providerMap.entries) {
+    final provider = entry.value as Map;
+    if (entry.key.toString().startsWith('flsmart-') &&
+        provider['type'] == 'http') {
+      provider['path'] = getProvidersFilePathInner(
+        proxiesProviderDirectoryName,
+        '${entry.key}@${provider['url']}',
+      );
+    }
+  }
   applyProxyChains(rawConfig, overrides.chains);
+  if (overrides.subscriptions.isNotEmpty ||
+      overrides.chains.isNotEmpty ||
+      overrides.ruleBindings.isNotEmpty) {
+    validatePolicyReferences(rawConfig);
+  }
   final yaml = await _encodeYaml(Map<String, dynamic>.from(rawConfig));
   return (yaml: yaml, md5: yaml.toMd5(), counts: configCountsOf(rawConfig));
 }

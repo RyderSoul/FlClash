@@ -3,6 +3,7 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/core.dart';
 import 'package:fl_clash/models/proxy_chain.dart';
+import 'package:fl_clash/models/profile_binding.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:yaml/yaml.dart';
 
@@ -32,14 +33,10 @@ const baselineDns = Dns(
   nameserver: ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'],
 );
 const defaultGeoXUrl = {
-  GeoResource.MMDB:
-      'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb',
-  GeoResource.ASN:
-      'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb',
-  GeoResource.GEOIP:
-      'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat',
-  GeoResource.GEOSITE:
-      'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat',
+  GeoResource.MMDB: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.metadb',
+  GeoResource.ASN: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb',
+  GeoResource.GEOIP: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat',
+  GeoResource.GEOSITE: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat',
 };
 
 const defaultMixedPort = 7890;
@@ -1421,9 +1418,10 @@ Map<String, Object?> _overrideJson<K extends OverrideKey>(
       result[key.path] = value;
       continue;
     }
-    final nested =
-        result.putIfAbsent(parent, () => <String, Object?>{})
-            as Map<String, Object?>;
+    final nested = result.putIfAbsent(
+      parent,
+      () => <String, Object?>{},
+    ) as Map<String, Object?>;
     nested[key.field] = value;
   }
   return result;
@@ -1665,6 +1663,10 @@ abstract class ProfileOverrides with _$ProfileOverrides {
     bool? rulesEnabled,
     @Default(false) bool replaceRules,
     bool? subscriptionEnabled,
+    @Default(true) bool attachmentsEnabled,
+    @Default(true) bool chainsEnabled,
+    @Default([]) List<SubscriptionBinding> subscriptions,
+    @Default([]) List<RuleSetBinding> ruleBindings,
     @Default([]) List<ProxyChain> chains,
     @Default(defaultDns) @JsonKey(fromJson: Dns.safeDnsFromJson) Dns dns,
     @Default({})

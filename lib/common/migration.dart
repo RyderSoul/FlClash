@@ -7,8 +7,9 @@ import 'package:prism_ui/color.dart';
 import 'preferences.dart';
 import 'task.dart';
 
-typedef MigrationTransform =
-    Future<MigrationData> Function(Map<String, Object?> configMap);
+typedef MigrationTransform = Future<MigrationData> Function(
+  Map<String, Object?> configMap,
+);
 
 abstract interface class MigrationStore {
   /// False when the backing store could not be opened at all, as opposed to a
@@ -91,7 +92,7 @@ class Migration {
 
   /// One-off setting changes for upgrades, apart from [currentVersion], which
   /// backups carry and an older app refuses when it is newer than its own.
-  static const upgradeVersion = 5;
+  static const upgradeVersion = 6;
 
   static const Map<int, Config Function(Config config)> _upgrades = {
     1: _resetThemeColors,
@@ -99,6 +100,7 @@ class Migration {
     3: _followSystemColors,
     4: _turnOffSidebarBlur,
     5: _addNodeTrafficCard,
+    6: _addProfileBindingsCard,
   };
 
   Future<Config> run() async {
@@ -247,6 +249,16 @@ Config _addNodeTrafficCard(Config config) {
     index < 0 ? cards.length : index + 1,
     DashboardWidget.nodeTraffic,
   );
+  return config.copyWith(
+    appSettingProps: config.appSettingProps.copyWith(dashboardWidgets: cards),
+  );
+}
+
+Config _addProfileBindingsCard(Config config) {
+  final cards = {
+    ...config.appSettingProps.dashboardWidgets,
+    DashboardWidget.profileBindings,
+  }.toList();
   return config.copyWith(
     appSettingProps: config.appSettingProps.copyWith(dashboardWidgets: cards),
   );

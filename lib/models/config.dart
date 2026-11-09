@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'models.dart';
+
 import 'package:prism_ui/prism_ui.dart';
 
 part 'generated/config.freezed.dart';
@@ -119,6 +120,7 @@ const List<DashboardWidget> defaultDashboardWidgets = [
   DashboardWidget.intranetIp,
   DashboardWidget.serviceStatus,
   DashboardWidget.profiles,
+  DashboardWidget.profileBindings,
   DashboardWidget.proxyGroups,
   DashboardWidget.connectionStats,
 ];
@@ -132,6 +134,7 @@ final List<DashboardWidget> platformDefaultDashboardWidgets = system.isAndroid
         DashboardWidget.nodeTraffic,
         DashboardWidget.outboundMode,
         DashboardWidget.profiles,
+        DashboardWidget.profileBindings,
         DashboardWidget.proxyGroups,
       ]
     : defaultDashboardWidgets;

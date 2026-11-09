@@ -463,6 +463,7 @@ enum DashboardWidget {
   networkTakeover(platforms: desktopPlatforms),
   serviceStatus,
   profiles,
+  profileBindings,
   proxyGroups,
   connectionStats,
   intranetIp,

@@ -1,6 +1,6 @@
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/common/proxy_chain.dart';
-import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/common/profile_binding.dart';
+import 'package:fl_clash/state.dart';
 import 'package:fl_clash/features/form/form.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
@@ -14,20 +14,23 @@ class ProxyChainsView extends ConsumerWidget {
 
   final int profileId;
 
-  void _update(
+  Future<void> _update(
     WidgetRef ref,
     List<ProxyChain> Function(List<ProxyChain>) change,
-  ) {
-    ref
-        .read(profilesProvider.notifier)
-        .updateProfile(
-          profileId,
-          (profile) => profile.copyWith(
-            overrides: profile.overrides.copyWith(
-              chains: change(profile.overrides.chains),
+  ) async {
+    await globalState.safeRun(() async {
+      final profile = ref.read(profileProvider(profileId));
+      if (profile == null) return;
+      await ref
+          .read(profileBindingsActionProvider.notifier)
+          .save(
+            profile.copyWith(
+              overrides: profile.overrides.copyWith(
+                chains: change(profile.overrides.chains),
+              ),
             ),
-          ),
-        );
+          );
+    });
   }
 
   Future<void> _edit(
@@ -40,7 +43,7 @@ class ProxyChainsView extends ConsumerWidget {
       builder: (_) => _ChainForm(profileId: profileId, chain: chain),
     );
     if (result == null) return;
-    _update(
+    await _update(
       ref,
       (chains) => [...chains.where((item) => item.id != result.id), result],
     );
@@ -139,7 +142,7 @@ class _ChainFormState extends ConsumerState<_ChainForm> {
   late final _name = TextEditingController(text: widget.chain?.name ?? '');
   late final List<String> _hops = [...?widget.chain?.hops];
   late bool _hidden = widget.chain?.hidden ?? false;
-  late String? _target = widget.chain?.targetGroup;
+  late final Set<String> _targets = {...?widget.chain?.targets};
   String? _error;
   bool _saving = false;
 
@@ -150,7 +153,9 @@ class _ChainFormState extends ConsumerState<_ChainForm> {
   }
 
   Future<void> _chooseHop([int? index]) async {
-    final config = await ref.read(clashConfigProvider(widget.profileId).future);
+    final config = await ref
+        .read(profileBindingsActionProvider.notifier)
+        .inventory(widget.profileId);
     if (!mounted) return;
     final labels = context.appLocalizations;
     final position = index ?? _hops.length;
@@ -188,7 +193,9 @@ class _ChainFormState extends ConsumerState<_ChainForm> {
   }
 
   Future<void> _chooseTarget() async {
-    final config = await ref.read(clashConfigProvider(widget.profileId).future);
+    final config = await ref
+        .read(profileBindingsActionProvider.notifier)
+        .inventory(widget.profileId);
     if (!mounted) return;
     final labels = context.appLocalizations;
     final result = await showSheet<String>(
@@ -197,21 +204,25 @@ class _ChainFormState extends ConsumerState<_ChainForm> {
         title: labels.proxyChainTarget,
         sections: [
           SelectionSection(
-            items: [
-              '',
+            items: {
               ...config.proxyGroups
-                  .where((group) => group.type == GroupType.Selector)
+                  .where(
+                    (group) => attachableGroupTypes.contains(group.type.value),
+                  )
                   .map((group) => group.name),
-            ],
+              ..._targets,
+            }.toList(),
           ),
         ],
-        labelBuilder: (name) => name.isEmpty ? labels.none : name,
-        selectedOf: (_) => _target ?? '',
+        labelBuilder: (name) => '${_targets.contains(name) ? '✓ ' : ''}$name',
+        selectedOf: (_) => null,
         onSelected: (name) => Navigator.of(context).pop(name),
       ),
     );
     if (result == null || !mounted) return;
-    setState(() => _target = result.isEmpty ? null : result);
+    setState(() {
+      if (!_targets.remove(result)) _targets.add(result);
+    });
   }
 
   void _move(int index, int offset) {
@@ -232,18 +243,25 @@ class _ChainFormState extends ConsumerState<_ChainForm> {
         hops: List.of(_hops),
         enabled: widget.chain?.enabled ?? true,
         hidden: _hidden,
-        targetGroup: _target,
+        targetGroups: _targets.toList(),
       );
-      final config = await ref
-          .read(coreHandlerProvider)
-          .readConfig(widget.profileId);
-      final chains =
-          ref.read(profileProvider(widget.profileId))?.overrides.chains ??
-          const <ProxyChain>[];
-      applyProxyChains(config, [
-        ...chains.where((item) => item.id != chain.id),
-        chain.copyWith(enabled: true),
-      ]);
+      final profile = ref.read(profileProvider(widget.profileId));
+      if (profile == null) throw StateError('Profile no longer exists');
+      await ref
+          .read(profileBindingsActionProvider.notifier)
+          .validate(
+            profile.copyWith(
+              overrides: profile.overrides.copyWith(
+                chainsEnabled: true,
+                chains: [
+                  ...profile.overrides.chains.where(
+                    (item) => item.id != chain.id,
+                  ),
+                  chain.copyWith(enabled: true),
+                ],
+              ),
+            ),
+          );
       if (mounted) Navigator.of(context).pop(chain);
     } catch (error) {
       if (mounted) setState(() => _error = error.toString());
@@ -270,7 +288,9 @@ class _ChainFormState extends ConsumerState<_ChainForm> {
             ),
             FormRow(
               title: labels.proxyChainTarget,
-              trailing: Text(_target ?? labels.none),
+              trailing: Text(
+                _targets.isEmpty ? labels.none : _targets.join(' / '),
+              ),
               onPressed: _chooseTarget,
             ),
             ListItem.toggle(

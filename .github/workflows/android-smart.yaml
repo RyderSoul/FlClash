@@ -147,13 +147,13 @@ jobs:
           flutter test test/enum/enum_test.dart test/models/config_test.dart \
             test/common/app_update_test.dart test/common/migration_test.dart \
             test/common/compute_test.dart test/common/task_test.dart \
-            test/common/proxy_chain_test.dart test/common/smart_usage_test.dart \
+            test/common/proxy_chain_test.dart test/common/profile_binding_test.dart test/common/smart_usage_test.dart \
             test/providers/custom_import_test.dart test/providers/proxies_action_test.dart \
             test/providers/state_derived_test.dart test/providers/config_test.dart \
             test/l10n test/lint \
             test/core/protocol_contract_test.dart test/views/proxies_list_test.dart \
             test/widgets/proxies_tab_test.dart test/widgets/proxies_list_test.dart \
-            test/views/dashboard test/views/smart_features_test.dart \
+            test/views/dashboard test/views/smart_features_test.dart test/views/profile_bindings_test.dart \
             test/providers/setup_action_test.dart test/features/profile_views_test.dart \
             test/database/generated_contract_test.dart
           dart run tool/test.dart test/widgets -- --reporter expanded

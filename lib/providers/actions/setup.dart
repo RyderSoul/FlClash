@@ -42,6 +42,8 @@ class SetupAction extends _$SetupAction {
   _RunRequest? _latestRunRequest;
   DateTime? _startTime;
   _SetupInputs? _appliedInputs;
+  ({BuiltProfile profile, SetupParams params, _SetupInputs? inputs})?
+  _appliedProfile;
   var _lastPushDuration = Duration.zero;
   var _pendingForceApply = false;
 
@@ -427,9 +429,7 @@ class SetupAction extends _$SetupAction {
         );
   }
 
-  // False means building the profile, the config write, or the Core setup
-  // step failed; a profile that fails to build is still pushed to the Core
-  // as the empty config so it never keeps serving the previous one.
+  // Managed bindings are validated before replacing the applied config.
   // authorizeCore failures still throw.
   Future<bool> applyProfile({
     bool silence = false,
@@ -461,6 +461,7 @@ class SetupAction extends _$SetupAction {
       );
     });
     if (result != _SetupTaskResult.handoffToCoreRestart) {
+      ref.invalidate(bindingsAppliedProvider);
       return result;
     }
     // Release the current serial task before restartCore reapplies the profile.
@@ -499,11 +500,14 @@ class SetupAction extends _$SetupAction {
     );
     final appendSystemDns = networkSetting.appendSystemDns;
     final isCustom = setupState.profileType == ProfileType.custom;
-    final scriptContent = !isCustom ? await setupState.script?.content : null;
+    final scriptContent = await setupState.script?.content;
     final hasScript = scriptContent?.isNotEmpty == true;
-    final changesOutbounds = setupState.overrides.chains.any(
-      (chain) => chain.enabled,
-    );
+    final hasBindings =
+        setupState.overrides.subscriptions.any((item) => item.enabled) ||
+        setupState.overrides.ruleBindings.any((item) => item.enabled);
+    final changesOutbounds =
+        hasBindings ||
+        setupState.overrides.chains.any((chain) => chain.enabled);
     final replacesRules =
         setupState.overrides.replaceRules &&
         (setupState.overrides.rulesEnabled ??
@@ -514,6 +518,10 @@ class SetupAction extends _$SetupAction {
         : null;
     Map<String, dynamic> rawConfig = isCustom
         ? {
+            'proxy-groups': setupState.proxyGroups
+                .map((group) => group.definition)
+                .toList(),
+            'rules': setupState.rules.map((rule) => rule.rawValue).toList(),
             'proxies': appProxiesPayload(
               setupState.appProxies,
               dialers: setupState.proxyDialers,
@@ -532,12 +540,17 @@ class SetupAction extends _$SetupAction {
       proxyGroups: proxyGroups,
       rules: rules,
     );
+    final bindings = await ref
+        .read(profileBindingsActionProvider.notifier)
+        .prepare(setupState);
     final res = await makeRealProfileTask(
       MakeRealProfileState(
-        rules: rules,
-        proxyGroups: proxyGroups,
+        rules: hasScript ? const [] : rules,
+        proxyGroups: hasScript ? const [] : proxyGroups,
         injectedProxyProviders: injected.proxies,
         injectedRuleProviders: injected.rules,
+        subscriptionConfigs: bindings.subscriptions,
+        ruleDefinitions: bindings.rules,
         profilesPath: directory,
         profileId: profileId,
         rawConfig: rawConfig,
@@ -754,6 +767,23 @@ class SetupAction extends _$SetupAction {
       return getProfile(setupState: state, patchConfig: realPatchConfig);
     }, title: 'build profile');
     final profileFailed = realProfile == null;
+    final preserveOnFailure =
+        profile != null &&
+        (profile.overrides.subscriptions.isNotEmpty ||
+            profile.overrides.ruleBindings.isNotEmpty ||
+            profile.overrides.chains.isNotEmpty);
+    if (preserveOnFailure) {
+      if (profileFailed) return _SetupTaskResult.failed;
+      final valid = await globalState.safeRun(() async {
+        final text = realProfile.base == null
+            ? realProfile.yaml
+            : await _core.buildProfile(realProfile.base!);
+        final error = await _core.validateConfigWithData(utf8.encode(text));
+        if (error?.isNotEmpty == true) throw MessageException(error!);
+        return true;
+      }, title: 'validate profile bindings');
+      if (valid != true) return _SetupTaskResult.failed;
+    }
     final setupParams = _setupParams.copyWith(base: realProfile?.base);
     final inputs = switch (setupState) {
       final state? when !profileFailed => (
@@ -772,6 +802,7 @@ class SetupAction extends _$SetupAction {
       await preloadInvoke?.call();
       return _SetupTaskResult.completed;
     }
+    final previousProfile = _appliedProfile;
     // Go answers a config it rejects by running its built-in default, which
     // has no proxies, so until this push succeeds no applied config is known.
     _appliedInputs = null;
@@ -829,6 +860,13 @@ class SetupAction extends _$SetupAction {
         globalState.lastConfigCounts =
             realProfile?.counts ?? configCountsOf(const {});
         _appliedInputs = inputs;
+        if (realProfile != null) {
+          _appliedProfile = (
+            profile: realProfile,
+            params: setupParams,
+            inputs: inputs,
+          );
+        }
         if (system.isAndroid) {
           await preferences.saveAppliedConfigMd5(yamlMd5);
         }
@@ -837,6 +875,25 @@ class SetupAction extends _$SetupAction {
       silence: true,
       tag: !silence ? LoadingTag.proxies : null,
     );
+    if (setupFailed &&
+        preserveOnFailure &&
+        previousProfile != null &&
+        preloadInvoke == null) {
+      await globalState.safeRun(() async {
+        final previous = previousProfile.profile;
+        if (previousProfile.params.base == null) {
+          await File(await appPath.configFilePath)
+              .writeAsStringAtomically(previous.yaml);
+        }
+        await _core.setupConfig(params: previousProfile.params);
+        globalState.lastConfigMd5 = previous.md5;
+        globalState.lastConfigCounts = previous.counts;
+        _appliedInputs = previousProfile.inputs;
+        if (system.isAndroid)
+          await preferences.saveAppliedConfigMd5(previous.md5);
+        await onUpdated?.call();
+      }, title: 'restore applied profile');
+    }
     _lastPushDuration = pushWatch.elapsed;
     if (handoffFailure != null) {
       Error.throwWithStackTrace(handoffFailure!.$1, handoffFailure!.$2);

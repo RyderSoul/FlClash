@@ -40,6 +40,12 @@ class TestProfiles extends Profiles {
     state = next;
   }
 
+  @override
+  Future<void> updateProfileAndWait(
+    int profileId,
+    Profile Function(Profile profile) builder,
+  ) async => updateProfile(profileId, builder);
+
   void replace(List<Profile> profiles) {
     state = profiles;
   }

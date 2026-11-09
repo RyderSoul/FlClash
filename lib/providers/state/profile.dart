@@ -25,9 +25,8 @@ Profile? profile(Ref ref, int? profileId) {
 @riverpod
 ExtendType extendType(Ref ref, int? profileId) {
   return ref.watch(
-    profileProvider(
-      profileId,
-    ).select((state) => state?.extendType ?? ExtendType.standard),
+    profileProvider(profileId)
+        .select((state) => state?.extendType ?? ExtendType.standard),
   );
 }
 
@@ -64,6 +63,10 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
               subscriptionEnabled: profile?.overrides.subscriptionEnabled,
               replaceRules: profile?.overrides.replaceRules ?? false,
               chains: profile?.overrides.chains ?? const [],
+              chainsEnabled: profile?.overrides.chainsEnabled ?? true,
+              attachmentsEnabled: profile?.overrides.attachmentsEnabled ?? true,
+              subscriptions: profile?.overrides.subscriptions ?? const [],
+              ruleBindings: profile?.overrides.ruleBindings ?? const [],
               dns: state.dns,
               dnsOverrideKeys: state.dnsOverrideKeys.intersection(
                 DnsOverrideKey.normalProfileKeys,
@@ -105,18 +108,26 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
       if (profile?.rulesOverrideEnabled == true) {
         addedRules = await database.rulesDao.queryAddedRules(profileId).get();
       }
-      if (profile?.subscriptionOverrideEnabled == true) {
-        script = scriptId == null
-            ? null
-            : await database.scriptsDao.get(scriptId).getSingleOrNull();
-      }
     }
+  }
+  if (profile?.subscriptionOverrideEnabled == true && scriptId != null) {
+    script = await database.scriptsDao.get(scriptId).getSingleOrNull();
   }
   return SetupState(
     mitmModules: mitmModules == null
         ? const []
         : await mitmModuleSources(await mitmModules),
-    clashProviders: clashProviders,
+    bindingProfiles: ref
+        .watch(profilesProvider)
+        .where(
+          (item) => overrides.subscriptions.any(
+            (binding) => binding.sourceId == item.id && binding.enabled,
+          ),
+        )
+        .toList(),
+    clashProviders: overrides.ruleBindings.isEmpty
+        ? clashProviders
+        : await ref.watch(clashProvidersProvider.future),
     profileProviders: profileProviders,
     appProxies: appProxies,
     proxyDialers: proxyDialers,
@@ -129,6 +140,13 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
     addedRules: addedRules,
     script: script,
     overrides: overrides.copyWith(
+      chains: overrides.chainsEnabled ? overrides.chains : const [],
+      ruleBindings: profile?.rulesOverrideEnabled == true
+          ? overrides.ruleBindings
+          : const [],
+      subscriptions: overrides.attachmentsEnabled
+          ? overrides.subscriptions
+          : const [],
       replaceRules:
           profileType != ProfileType.custom &&
           profile?.rulesOverrideEnabled == true &&
