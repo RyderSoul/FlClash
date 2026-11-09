@@ -128,7 +128,10 @@ void main() {
     await tester.scrollUntilVisible(
       find.text(_samples[5].name),
       150,
-      scrollable: find.byType(Scrollable).last,
+      scrollable: find.descendant(
+        of: find.byType(PrismListView),
+        matching: find.byType(Scrollable),
+      ),
     );
     await tester.pumpAndSettle();
     expect(find.text(_samples[5].name), findsOneWidget);
