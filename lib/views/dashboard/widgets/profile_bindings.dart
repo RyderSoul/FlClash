@@ -45,6 +45,22 @@ class _ProfileBindingsCardState extends ConsumerState<ProfileBindingsCard> {
     final labels = context.appLocalizations;
     final profile = ref.watch(currentProfileProvider);
     final data = profile?.overrides ?? const ProfileOverrides();
+    final sources = ref.watch(profilesProvider);
+    final ruleSources = ref.watch(clashProvidersProvider).value;
+    final scripts = ref.watch(scriptsProvider).value;
+    final missing = <String>{
+      for (final binding in data.subscriptions)
+        if (sources.getProfile(binding.sourceId) == null) binding.name,
+      if (ruleSources != null)
+        for (final binding in data.ruleBindings)
+          if (!ruleSources.any((source) => source.id == binding.sourceId))
+            binding.sourceId.toString(),
+      if (profile?.scriptId != null &&
+          scripts != null &&
+          scripts.get(profile!.scriptId) == null)
+        labels.script,
+    };
+
     final metrics =
         <
           ({
@@ -132,6 +148,13 @@ class _ProfileBindingsCardState extends ConsumerState<ProfileBindingsCard> {
                   ),
                 ],
               ),
+            ),
+          if (missing.isNotEmpty)
+            Text(
+              labels.bindingSourceMissing(missing.join(' / ')),
+              style: DashboardText.label(
+                context,
+              ).copyWith(color: context.colorScheme.error),
             ),
           Text(
             labels.bindingDashboardHint,

@@ -91,6 +91,7 @@ Map<String, dynamic> buildProfileBindings(
       if (filter == null || filter.hasMatch(original)) members.add(name);
     }
     final memberProviders = <String>[];
+    final providerMemberNames = <String, String>{};
     for (final entry in rawProviders.entries) {
       final name = providerNames[entry.key]!;
       if (providers.containsKey(name))
@@ -126,6 +127,7 @@ Map<String, dynamic> buildProfileBindings(
       };
       if (binding.filter.isEmpty) {
         memberProviders.add(name);
+        providerMemberNames[entry.key] = name;
       } else {
         final filteredName = '$name-members';
         if (providers.containsKey(filteredName))
@@ -142,6 +144,7 @@ Map<String, dynamic> buildProfileBindings(
           ].join('`'),
         };
         memberProviders.add(filteredName);
+        providerMemberNames[entry.key] = filteredName;
       }
     }
     for (final group in rawGroups) {
@@ -162,7 +165,7 @@ Map<String, dynamic> buildProfileBindings(
         if (group['use-position'] is Map)
           'use-position': {
             for (final entry in (group['use-position'] as Map).entries)
-              providerNames[entry.key] ?? entry.key: entry.value,
+              providerMemberNames[entry.key] ?? entry.key: entry.value,
           },
         'include-all': false,
         'include-all-proxies': false,
@@ -175,9 +178,9 @@ Map<String, dynamic> buildProfileBindings(
         }.toList(),
         'use': {
           for (final item in group['use'] as List? ?? const [])
-            providerNames[item] ?? item,
+            providerMemberNames[item] ?? item,
           if (all || group['include-all-providers'] == true)
-            ...providerNames.values,
+            ...providerMemberNames.values,
         }.toList(),
       });
     }
