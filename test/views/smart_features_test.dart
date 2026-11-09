@@ -191,8 +191,8 @@ void main() {
       await tester.pumpAndSettle();
     }
     for (final target in ['Smart', 'Select']) {
-      await tester.ensureVisible(find.text('Add to select group'));
-      await tester.tap(find.text('Add to select group'));
+      await tester.ensureVisible(find.text('Add to policy groups'));
+      await tester.tap(find.text('Add to policy groups'));
       await tester.pumpAndSettle();
       await tester.tap(find.text(target).last);
       await tester.pumpAndSettle();

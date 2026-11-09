@@ -201,7 +201,7 @@ class _ChainFormState extends ConsumerState<_ChainForm> {
     final result = await showSheet<String>(
       context: context,
       builder: (_) => SelectionSheet<String>(
-        title: labels.proxyChainTarget,
+        title: labels.bindingTargetGroups,
         sections: [
           SelectionSection(
             items: {
@@ -287,7 +287,7 @@ class _ChainFormState extends ConsumerState<_ChainForm> {
               trailing: FormRowTextField(controller: _name),
             ),
             FormRow(
-              title: labels.proxyChainTarget,
+              title: labels.bindingTargetGroups,
               trailing: Text(
                 _targets.isEmpty ? labels.none : _targets.join(' / '),
               ),

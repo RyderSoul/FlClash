@@ -414,7 +414,10 @@ void validatePolicyReferences(
       throw FormatException('Policy reference cycle: $name');
     }
     for (final next in graph[name] ?? const <String>[]) {
-      if (names.contains(next)) visit(next);
+      if (!names.contains(next)) {
+        throw FormatException('Policy reference missing: $next');
+      }
+      visit(next);
     }
     visiting.remove(name);
     visited.add(name);
@@ -424,19 +427,6 @@ void validatePolicyReferences(
     for (final name in group['use'] as List? ?? const []) {
       if (!providers.containsKey(name)) {
         throw FormatException('Proxy provider missing: $name');
-      }
-    }
-  }
-  for (final proxy in proxies) {
-    final dialer = proxy['dialer-proxy'];
-    if (dialer is String && !names.contains(dialer)) {
-      throw FormatException('Policy reference missing: $dialer');
-    }
-  }
-  for (final group in groups) {
-    for (final member in group['proxies'] as List? ?? const []) {
-      if (member is String && !names.contains(member)) {
-        throw FormatException('Policy reference missing: $member');
       }
     }
   }
