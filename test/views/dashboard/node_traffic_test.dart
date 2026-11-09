@@ -35,6 +35,7 @@ void main() {
   late _MockCore core;
   late ProviderContainer container;
   final previewKey = GlobalKey();
+  final pagePreviewKey = GlobalKey();
 
   setUpAll(() async {
     final loader = FontLoader('JetBrainsMono')
@@ -68,27 +69,30 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     container.read(viewSizeProvider.notifier).value = Size(width, height);
     await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: TestApp(
-          theme: ThemeData(
-            brightness: Brightness.light,
-            fontFamily: 'JetBrainsMono',
-          ),
-          darkTheme: ThemeData(
-            brightness: Brightness.dark,
-            fontFamily: 'JetBrainsMono',
-          ),
-          themeMode: brightness == Brightness.dark
-              ? ThemeMode.dark
-              : ThemeMode.light,
-          child: HostScaffold(
-            body: SingleChildScrollView(
-              child: RepaintBoundary(
-                key: previewKey,
-                child: const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: NodeTrafficCard(),
+      RepaintBoundary(
+        key: pagePreviewKey,
+        child: UncontrolledProviderScope(
+          container: container,
+          child: TestApp(
+            theme: ThemeData(
+              brightness: Brightness.light,
+              fontFamily: 'JetBrainsMono',
+            ),
+            darkTheme: ThemeData(
+              brightness: Brightness.dark,
+              fontFamily: 'JetBrainsMono',
+            ),
+            themeMode: brightness == Brightness.dark
+                ? ThemeMode.dark
+                : ThemeMode.light,
+            child: HostScaffold(
+              body: SingleChildScrollView(
+                child: RepaintBoundary(
+                  key: previewKey,
+                  child: const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: NodeTrafficCard(),
+                  ),
                 ),
               ),
             ),
@@ -103,6 +107,26 @@ void main() {
   Future<void> teardownCard(WidgetTester tester) async {
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 2));
+  }
+
+  Future<void> writePreview(
+    WidgetTester tester,
+    GlobalKey key,
+    String name,
+  ) async {
+    final directory = Platform.environment['NODE_TRAFFIC_PREVIEW_DIR'];
+    if (directory == null) return;
+    final boundary =
+        key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+    await tester.runAsync(() async {
+      final image = await boundary.toImage(pixelRatio: 2);
+      final png = await image.toByteData(format: ui.ImageByteFormat.png);
+      image.dispose();
+      await Directory(directory).create(recursive: true);
+      await File(
+        '$directory/$name.png',
+      ).writeAsBytes(png!.buffer.asUint8List());
+    });
   }
 
   testWidgets('shows session totals and the four largest nodes', (
@@ -126,6 +150,7 @@ void main() {
     await pumpCard(tester, height: 1800);
     await tester.tap(find.text('View all'));
     await tester.pumpAndSettle();
+    await writePreview(tester, pagePreviewKey, 'node-traffic-ranking');
     expect(find.text(_samples[5].name), findsOneWidget);
     globalState.navigatorKey.currentState!.pop();
     await tester.pumpAndSettle();
@@ -199,21 +224,7 @@ void main() {
     testWidgets('renders the ${brightness.name} traffic panel', (tester) async {
       await pumpCard(tester, brightness: brightness);
       expect(tester.takeException(), isNull);
-      final directory = Platform.environment['NODE_TRAFFIC_PREVIEW_DIR'];
-      if (directory != null) {
-        final boundary =
-            previewKey.currentContext!.findRenderObject()!
-                as RenderRepaintBoundary;
-        await tester.runAsync(() async {
-          final image = await boundary.toImage(pixelRatio: 2);
-          final png = await image.toByteData(format: ui.ImageByteFormat.png);
-          image.dispose();
-          await Directory(directory).create(recursive: true);
-          await File(
-            '$directory/node-traffic-${brightness.name}.png',
-          ).writeAsBytes(png!.buffer.asUint8List());
-        });
-      }
+      await writePreview(tester, previewKey, 'node-traffic-${brightness.name}');
       await teardownCard(tester);
     });
   }
