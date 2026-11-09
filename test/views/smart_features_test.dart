@@ -78,24 +78,26 @@ void main() {
     if (output != null) {
       final boundary =
           preview.currentContext!.findRenderObject()! as RenderRepaintBoundary;
-      final image = await boundary.toImage(pixelRatio: 2);
-      final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
       await tester.runAsync(() async {
+        final image = await boundary.toImage(pixelRatio: 2);
+        final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+        image.dispose();
         await Directory(output).create(recursive: true);
         await File(
           '$output/smart-usage.png',
         ).writeAsBytes(bytes!.buffer.asUint8List());
       });
-      image.dispose();
     }
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
   });
 
   testWidgets('chain switch retains hops and invalid edits show an error', (
     tester,
   ) async {
-    final root = await Directory.systemTemp.createTemp('flsmart-chain-test');
+    final root = Directory.systemTemp.createTempSync('flsmart-chain-test');
     await useAppPaths(root);
-    addTearDown(() => root.delete(recursive: true));
+    addTearDown(() => root.deleteSync(recursive: true));
     final core = _Core();
     final profile = Profile.normal().copyWith(
       overrides: const ProfileOverrides(
