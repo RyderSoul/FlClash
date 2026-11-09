@@ -91,7 +91,7 @@ final class SetupActionProvider extends $NotifierProvider<SetupAction, void> {
   }
 }
 
-String _$setupActionHash() => r'ee90d607ba84130b6ec2e112f8bd18598e2410aa';
+String _$setupActionHash() => r'66d0a2ff87196ac9fef6fa8e0d944c59935dc0a5';
 
 abstract class _$SetupAction extends $Notifier<void> {
   void build();
@@ -502,7 +502,7 @@ final class ScriptsActionProvider
   }
 }
 
-String _$scriptsActionHash() => r'f4ec8e120ae8163e4b7bb78636c30d75264de87d';
+String _$scriptsActionHash() => r'c45b6aeeeebc2314888ef5c10c3b3e7de090a9c8';
 
 abstract class _$ScriptsAction extends $Notifier<void> {
   void build();

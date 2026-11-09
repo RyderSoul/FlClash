@@ -320,6 +320,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Añadir entrada de sobrescritura",
     ),
     "addProfile": MessageLookupByLibrary.simpleMessage("Añadir perfil"),
+    "addProxyChain": MessageLookupByLibrary.simpleMessage(
+      "Añadir cadena de proxy",
+    ),
     "addProxyGroup": MessageLookupByLibrary.simpleMessage(
       "Añadir grupo de proxies",
     ),
@@ -1722,7 +1725,24 @@ class MessageLookup extends MessageLookupByLibrary {
     "proxiesProfileLabel": m82,
     "proxiesRemovedTip": m83,
     "proxiesReplacedTip": m84,
-    "proxyChains": MessageLookupByLibrary.simpleMessage("Cadena de proxies"),
+    "proxyChainClient": MessageLookupByLibrary.simpleMessage("Cliente"),
+    "proxyChainDestination": MessageLookupByLibrary.simpleMessage("Destino"),
+    "proxyChainEmpty": MessageLookupByLibrary.simpleMessage(
+      "No hay cadenas de proxy",
+    ),
+    "proxyChainHelp": MessageLookupByLibrary.simpleMessage(
+      "Elige 2–8 saltos de entrada a salida. El primero puede ser un grupo; los demás, nodos. Mantén pulsado para mover o quitar.",
+    ),
+    "proxyChainHidden": MessageLookupByLibrary.simpleMessage(
+      "Ocultar grupo de cadena",
+    ),
+    "proxyChainHops": MessageLookupByLibrary.simpleMessage("Saltos"),
+    "proxyChainMoveDown": MessageLookupByLibrary.simpleMessage("Mover después"),
+    "proxyChainMoveUp": MessageLookupByLibrary.simpleMessage("Mover antes"),
+    "proxyChainTarget": MessageLookupByLibrary.simpleMessage(
+      "Añadir al grupo de selección",
+    ),
+    "proxyChains": MessageLookupByLibrary.simpleMessage("Cadenas de proxy"),
     "proxyGroup": MessageLookupByLibrary.simpleMessage("Grupo de proxies"),
     "proxyGroupEmpty": MessageLookupByLibrary.simpleMessage(
       "El grupo de proxies está vacío",
@@ -1782,6 +1802,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "rename": MessageLookupByLibrary.simpleMessage("Renombrar"),
     "replace": MessageLookupByLibrary.simpleMessage("Reemplazar"),
     "replaceAll": MessageLookupByLibrary.simpleMessage("Reemplazar todo"),
+    "replaceOriginalRules": MessageLookupByLibrary.simpleMessage(
+      "Reemplazar reglas originales",
+    ),
     "request": MessageLookupByLibrary.simpleMessage("Solicitud"),
     "requestBody": MessageLookupByLibrary.simpleMessage(
       "Cuerpo de la solicitud",
@@ -2006,6 +2029,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "rules": MessageLookupByLibrary.simpleMessage("Reglas"),
     "rulesCount": m87,
+    "rulesOverrideEnabled": MessageLookupByLibrary.simpleMessage(
+      "Activar sobrescritura de reglas",
+    ),
     "runTime": MessageLookupByLibrary.simpleMessage("Tiempo de ejecución"),
     "running": MessageLookupByLibrary.simpleMessage("En ejecución"),
     "runtimeConfig": MessageLookupByLibrary.simpleMessage(
@@ -2141,6 +2167,16 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "slide": MessageLookupByLibrary.simpleMessage("Deslizar"),
     "sliders": MessageLookupByLibrary.simpleMessage("Reguladores"),
+    "smartUsageFrequent": MessageLookupByLibrary.simpleMessage("Uso frecuente"),
+    "smartUsageOccasional": MessageLookupByLibrary.simpleMessage(
+      "Uso ocasional",
+    ),
+    "smartUsagePending": MessageLookupByLibrary.simpleMessage(
+      "Recopilando datos",
+    ),
+    "smartUsageRare": MessageLookupByLibrary.simpleMessage(
+      "Uso poco frecuente",
+    ),
     "sniffProtocols": MessageLookupByLibrary.simpleMessage("Protocolos"),
     "sniffer": MessageLookupByLibrary.simpleMessage("Sniffer"),
     "socksPort": MessageLookupByLibrary.simpleMessage("Puerto SOCKS"),
@@ -2193,6 +2229,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "submit": MessageLookupByLibrary.simpleMessage("Enviar"),
     "subscriptionInfo": MessageLookupByLibrary.simpleMessage(
       "Información de la suscripción",
+    ),
+    "subscriptionOverrideEnabled": MessageLookupByLibrary.simpleMessage(
+      "Activar sobrescritura de suscripción",
     ),
     "sudoPasswordTitle": MessageLookupByLibrary.simpleMessage(
       "Introduce tu contraseña para sudo",

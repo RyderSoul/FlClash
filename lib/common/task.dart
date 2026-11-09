@@ -130,7 +130,7 @@ Future<RealProfile> makeRealProfileTask(MakeRealProfileState data) async {
 }
 
 Future<RealProfile> _makeRealProfileTask(MakeRealProfileState data) async {
-  final rawConfig = Map.from(data.rawConfig);
+  final rawConfig = Map<String, dynamic>.from(data.rawConfig);
   final realPatchConfig = data.realPatchConfig;
   final profilesPath = data.profilesPath;
   final profileId = data.profileId;

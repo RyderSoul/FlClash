@@ -311,6 +311,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Add override entry",
     ),
     "addProfile": MessageLookupByLibrary.simpleMessage("Add profile"),
+    "addProxyChain": MessageLookupByLibrary.simpleMessage("Add proxy chain"),
     "addProxyGroup": MessageLookupByLibrary.simpleMessage("Add proxy group"),
     "addRule": MessageLookupByLibrary.simpleMessage("Add rule"),
     "addSettingEntry": MessageLookupByLibrary.simpleMessage("Add setting"),
@@ -1599,7 +1600,24 @@ class MessageLookup extends MessageLookupByLibrary {
     "proxiesProfileLabel": m82,
     "proxiesRemovedTip": m83,
     "proxiesReplacedTip": m84,
-    "proxyChains": MessageLookupByLibrary.simpleMessage("Proxy chain"),
+    "proxyChainClient": MessageLookupByLibrary.simpleMessage("Client"),
+    "proxyChainDestination": MessageLookupByLibrary.simpleMessage(
+      "Destination",
+    ),
+    "proxyChainEmpty": MessageLookupByLibrary.simpleMessage("No proxy chains"),
+    "proxyChainHelp": MessageLookupByLibrary.simpleMessage(
+      "Choose hops from entry to exit. The first hop may be a policy group; subsequent hops must be nodes. Long press a hop to move or remove it.",
+    ),
+    "proxyChainHidden": MessageLookupByLibrary.simpleMessage(
+      "Hide chain group",
+    ),
+    "proxyChainHops": MessageLookupByLibrary.simpleMessage("Hops"),
+    "proxyChainMoveDown": MessageLookupByLibrary.simpleMessage("Move later"),
+    "proxyChainMoveUp": MessageLookupByLibrary.simpleMessage("Move earlier"),
+    "proxyChainTarget": MessageLookupByLibrary.simpleMessage(
+      "Add to select group",
+    ),
+    "proxyChains": MessageLookupByLibrary.simpleMessage("Proxy chains"),
     "proxyGroup": MessageLookupByLibrary.simpleMessage("Proxy group"),
     "proxyGroupEmpty": MessageLookupByLibrary.simpleMessage(
       "Proxy group is empty",
@@ -1657,6 +1675,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "rename": MessageLookupByLibrary.simpleMessage("Rename"),
     "replace": MessageLookupByLibrary.simpleMessage("Replace"),
     "replaceAll": MessageLookupByLibrary.simpleMessage("Replace all"),
+    "replaceOriginalRules": MessageLookupByLibrary.simpleMessage(
+      "Replace original rules",
+    ),
     "request": MessageLookupByLibrary.simpleMessage("Request"),
     "requestBody": MessageLookupByLibrary.simpleMessage("Request body"),
     "requestHeaders": MessageLookupByLibrary.simpleMessage("Request headers"),
@@ -1859,6 +1880,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "rules": MessageLookupByLibrary.simpleMessage("Rules"),
     "rulesCount": m87,
+    "rulesOverrideEnabled": MessageLookupByLibrary.simpleMessage(
+      "Enable rule override",
+    ),
     "runTime": MessageLookupByLibrary.simpleMessage("Run time"),
     "running": MessageLookupByLibrary.simpleMessage("Running"),
     "runtimeConfig": MessageLookupByLibrary.simpleMessage("Runtime config"),
@@ -1982,6 +2006,14 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "slide": MessageLookupByLibrary.simpleMessage("Slide"),
     "sliders": MessageLookupByLibrary.simpleMessage("Sliders"),
+    "smartUsageFrequent": MessageLookupByLibrary.simpleMessage("Frequent use"),
+    "smartUsageOccasional": MessageLookupByLibrary.simpleMessage(
+      "Occasional use",
+    ),
+    "smartUsagePending": MessageLookupByLibrary.simpleMessage(
+      "Collecting data",
+    ),
+    "smartUsageRare": MessageLookupByLibrary.simpleMessage("Rare use"),
     "sniffProtocols": MessageLookupByLibrary.simpleMessage("Protocols"),
     "sniffer": MessageLookupByLibrary.simpleMessage("Sniffer"),
     "socksPort": MessageLookupByLibrary.simpleMessage("SOCKS port"),
@@ -2030,6 +2062,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "submit": MessageLookupByLibrary.simpleMessage("Submit"),
     "subscriptionInfo": MessageLookupByLibrary.simpleMessage(
       "Subscription info",
+    ),
+    "subscriptionOverrideEnabled": MessageLookupByLibrary.simpleMessage(
+      "Enable subscription override",
     ),
     "sudoPasswordTitle": MessageLookupByLibrary.simpleMessage(
       "Enter your password for sudo",

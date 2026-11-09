@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
-import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/core/controller.dart';
 import 'package:fl_clash/core/interface.dart';
 import 'package:fl_clash/enum/enum.dart';
@@ -37,15 +36,15 @@ void main() {
       currentGroupName: 'Smart',
       unfoldSet: {'Smart'},
     );
-    final group = Group(
+    const group = Group(
       name: 'Smart',
       type: GroupType.Smart,
       hidden: false,
       all: [
-        const Proxy(name: '节点 A', type: 'ss', usageRank: 'MostUsed'),
-        const Proxy(name: '节点 B', type: 'ss', usageRank: 'OccasionalUsed'),
-        const Proxy(name: '节点 C', type: 'ss', usageRank: 'RarelyUsed'),
-        const Proxy(name: '节点 D', type: 'ss', usageRank: 'Pending'),
+        Proxy(name: '节点 A', type: 'ss', usageRank: 'MostUsed'),
+        Proxy(name: '节点 B', type: 'ss', usageRank: 'OccasionalUsed'),
+        Proxy(name: '节点 C', type: 'ss', usageRank: 'RarelyUsed'),
+        Proxy(name: '节点 D', type: 'ss', usageRank: 'Pending'),
       ],
     );
     final container = ProviderContainer(
