@@ -246,12 +246,30 @@ jobs:
         run: |
           set -euo pipefail
           existing=$(gh release list --limit 100 --json tagName --jq '.[].tagName')
+          resume_draft=false
           if echo "$existing" | grep -Fxq "$FLSMART_VERSION"; then
-            echo "Release $FLSMART_VERSION already exists; keep its APK and notes."
-            exit 0
+            draft=$(gh release view "$FLSMART_VERSION" --json isDraft --jq .isDraft)
+            if [[ "$draft" != true ]]; then
+              echo "Release $FLSMART_VERSION already exists; keep its APK and notes."
+              exit 0
+            fi
+            target=$(gh release view "$FLSMART_VERSION" --json targetCommitish --jq .targetCommitish)
+            if [[ "$target" != "$GITHUB_SHA" ]]; then
+              echo "::error::The existing draft targets a different source commit."
+              exit 1
+            fi
+            resume_draft=true
           fi
           (cd dist && sha256sum -c SHA256SUMS)
-          gh release create "$FLSMART_VERSION" --target "$GITHUB_SHA" \
-            --title "flsmart $FLSMART_VERSION" --draft --notes-file dist/release.md \
-            dist/*.apk dist/SHA256SUMS dist/source-commit.txt dist/smart-source.json dist/generated-source.patch dist/*.png
+          assets=(dist/*.apk dist/SHA256SUMS dist/source-commit.txt dist/smart-source.json dist/*.png)
+          if [[ -s dist/generated-source.patch ]]; then
+            assets+=(dist/generated-source.patch)
+          fi
+          if [[ "$resume_draft" == true ]]; then
+            gh release upload "$FLSMART_VERSION" "${assets[@]}" --clobber
+          else
+            gh release create "$FLSMART_VERSION" --target "$GITHUB_SHA" \
+              --title "flsmart $FLSMART_VERSION" --draft --notes-file dist/release.md \
+              "${assets[@]}"
+          fi
           gh release edit "$FLSMART_VERSION" --draft=false --latest
