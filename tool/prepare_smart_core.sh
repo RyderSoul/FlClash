@@ -21,8 +21,8 @@ stage="$(mktemp -d "$core/.smart-mihomo.XXXXXX")"
 trap 'rm -rf "$stage"' EXIT
 git -C "$core/Clash.Meta" archive "$revision" | tar -xf - -C "$stage"
 git -C "$stage" init -q
-git -C "$stage" apply --check "$patch"
-git -C "$stage" apply "$patch"
+git -C "$stage" apply --unidiff-zero --check "$patch"
+git -C "$stage" apply --unidiff-zero "$patch"
 printf '%s\n' "$fingerprint" > "$stage/.smart-fingerprint"
 rm -rf "$destination"
 mv "$stage" "$destination"

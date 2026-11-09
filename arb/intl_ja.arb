@@ -1095,7 +1095,7 @@
   "replaceOriginalRules": "元のルールを置換",
   "proxyChainTarget": "選択グループに追加",
   "proxyChainHidden": "チェーングループを非表示",
-  "proxyChainHelp": "入口から出口へ2〜8ホップを選択。最初はグループ、以降はノード。長押しで移動・削除。",
+  "proxyChainHelp": "入口から出口へ2〜8ホップを選択。各ホップでポリシーグループまたはノードを選べます。長押しで移動・削除。",
   "proxyChainClient": "クライアント",
   "proxyChainDestination": "接続先",
   "proxyChainMoveUp": "前へ移動",
@@ -1118,6 +1118,8 @@
   "bindingSubscriptionsEnabled": "追加購読を有効にする",
   "bindingChainsEnabled": "プロキシチェーンを有効にする",
   "bindingLocalRules": "ローカルルールとスクリプトを編集",
+  "bindingStatusUnavailable": "状態を確認できません",
+  "bindingPendingApply": "未適用",
   "bindingApplyHint": "変更は構成ごとに保存されます。適用で読み込み、行を長押しすると編集できます。",
   "bindingApplyFailed": "構成を適用できませんでした。詳細を確認してください。",
   "bindingApplyToProfiles": "別の構成に適用",
@@ -1132,5 +1134,11 @@
   "bindingDashboardHint": "タップしてリソースとグループを管理",
   "bindingChanged": "保存中に設定が変更されました。確認してもう一度保存してください。",
   "bindingCopySaved": "設定バインドをコピーしました。",
-  "bindingValidated": "設定を検証しました。このプロファイルに切り替えると適用されます。"
+  "bindingValidated": "設定を検証しました。このプロファイルに切り替えると適用されます。",
+  "proxyChainCheck": "チェーンを確認",
+  "proxyChainApplyFirst": "このプロファイルを適用して起動してから確認してください。",
+  "proxyChainLatencyHint": "同じテストURLを使用し、この端末から各ホップまでの累積遅延を表示します。隣接ホップ間の遅延ではありません。グループは現在の選択を使用します。",
+  "proxyChainHopLabel": "ホップ {hop}",
+  "proxyChainUnchecked": "未確認",
+  "proxyChainTotal": "チェーン全体"
 }

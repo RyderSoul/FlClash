@@ -1095,7 +1095,7 @@
   "replaceOriginalRules": "Remplacer les règles d’origine",
   "proxyChainTarget": "Ajouter au groupe de sélection",
   "proxyChainHidden": "Masquer le groupe de la chaîne",
-  "proxyChainHelp": "Choisissez 2 à 8 sauts de l’entrée à la sortie. Le premier peut être un groupe, les suivants des nœuds. Appui long pour déplacer ou retirer.",
+  "proxyChainHelp": "Choisissez 2 à 8 sauts de l’entrée à la sortie. Chaque saut peut être un groupe ou un nœud. Appui long pour déplacer ou retirer.",
   "proxyChainClient": "Client",
   "proxyChainDestination": "Destination",
   "proxyChainMoveUp": "Déplacer avant",
@@ -1118,6 +1118,8 @@
   "bindingSubscriptionsEnabled": "Activer les abonnements supplémentaires",
   "bindingChainsEnabled": "Activer les chaînes de proxy",
   "bindingLocalRules": "Modifier les règles locales et le script",
+  "bindingStatusUnavailable": "État indisponible",
+  "bindingPendingApply": "À appliquer",
   "bindingApplyHint": "Les changements sont enregistrés par configuration. Appliquez pour les charger ; appuyez longuement pour modifier.",
   "bindingApplyFailed": "Configuration non appliquée. Consultez l’erreur.",
   "bindingApplyToProfiles": "Appliquer à une autre configuration",
@@ -1132,5 +1134,11 @@
   "bindingDashboardHint": "Touchez pour gérer les ressources et groupes",
   "bindingChanged": "La configuration a changé pendant l’enregistrement. Vérifiez-la et enregistrez à nouveau.",
   "bindingCopySaved": "Les liaisons de configuration ont été copiées.",
-  "bindingValidated": "Configuration validée. Activez ce profil pour l’appliquer."
+  "bindingValidated": "Configuration validée. Activez ce profil pour l’appliquer.",
+  "proxyChainCheck": "Vérifier la chaîne",
+  "proxyChainApplyFirst": "Appliquez et démarrez ce profil avant la vérification.",
+  "proxyChainLatencyHint": "Latence cumulée depuis cet appareil jusqu’à chaque saut, avec la même URL de test. Ce ne sont pas les délais entre sauts voisins. Les groupes utilisent leur sélection actuelle.",
+  "proxyChainHopLabel": "Saut {hop}",
+  "proxyChainUnchecked": "Non vérifié",
+  "proxyChainTotal": "Chaîne complète"
 }

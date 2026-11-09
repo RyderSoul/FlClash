@@ -9248,10 +9248,10 @@ class AppLocalizations {
     );
   }
 
-  /// `Choose hops from entry to exit. The first hop may be a policy group; subsequent hops must be nodes. Long press a hop to move or remove it.`
+  /// `Choose 2–8 hops from entry to exit. Each hop may be a policy group or a node. Long press a hop to move or remove it.`
   String get proxyChainHelp {
     return Intl.message(
-      'Choose hops from entry to exit. The first hop may be a policy group; subsequent hops must be nodes. Long press a hop to move or remove it.',
+      'Choose 2–8 hops from entry to exit. Each hop may be a policy group or a node. Long press a hop to move or remove it.',
       name: 'proxyChainHelp',
       desc: '',
       args: [],
@@ -9468,6 +9468,26 @@ class AppLocalizations {
     );
   }
 
+  /// `Status unavailable`
+  String get bindingStatusUnavailable {
+    return Intl.message(
+      'Status unavailable',
+      name: 'bindingStatusUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pending application`
+  String get bindingPendingApply {
+    return Intl.message(
+      'Pending application',
+      name: 'bindingPendingApply',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Changes are saved per configuration. Apply to load them; hold a row to edit, update or remove it.`
   String get bindingApplyHint {
     return Intl.message(
@@ -9613,6 +9633,66 @@ class AppLocalizations {
     return Intl.message(
       'Configuration validated. Switch to this profile to apply it.',
       name: 'bindingValidated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Check chain`
+  String get proxyChainCheck {
+    return Intl.message(
+      'Check chain',
+      name: 'proxyChainCheck',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Apply and start this profile before checking.`
+  String get proxyChainApplyFirst {
+    return Intl.message(
+      'Apply and start this profile before checking.',
+      name: 'proxyChainApplyFirst',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cumulative latency to each hop, measured against the same test URL. These are not delays between adjacent hops. Policy groups use their current selection.`
+  String get proxyChainLatencyHint {
+    return Intl.message(
+      'Cumulative latency to each hop, measured against the same test URL. These are not delays between adjacent hops. Policy groups use their current selection.',
+      name: 'proxyChainLatencyHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Hop {hop}`
+  String proxyChainHopLabel(Object hop) {
+    return Intl.message(
+      'Hop $hop',
+      name: 'proxyChainHopLabel',
+      desc: '',
+      args: [hop],
+    );
+  }
+
+  /// `Not checked`
+  String get proxyChainUnchecked {
+    return Intl.message(
+      'Not checked',
+      name: 'proxyChainUnchecked',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Entire chain`
+  String get proxyChainTotal {
+    return Intl.message(
+      'Entire chain',
+      name: 'proxyChainTotal',
       desc: '',
       args: [],
     );

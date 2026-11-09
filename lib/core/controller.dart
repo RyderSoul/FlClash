@@ -184,9 +184,21 @@ extension type CoreController._(CoreHandlerInterface _interface)
     );
   }
 
-  Future<Map<String, dynamic>> readConfig(int id) async {
+  Future<Map<String, dynamic>> readConfig(
+    int id, {
+    int? providerCacheProfileId,
+    String? providerPrefix,
+  }) async {
     final path = await appPath.getProfilePath(id.toString());
-    final data = await _interface.readConfig(path);
+    final data = providerCacheProfileId == null
+        ? await _interface.readConfig(path)
+        : await _interface.readConfig(
+            path,
+            providerCachePath: await appPath.getProfilePath(
+              providerCacheProfileId.toString(),
+            ),
+            providerPrefix: providerPrefix,
+          );
     data['rules'] = data['rule'];
     data.remove('rule');
     return data;

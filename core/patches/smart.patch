@@ -18228,3 +18228,50 @@ index 92afa706..89315294 100644
 +	return C.SmartRuleTypes[rt]
 +}
 \ No newline at end of file
+diff --git a/adapter/provider/patch_mapping.go b/adapter/provider/patch_mapping.go
+--- a/adapter/provider/patch_mapping.go
++++ b/adapter/provider/patch_mapping.go
+@@ -28,0 +29,24 @@
++	buf, err := providerContent(pd, schema.Payload)
++	if err != nil {
++		return nil, err
++	}
++	mappings, err := ProxyMappings(mapping, buf)
++	if err != nil {
++		return nil, err
++	}
++	for _, proxy := range mappings {
++		if proxy["name"] == name {
++			return proxy, nil
++		}
++	}
++	return nil, nil
++}
++
++// ProxyMappings reads provider metadata without constructing outbound adapters
++// or starting health checks, downloads, or protocol-specific background work.
++func ProxyMappings(mapping map[string]any, buf []byte) ([]map[string]any, error) {
++	decoder := structure.NewDecoder(structure.Option{TagName: "provider", WeaklyTypedInput: true})
++	schema := &proxyProviderSchema{}
++	if err := decoder.Decode(mapping, schema); err != nil {
++		return nil, err
++	}
+@@ -47,3 +71,5 @@
+-	buf, err := providerContent(pd, schema.Payload)
+-	if err != nil {
+-		return nil, err
++	if buf == nil {
++		buf, err = yaml.Marshal(ProxySchema{Proxies: schema.Payload})
++		if err != nil {
++			return nil, err
++		}
+@@ -67,0 +94 @@
++	mappings := []map[string]any{}
+@@ -96,3 +123 @@
+-			if proxy["name"] == name {
+-				return proxy, nil
+-			}
++			mappings = append(mappings, proxy)
+@@ -102 +127 @@
+-	return nil, nil
++	return mappings, nil

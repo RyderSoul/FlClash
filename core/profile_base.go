@@ -3,6 +3,7 @@ package core
 import (
 	"bufio"
 	"bytes"
+	"crypto/md5"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -10,8 +11,10 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
+	"github.com/metacubex/mihomo/adapter/provider"
 	"github.com/metacubex/mihomo/component/age"
 	"github.com/metacubex/mihomo/config"
 	"go.yaml.in/yaml/v3"
@@ -59,7 +62,61 @@ func handleGetProfileOutbounds(params PathParams) (*ProfileOutbounds, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ProfileOutbounds{Proxies: outboundsOf(raw.Proxy), ProxyGroups: outboundsOf(raw.ProxyGroup)}, nil
+	provided, err := profileProviderOutbounds(params.Path, raw)
+	if err != nil {
+		return nil, err
+	}
+	return &ProfileOutbounds{Proxies: append(outboundsOf(raw.Proxy), provided...), ProxyGroups: outboundsOf(raw.ProxyGroup)}, nil
+}
+
+func profileProviderOutbounds(profilePath string, raw *config.RawConfig, context ...ReadConfigParams) ([]ProfileOutbound, error) {
+	result := []ProfileOutbound{}
+	keys := make([]string, 0, len(raw.ProxyProvider))
+	for key := range raw.ProxyProvider {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	profileID := strings.TrimSuffix(filepath.Base(profilePath), filepath.Ext(profilePath))
+	for _, key := range keys {
+		mapping := raw.ProxyProvider[key]
+		var content []byte
+		if mapping["type"] != "inline" {
+			url, _ := mapping["url"].(string)
+			cacheKey := "proxy-providers/" + key
+			if url != "" {
+				cacheKey = key + "@" + url
+			}
+			digest := fmt.Sprintf("%x", md5.Sum([]byte(cacheKey)))
+			cache := filepath.Join(filepath.Dir(profilePath), "providers", profileID, "proxies", digest)
+			var err error
+			if len(context) != 0 && context[0].ProviderCachePath != "" && url != "" {
+				targetPath := context[0].ProviderCachePath
+				targetID := strings.TrimSuffix(filepath.Base(targetPath), filepath.Ext(targetPath))
+				targetKey := context[0].ProviderPrefix + key + "@" + url
+				targetCache := filepath.Join(filepath.Dir(targetPath), "providers", targetID, "proxies", fmt.Sprintf("%x", md5.Sum([]byte(targetKey))))
+				content, err = os.ReadFile(targetCache)
+			}
+			if content == nil || errors.Is(err, os.ErrNotExist) {
+				content, err = os.ReadFile(cache)
+			}
+			if errors.Is(err, os.ErrNotExist) && url != "" {
+				legacy := filepath.Join(filepath.Dir(cache), fmt.Sprintf("%x", md5.Sum([]byte(url))))
+				content, err = os.ReadFile(legacy)
+			}
+			if err != nil && !errors.Is(err, os.ErrNotExist) {
+				return nil, err
+			}
+		}
+		mappings, err := provider.ProxyMappings(mapping, content)
+		if err != nil {
+			return nil, fmt.Errorf("proxy provider %s: %w", key, err)
+		}
+		for _, outbound := range outboundsOf(mappings) {
+			outbound.ProviderName = key
+			result = append(result, outbound)
+		}
+	}
+	return result, nil
 }
 
 func outboundsOf(mappings []map[string]any) []ProfileOutbound {

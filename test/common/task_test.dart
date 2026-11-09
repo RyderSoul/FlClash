@@ -237,6 +237,75 @@ void main() {
     expect(lastMatchTarget(['DOMAIN,x.test,B']), isNull);
   });
 
+  for (final entry in const {
+    'chain': ProfileOverrides(
+      chains: [
+        ProxyChain(
+          id: 'chain',
+          name: 'Chain',
+          hops: ['🇭🇰 Front-HK', 'Exit'],
+          enabled: false,
+        ),
+      ],
+    ),
+    'subscription': ProfileOverrides(
+      subscriptions: [
+        SubscriptionBinding(
+          id: 'sub',
+          sourceId: 2,
+          name: 'Extra',
+          enabled: false,
+        ),
+      ],
+    ),
+    'rules': ProfileOverrides(
+      ruleBindings: [
+        RuleSetBinding(
+          id: 'rules',
+          sourceId: 3,
+          target: 'DIRECT',
+          enabled: false,
+        ),
+      ],
+    ),
+  }.entries) {
+    test(
+      'disabled ${entry.key} preserves references in a Core base overlay',
+      () async {
+        final result = await makeRealProfileTask(
+          MakeRealProfileState(
+            profilesPath: '/profiles',
+            profileId: 7,
+            rawConfig: {
+              'proxy-providers': {
+                'remote': {
+                  'type': 'inline',
+                  'payload': [
+                    {'name': 'Remote', 'type': 'socks5'},
+                  ],
+                  'override': {'dialer-proxy': '🇭🇰 Front-HK'},
+                },
+              },
+            },
+            realPatchConfig: const PatchClashConfig(),
+            overrides: entry.value,
+            appendSystemDns: false,
+            proxyGroups: const [],
+            rules: const [],
+            addedRules: const [],
+            defaultUA: 'FlClash-Test',
+          ),
+        );
+        final config = loadYaml(result.yaml) as YamlMap;
+        expect(config['proxies'], isNull);
+        expect(
+          config['proxy-providers']['remote']['override']['dialer-proxy'],
+          '🇭🇰 Front-HK',
+        );
+      },
+    );
+  }
+
   test(
     'makeRealProfileTask routes MATCH placeholders to matchTarget',
     () async {

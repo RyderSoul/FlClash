@@ -39,7 +39,7 @@ RegExp subscriptionNodeFilter(String pattern) {
   );
 }
 
-String _namespacedFilter(
+String namespacedProxyFilter(
   String pattern,
   String prefix, {
   bool exclude = false,
@@ -86,6 +86,9 @@ Map<String, dynamic> buildProfileBindings(
   final groups = _mappings(config['proxy-groups']);
   final providers = _providers(config['proxy-providers']);
   final originalProviders = providers.keys.toList();
+  final providerNodes = [
+    ...config['x-flsmart-provider-nodes'] as List? ?? const [],
+  ];
   final names = {
     'DIRECT',
     'REJECT',
@@ -120,6 +123,14 @@ Map<String, dynamic> buildProfileBindings(
     final providerNames = {
       for (final key in rawProviders.keys) key: 'flsmart-${binding.id}-$key',
     };
+    providerNodes.addAll([
+      for (final node in _mappings(source['x-flsmart-provider-nodes']))
+        {
+          ...node,
+          'name': '${binding.name} · ${node['name']}',
+          'provider-name': providerNames[node['provider-name']],
+        },
+    ]);
     final filter = binding.filter.isEmpty
         ? null
         : subscriptionNodeFilter(binding.filter);
@@ -220,7 +231,7 @@ Map<String, dynamic> buildProfileBindings(
         'hidden': true,
         for (final key in ['filter', 'exclude-filter'])
           if (group[key] case final String value when value.isNotEmpty)
-            key: _namespacedFilter(
+            key: namespacedProxyFilter(
               value,
               '${binding.name} · ',
               exclude: key == 'exclude-filter',
@@ -356,6 +367,7 @@ Map<String, dynamic> buildProfileBindings(
   config['proxies'] = proxies;
   config['proxy-groups'] = groups;
   config['proxy-providers'] = providers;
+  config['x-flsmart-provider-nodes'] = providerNodes;
   config['rule-providers'] = ruleProviders;
   config['rules'] = [...rules, ...config['rules'] as List? ?? const []];
   validatePolicyReferences(config, allowedPolicies: plannedPolicies);

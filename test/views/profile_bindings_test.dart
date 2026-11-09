@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -73,6 +74,8 @@ void main() {
   late ProviderContainer container;
   late Profile profile;
   late _Bindings bindings;
+  late List<ClashProvider> ruleSources;
+  Future<bool> Function(int)? checkApplied;
   final surfaceKey = GlobalKey();
   final previewFont = Platform.environment['FLSMART_PREVIEW_FONT'];
 
@@ -85,6 +88,8 @@ void main() {
   });
 
   setUp(() {
+    checkApplied = null;
+    ruleSources = [];
     final source = Profile.normal(label: 'Shared subscription');
     profile = Profile.normal(label: 'My profile').copyWith(
       overrides: ProfileOverrides(
@@ -107,9 +112,14 @@ void main() {
         currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
         profileBindingsActionProvider.overrideWith(() => bindings),
         setupActionProvider.overrideWith(_Setup.new),
-        bindingsAppliedProvider.overrideWith((_, _) async => false),
+        bindingsAppliedProvider.overrideWith(
+          (_, id) async =>
+              checkApplied == null ? false : await checkApplied!(id),
+        ),
         scriptsProvider.overrideWith(TestScripts.new),
-        clashProvidersProvider.overrideWith(TestClashProviders.new),
+        clashProvidersProvider.overrideWith(
+          () => TestClashProviders(ruleSources),
+        ),
       ],
     );
     globalState.container = container;
@@ -122,6 +132,7 @@ void main() {
     Widget child, {
     double width = 400,
     bool dark = false,
+    double textScale = 1,
   }) async {
     tester.view.physicalSize = Size(width, 1000);
     tester.view.devicePixelRatio = 1;
@@ -144,7 +155,11 @@ void main() {
               fontFamily: previewFont == null ? null : 'BindingPreview',
             ),
             themeMode: dark ? ThemeMode.dark : ThemeMode.light,
-            child: child,
+            child: MediaQuery.withClampedTextScaling(
+              minScaleFactor: textScale,
+              maxScaleFactor: textScale,
+              child: child,
+            ),
           ),
         ),
       ),
@@ -183,6 +198,113 @@ void main() {
       tester.widget<Switch>(find.byType(Switch).first).onChanged,
       isNotNull,
     );
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final dashboard in [false, true]) {
+    testWidgets(
+      '${dashboard ? 'dashboard' : 'manager'} keeps applied status during refresh and updates real changes',
+      (tester) async {
+        checkApplied = (_) async => true;
+        await pump(
+          tester,
+          dashboard
+              ? const HostScaffold(body: ProfileBindingsCard())
+              : ProfileBindingsView(profileId: profile.id),
+        );
+        expect(find.text('已应用'), findsOneWidget);
+        final switchPosition = tester.getTopLeft(find.byType(Switch).first);
+        var pageBuilds = 0;
+        debugOnRebuildDirtyWidget = (element, _) {
+          if (element.widget is ProfileBindingsView ||
+              element.widget is ProfileBindingsCard) {
+            pageBuilds++;
+          }
+        };
+        addTearDown(() => debugOnRebuildDirtyWidget = null);
+        for (var index = 0; index < 3; index++) {
+          final result = Completer<bool>();
+          checkApplied = (_) => result.future;
+          container.invalidate(bindingsAppliedProvider(profile.id));
+          await tester.pump();
+          expect(find.text('已应用'), findsOneWidget);
+          expect(find.text('待应用'), findsNothing);
+          expect(tester.getTopLeft(find.byType(Switch).first), switchPosition);
+          result.complete(true);
+          await tester.pumpAndSettle();
+        }
+        expect(pageBuilds, 0);
+        final result = Completer<bool>();
+        checkApplied = (_) => result.future;
+        container.invalidate(bindingsAppliedProvider(profile.id));
+        await tester.pump();
+        result.complete(false);
+        await tester.pumpAndSettle();
+        expect(find.text('待应用'), findsOneWidget);
+        expect(find.text('已应用'), findsNothing);
+        expect(tester.getTopLeft(find.byType(Switch).first), switchPosition);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
+  testWidgets('manager aligns nested resources and action labels', (
+    tester,
+  ) async {
+    await pump(tester, ProfileBindingsView(profileId: profile.id));
+    final x = tester.getTopLeft(find.text('附加订阅')).dx;
+    expect(tester.getTopLeft(find.text('Extra nodes')).dx, x);
+    expect(tester.getTopLeft(find.text('添加').first).dx, x);
+    expect(tester.getTopLeft(find.text('分流覆写')).dx, x);
+    expect(find.byType(MoreActionButton), findsNothing);
+  });
+
+  testWidgets('status follows profile changes and reports check failures', (
+    tester,
+  ) async {
+    checkApplied = (id) async => id == profile.id;
+    await pump(tester, const HostScaffold(body: ProfileBindingsCard()));
+    expect(find.text('已应用'), findsOneWidget);
+    final source = container.read(profilesProvider).last;
+    container.read(currentProfileIdProvider.notifier).value = source.id;
+    await tester.pumpAndSettle();
+    expect(find.text('已应用'), findsNothing);
+    expect(find.text('待应用'), findsOneWidget);
+    checkApplied = (_) async => throw StateError('Status unavailable');
+    container.invalidate(bindingsAppliedProvider(source.id));
+    await tester.pumpAndSettle();
+    expect(find.text('待应用'), findsNothing);
+    expect(find.text('状态检查失败'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('manager handles long labels with large text on a phone', (
+    tester,
+  ) async {
+    container
+        .read(profilesProvider.notifier)
+        .updateProfile(
+          profile.id,
+          (value) => value.copyWith(
+            label: '一个名称比较长的主订阅配置，用来检查小屏幕文字排版',
+            overrides: value.overrides.copyWith(
+              subscriptions: [
+                value.overrides.subscriptions.single.copyWith(
+                  name: '附加订阅资源名称比较长，包含日本香港及美国节点',
+                ),
+              ],
+            ),
+          ),
+        );
+    await pump(
+      tester,
+      ProfileBindingsView(profileId: profile.id),
+      width: 360,
+      textScale: 1.8,
+    );
+    expect(tester.takeException(), isNull);
+    await tester.drag(find.byType(ListView).first, const Offset(0, -1400));
+    await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
 
@@ -275,10 +397,44 @@ void main() {
     },
   );
 
-  for (final (width, dark) in [(360.0, false), (400.0, true), (900.0, false)]) {
+  for (final (width, dark) in [
+    (360.0, false),
+    (400.0, true),
+    (900.0, false),
+    (900.0, true),
+  ]) {
     testWidgets('dashboard renders at $width in ${dark ? 'dark' : 'light'} mode', (
       tester,
     ) async {
+      checkApplied = (_) async => true;
+      ruleSources = [const ClashProvider(id: 3, label: '流媒体分流规则')];
+      final source = container.read(profilesProvider).last;
+      container
+          .read(profilesProvider.notifier)
+          .put(source.copyWith(label: '备用节点订阅'));
+      container
+          .read(profilesProvider.notifier)
+          .put(
+            profile.copyWith(
+              label: '日常使用',
+              overrides: profile.overrides.copyWith(
+                subscriptions: [
+                  profile.overrides.subscriptions.single.copyWith(
+                    name: '低延迟节点',
+                    attachments: const [GroupAttachment(target: '自动选择')],
+                  ),
+                ],
+                chains: const [
+                  ProxyChain(
+                    id: 'preview',
+                    name: '香港中转 · 日本落地',
+                    hops: ['香港入口', '日本出口'],
+                    targetGroups: ['自动选择'],
+                  ),
+                ],
+              ),
+            ),
+          );
       final key = GlobalKey();
       await pump(
         tester,
@@ -317,6 +473,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(ProfileBindingsView), findsOneWidget);
       expect(tester.takeException(), isNull);
+      expect(tester.getTopLeft(find.text('日常使用')).dx, 36);
       if (output != null) {
         await tester.runAsync(() async {
           final boundary =

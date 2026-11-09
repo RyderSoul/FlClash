@@ -1095,7 +1095,7 @@
   "replaceOriginalRules": "Reemplazar reglas originales",
   "proxyChainTarget": "Añadir al grupo de selección",
   "proxyChainHidden": "Ocultar grupo de cadena",
-  "proxyChainHelp": "Elige 2–8 saltos de entrada a salida. El primero puede ser un grupo; los demás, nodos. Mantén pulsado para mover o quitar.",
+  "proxyChainHelp": "Elige 2–8 saltos de entrada a salida. Cada salto puede ser un grupo o un nodo. Mantén pulsado para mover o quitar.",
   "proxyChainClient": "Cliente",
   "proxyChainDestination": "Destino",
   "proxyChainMoveUp": "Mover antes",
@@ -1118,6 +1118,8 @@
   "bindingSubscriptionsEnabled": "Activar suscripciones adicionales",
   "bindingChainsEnabled": "Activar cadenas de proxy",
   "bindingLocalRules": "Editar reglas locales y script",
+  "bindingStatusUnavailable": "Estado no disponible",
+  "bindingPendingApply": "Pendiente de aplicar",
   "bindingApplyHint": "Los cambios se guardan por configuración. Aplique para cargarlos; mantenga pulsado para editar.",
   "bindingApplyFailed": "No se aplicó la configuración. Consulte el error.",
   "bindingApplyToProfiles": "Aplicar a otra configuración",
@@ -1132,5 +1134,11 @@
   "bindingDashboardHint": "Toque para gestionar recursos y grupos",
   "bindingChanged": "La configuración cambió durante el guardado. Revísala y guárdala de nuevo.",
   "bindingCopySaved": "Se copiaron las vinculaciones de configuración.",
-  "bindingValidated": "Configuración validada. Cambia a este perfil para aplicarla."
+  "bindingValidated": "Configuración validada. Cambia a este perfil para aplicarla.",
+  "proxyChainCheck": "Comprobar cadena",
+  "proxyChainApplyFirst": "Aplica e inicia este perfil antes de comprobar.",
+  "proxyChainLatencyHint": "Latencia acumulada desde el dispositivo hasta cada salto, con la misma URL de prueba. No mide el retardo entre saltos adyacentes. Los grupos usan su selección actual.",
+  "proxyChainHopLabel": "Salto {hop}",
+  "proxyChainUnchecked": "Sin comprobar",
+  "proxyChainTotal": "Cadena completa"
 }

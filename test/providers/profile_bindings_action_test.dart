@@ -21,6 +21,20 @@ import '../helpers/test_database_providers.dart';
 
 class _Core extends Mock implements CoreHandlerInterface {}
 
+class _AppliedSetup extends SetupAction {
+  int checks = 0;
+  bool applied = true;
+
+  @override
+  void build() {}
+
+  @override
+  Future<bool> inputsApplied() async {
+    checks++;
+    return applied;
+  }
+}
+
 class _Bindings extends ProfileBindingsAction {
   bool fail = false;
   Completer<void>? gate;
@@ -34,10 +48,20 @@ class _Bindings extends ProfileBindingsAction {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() {
+    registerFallbackValue(
+      const TestDelayParams(
+        proxyName: 'node',
+        testUrl: 'https://test',
+        timeout: 1,
+      ),
+    );
+  });
   late Directory root;
   late db.Database database;
   late ProviderContainer container;
   late _Bindings action;
+  late _Core core;
   late Profile source;
   late Profile other;
   late Profile target;
@@ -65,7 +89,7 @@ void main() {
       await file.parent.create(recursive: true);
       await file.writeAsString('proxies: []');
     }
-    final core = _Core();
+    core = _Core();
     when(() => core.validateConfig(any())).thenAnswer((_) async => null);
     when(() => core.compileRuleSet(any(), url: any(named: 'url'))).thenAnswer(
       (_) async => (
@@ -94,6 +118,156 @@ void main() {
     await database.close();
     await root.delete(recursive: true);
   });
+
+  test(
+    'chain checks use applied cumulative paths and reject inactive profiles',
+    () async {
+      const chain = ProxyChain(
+        id: 'latency',
+        name: 'US route',
+        hops: ['Entry', 'Middle', 'Exit'],
+      );
+      final profile = target.copyWith(
+        overrides: const ProfileOverrides(chains: [chain]),
+      );
+      const names = ['Entry', 'US route · 第2跳 · Middle', 'US route'];
+      when(() => core.getProxies()).thenAnswer(
+        (_) async => const ProxiesData(
+          proxies: {'Entry': {}, 'US route · 第2跳 · Middle': {}, 'US route': {}},
+          all: names,
+        ),
+      );
+      when(() => core.testDelay(any())).thenAnswer((call) async {
+        final params = call.positionalArguments.single as TestDelayParams;
+        return Delay(name: params.proxyName, url: params.testUrl, value: 80);
+      });
+      var applied = true;
+      final checks = ProviderContainer.test(
+        overrides: [
+          profilesProvider.overrideWith(() => TestProfiles([profile])),
+          currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
+          coreStatusProvider.overrideWithBuild((_, _) => CoreStatus.connected),
+          runTimeProvider.overrideWithBuild((_, _) => 1),
+          bindingsAppliedProvider.overrideWith((_, _) async => applied),
+          coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
+        ],
+      );
+      checks.listen(bindingsAppliedProvider(profile.id), (_, _) {});
+      final action = checks.read(profileBindingsActionProvider.notifier);
+      for (var index = 0; index < chain.hops.length; index++) {
+        expect(
+          (await action.testChainHop(profile.id, chain, index)).name,
+          names[index],
+        );
+      }
+      final params = verify(
+        () => core.testDelay(captureAny()),
+      ).captured.cast<TestDelayParams>();
+      expect(params.map((item) => item.proxyName), names);
+      expect(params.map((item) => item.testUrl).toSet(), hasLength(1));
+      expect(params.every((item) => item.timeout > 0), true);
+      applied = false;
+      checks.invalidate(bindingsAppliedProvider(profile.id));
+      await expectLater(
+        action.testChainHop(profile.id, chain, 1),
+        throwsA(isA<MessageException>()),
+      );
+      verifyNever(() => core.testDelay(any()));
+    },
+  );
+
+  test(
+    'applied status checks once after setup inputs finish loading',
+    () async {
+      var inputs = Completer<SetupState>();
+      final setup = _AppliedSetup();
+      final statusContainer = ProviderContainer.test(
+        overrides: [
+          currentProfileIdProvider.overrideWithBuild((_, _) => target.id),
+          setupStateProvider.overrideWith((_, _) => inputs.future),
+          setupActionProvider.overrideWith(() => setup),
+        ],
+      );
+      final status = bindingsAppliedProvider(target.id);
+      statusContainer.listen(status, (_, _) {});
+      await statusContainer.pump();
+      expect(setup.checks, 0);
+      final state = SetupState(
+        profileId: target.id,
+        profileLastUpdateDate: null,
+        profileType: ProfileType.file,
+        extendType: ExtendType.standard,
+        rules: [],
+        proxyGroups: [],
+        addedRules: [],
+        script: null,
+        overrides: const ProfileOverrides(),
+      );
+      inputs.complete(state);
+      expect(await statusContainer.read(status.future), true);
+      expect(setup.checks, 1);
+      inputs = Completer<SetupState>();
+      statusContainer.invalidate(setupStateProvider(target.id));
+      await statusContainer.pump();
+      expect(setup.checks, 1);
+      inputs.complete(state);
+      expect(await statusContainer.read(status.future), true);
+      expect(setup.checks, 2);
+      setup.applied = false;
+      statusContainer.invalidate(status);
+      expect(await statusContainer.read(status.future), false);
+    },
+  );
+
+  test(
+    'inventory reads fresh provider nodes and imported source groups',
+    () async {
+      container.read(profileBindingsActionProvider.notifier);
+      var name = 'HK';
+      when(
+        () => core.readConfig(
+          any(),
+          providerCachePath: any(named: 'providerCachePath'),
+          providerPrefix: any(named: 'providerPrefix'),
+        ),
+      ).thenAnswer(
+        (_) async => {
+          'proxies': [
+            {'name': 'Static', 'type': 'socks5'},
+          ],
+          'x-flsmart-provider-nodes': [
+            {'name': name, 'type': 'snell', 'provider-name': 'remote'},
+          ],
+          'proxy-groups': [
+            {'name': 'Smart', 'type': 'smart'},
+          ],
+        },
+      );
+      final first = await action.inventory(target.id);
+      expect(
+        first.proxies.map((node) => node.name),
+        containsAll(['Static', 'HK', 'One · HK', 'Two · HK']),
+      );
+      expect(
+        first.proxyGroups.map((group) => group.name),
+        containsAll(['Smart', 'One', 'One · Smart', 'Two · Smart']),
+      );
+      name = 'US';
+      final second = await action.inventory(target.id);
+      expect(second.proxies.map((node) => node.name), contains('US'));
+      expect(second.proxies.map((node) => node.name), isNot(contains('HK')));
+      container
+          .read(profilesProvider.notifier)
+          .updateProfile(
+            target.id,
+            (profile) => profile.copyWith(
+              overrides: profile.overrides.copyWith(attachmentsEnabled: false),
+            ),
+          );
+      final disabled = await action.inventory(target.id);
+      expect(disabled.proxies.map((node) => node.name), ['Static', 'US']);
+    },
+  );
 
   test(
     'independent copy clones only selected resources and reuses one clone per source',

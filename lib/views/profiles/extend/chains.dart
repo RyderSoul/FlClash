@@ -1,5 +1,6 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/common/profile_binding.dart';
+import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/features/form/form.dart';
 import 'package:fl_clash/models/models.dart';
@@ -105,10 +106,9 @@ class ProxyChainsView extends ConsumerWidget {
                     ),
                   ),
                 ],
-                child: ListItem.toggle(
-                  title: Text(chain.name),
-                  subtitle: Text(chain.hops.join(' → ')),
-                  value: chain.enabled,
+                child: _ChainLatencyPanel(
+                  profileId: profileId,
+                  chain: chain,
                   onChanged: (value) => _update(
                     ref,
                     (items) => [
@@ -122,6 +122,189 @@ class ProxyChainsView extends ConsumerWidget {
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+class _ChainLatencyPanel extends ConsumerStatefulWidget {
+  const _ChainLatencyPanel({
+    required this.profileId,
+    required this.chain,
+    required this.onChanged,
+  });
+
+  final int profileId;
+  final ProxyChain chain;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  ConsumerState<_ChainLatencyPanel> createState() => _ChainLatencyPanelState();
+}
+
+class _ChainLatencyPanelState extends ConsumerState<_ChainLatencyPanel> {
+  final _delays = <int, int>{};
+  final _failed = <int>{};
+  String? _error;
+  int? _checking;
+  int _revision = 0;
+
+  void _clear() {
+    _revision++;
+    _delays.clear();
+    _failed.clear();
+    _error = null;
+    _checking = null;
+  }
+
+  @override
+  void didUpdateWidget(covariant _ChainLatencyPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.chain != widget.chain) _clear();
+  }
+
+  Future<void> _check() async {
+    if (_checking != null) return;
+    final revision = ++_revision;
+    setState(() {
+      _delays.clear();
+      _failed.clear();
+      _error = null;
+      _checking = 0;
+    });
+    try {
+      for (var index = 0; index < widget.chain.hops.length; index++) {
+        if (!mounted || revision != _revision) return;
+        setState(() => _checking = index);
+        try {
+          final delay = await ref
+              .read(profileBindingsActionProvider.notifier)
+              .testChainHop(widget.profileId, widget.chain, index);
+          if (!mounted || revision != _revision) return;
+          setState(() => _delays[index] = delay.value ?? 0);
+        } catch (error) {
+          if (!mounted || revision != _revision) return;
+          setState(() {
+            _failed.add(index);
+            _error = error.toString();
+          });
+          if (error is MessageException) break;
+        }
+      }
+    } finally {
+      if (mounted && revision == _revision) {
+        setState(() => _checking = null);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen(currentProfileIdProvider, (_, _) => setState(_clear));
+    ref.listen(
+      runTimeProvider.select((runtime) => runtime != null),
+      (_, _) => setState(_clear),
+    );
+    ref.listen(coreStatusProvider, (_, _) => setState(_clear));
+    ref.listen(realTestUrlProvider(null), (_, _) => setState(_clear));
+    ref.listen(bindingsAppliedProvider(widget.profileId), (_, next) {
+      if (next.value != true || next.isLoading) setState(_clear);
+    });
+    ref.listen(selectedMapProvider, (_, _) => setState(_clear));
+    final labels = context.appLocalizations;
+    final busy = _checking != null;
+    final ready =
+        ref.watch(currentProfileIdProvider) == widget.profileId &&
+        ref.watch(coreStatusProvider) == CoreStatus.connected &&
+        ref.watch(runTimeProvider.select((runtime) => runtime != null)) &&
+        ref.watch(bindingsAppliedProvider(widget.profileId)).value == true;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Card(
+        padding: const EdgeInsets.all(16),
+        inert: true,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 12,
+          children: [
+            Row(
+              children: [
+                const GlyphIcon(AppGlyphs.layers, size: 22),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    widget.chain.name,
+                    style: AppTextStyle.headline.of(context),
+                  ),
+                ),
+                Switch(
+                  value: widget.chain.enabled,
+                  onChanged: widget.onChanged,
+                ),
+              ],
+            ),
+            for (var index = 0; index < widget.chain.hops.length; index++)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    labels.proxyChainHopLabel(index + 1),
+                    style: AppTextStyle.caption1
+                        .of(context)
+                        .copyWith(color: context.colorScheme.onSurfaceVariant),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      widget.chain.hops[index],
+                      style: AppTextStyle.subheadline.of(context),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  if (_checking == index)
+                    const ActivityIndicator(size: 16)
+                  else
+                    Text(
+                      _failed.contains(index)
+                          ? labels.error
+                          : _delays.containsKey(index)
+                          ? _delays[index]! > 0
+                                ? '${_delays[index]} ms'
+                                : delayFailureText(_delays[index]!, labels)
+                          : labels.proxyChainUnchecked,
+                      style: AppTextStyle.caption1
+                          .of(context)
+                          .copyWith(
+                            color: _failed.contains(index)
+                                ? context.colorScheme.error
+                                : context.colorScheme.delayColor(
+                                    _delays[index],
+                                  ),
+                          ),
+                    ),
+                ],
+              ),
+            Text(
+              labels.proxyChainLatencyHint,
+              style: AppTextStyle.caption1
+                  .of(context)
+                  .copyWith(color: context.colorScheme.onSurfaceVariant),
+            ),
+            if (_delays.containsKey(widget.chain.hops.length - 1))
+              Text(
+                '${labels.proxyChainTotal}: ${_delays[widget.chain.hops.length - 1]! > 0 ? '${_delays[widget.chain.hops.length - 1]} ms' : delayFailureText(_delays[widget.chain.hops.length - 1]!, labels)}',
+                style: AppTextStyle.headline.of(context),
+              ),
+            if (!ready) Text(labels.proxyChainApplyFirst),
+            ErrorBanner(message: _error),
+            TonalButton(
+              label: busy ? labels.loading : labels.proxyChainCheck,
+              onPressed: busy || !ready || !widget.chain.enabled
+                  ? null
+                  : _check,
+            ),
+          ],
         ),
       ),
     );
@@ -152,17 +335,24 @@ class _ChainFormState extends ConsumerState<_ChainForm> {
     super.dispose();
   }
 
+  Future<ClashConfig?> _loadInventory() async {
+    try {
+      return await ref
+          .read(profileBindingsActionProvider.notifier)
+          .inventory(widget.profileId);
+    } catch (error) {
+      if (mounted) setState(() => _error = error.toString());
+      return null;
+    }
+  }
+
   Future<void> _chooseHop([int? index]) async {
-    final config = await ref
-        .read(profileBindingsActionProvider.notifier)
-        .inventory(widget.profileId);
-    if (!mounted) return;
+    final config = await _loadInventory();
+    if (config == null || !mounted) return;
     final labels = context.appLocalizations;
-    final position = index ?? _hops.length;
     final names =
         [
-              if (position == 0)
-                ...config.proxyGroups.map((group) => group.name),
+              ...config.proxyGroups.map((group) => group.name),
               ...config.proxies.map((proxy) => proxy.name),
             ]
             .where(
@@ -193,10 +383,8 @@ class _ChainFormState extends ConsumerState<_ChainForm> {
   }
 
   Future<void> _chooseTarget() async {
-    final config = await ref
-        .read(profileBindingsActionProvider.notifier)
-        .inventory(widget.profileId);
-    if (!mounted) return;
+    final config = await _loadInventory();
+    if (config == null || !mounted) return;
     final labels = context.appLocalizations;
     final result = await showSheet<String>(
       context: context,

@@ -2,10 +2,11 @@ part of '../action.dart';
 
 @riverpod
 Future<bool> bindingsApplied(Ref ref, int profileId) async {
-  ref.watch(setupStateProvider(profileId));
   ref.watch(patchClashConfigProvider);
   ref.watch(networkSettingProvider);
   if (ref.watch(currentProfileIdProvider) != profileId) return false;
+  await ref.watch(setupStateProvider(profileId).future);
+  if (!ref.mounted) return false;
   return ref.read(setupActionProvider.notifier).inputsApplied();
 }
 
@@ -13,6 +14,55 @@ Future<bool> bindingsApplied(Ref ref, int profileId) async {
 class ProfileBindingsAction extends _$ProfileBindingsAction {
   @override
   void build() {}
+
+  Future<Delay> testChainHop(int profileId, ProxyChain chain, int index) async {
+    RangeError.checkValidIndex(index, chain.hops);
+    final profile = ref.read(profileProvider(profileId));
+    if (profile == null ||
+        ref.read(currentProfileIdProvider) != profileId ||
+        !profile.overrides.chainsEnabled ||
+        !chain.enabled ||
+        !profile.overrides.chains.contains(chain) ||
+        ref.read(coreStatusProvider) != CoreStatus.connected ||
+        ref.read(runTimeProvider) == null ||
+        !await ref.read(bindingsAppliedProvider(profileId).future)) {
+      throw MessageException(currentAppLocalizations.proxyChainApplyFirst);
+    }
+    final outbounds = await ref.read(coreHandlerProvider).getProxies();
+    if (!ref.mounted ||
+        ref.read(currentProfileIdProvider) != profileId ||
+        ref.read(profileProvider(profileId)) != profile ||
+        ref.read(coreStatusProvider) != CoreStatus.connected ||
+        ref.read(runTimeProvider) == null) {
+      throw MessageException(currentAppLocalizations.proxyChainApplyFirst);
+    }
+    final name = proxyChainProbeName(
+      chain,
+      index,
+      outbounds.proxies.keys.toSet(),
+      passthrough: {
+        'DIRECT',
+        'COMPATIBLE',
+        for (final entry in outbounds.proxies.entries)
+          if (entry.value is Map &&
+              (entry.value['type'] as String?)?.toLowerCase() == 'direct')
+            entry.key,
+      },
+    );
+    if (!outbounds.proxies.containsKey(chain.name) ||
+        !outbounds.proxies.containsKey(name)) {
+      throw MessageException(currentAppLocalizations.proxyChainApplyFirst);
+    }
+    return ref
+        .read(coreHandlerProvider)
+        .testDelay(
+          TestDelayParams(
+            proxyName: name,
+            testUrl: ref.read(realTestUrlProvider(null)),
+            timeout: ref.read(appSettingProvider).delayTestTimeout,
+          ),
+        );
+  }
 
   Future<
     ({
@@ -35,7 +85,13 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
         );
       }
       if (subscriptions.containsKey(source.id)) continue;
-      final config = await ref.read(coreHandlerProvider).readConfig(source.id);
+      final config = await ref
+          .read(coreHandlerProvider)
+          .readConfig(
+            source.id,
+            providerCacheProfileId: state.profileId,
+            providerPrefix: 'flsmart-${binding.id}-',
+          );
       final providers = config['proxy-providers'];
       if (providers is Map) {
         for (final entry in providers.entries) {
@@ -83,6 +139,23 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
   Future<ClashConfig> inventory(int profileId) async {
     final profile = ref.read(profileProvider(profileId));
     if (profile == null) throw StateError('Profile no longer exists');
+    Future<ClashConfig> readInventory(int id, {String? providerPrefix}) async {
+      final raw = await ref
+          .read(coreHandlerProvider)
+          .readConfig(
+            id,
+            providerCacheProfileId: providerPrefix == null ? null : profileId,
+            providerPrefix: providerPrefix,
+          );
+      return clashConfigTask({
+        ...raw,
+        'proxies': [
+          ...raw['proxies'] as List? ?? const [],
+          ...raw['x-flsmart-provider-nodes'] as List? ?? const [],
+        ],
+      });
+    }
+
     final base = profile.type == ProfileType.custom
         ? ClashConfig(
             proxies: [
@@ -91,11 +164,11 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
             ],
             proxyGroups: await database.proxyGroupsDao.query(profileId).get(),
           )
-        : await ref.read(clashConfigProvider(profileId).future);
+        : await readInventory(profileId);
     final nodes = [...base.proxies];
     final groups = [...base.proxyGroups];
     for (final binding in profile.overrides.subscriptions.where(
-      (item) => item.enabled,
+      (item) => profile.overrides.attachmentsEnabled && item.enabled,
     )) {
       final source = ref.read(profilesProvider).getProfile(binding.sourceId);
       if (source == null ||
@@ -103,7 +176,10 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
           source.id == profileId) {
         continue;
       }
-      final data = await ref.read(clashConfigProvider(source.id).future);
+      final data = await readInventory(
+        source.id,
+        providerPrefix: 'flsmart-${binding.id}-',
+      );
       nodes.addAll([
         for (final node in data.proxies)
           node.copyWith(name: '${binding.name} · ${node.name}'),
@@ -115,8 +191,17 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
           type: binding.groupType,
         ),
       );
+      groups.addAll([
+        for (final group in data.proxyGroups)
+          group.copyWith(name: '${binding.name} · ${group.name}'),
+      ]);
     }
-    return base.copyWith(proxies: nodes, proxyGroups: groups);
+    return base.copyWith(
+      proxies: {for (final node in nodes) node.name: node}.values.toList(),
+      proxyGroups: {
+        for (final group in groups) group.name: group,
+      }.values.toList(),
+    );
   }
 
   Future<BuiltProfile> preview(
