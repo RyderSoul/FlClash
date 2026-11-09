@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/core/controller.dart';
+import 'package:fl_clash/core/method.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
@@ -189,7 +189,7 @@ class _TrafficOverview extends StatelessWidget {
       DashboardColors.of(context).track,
     ];
     final top = nodes.take(_previewCount).map((node) => node.total).toList();
-    final rest = total - top.fold(0, (sum, value) => sum + value);
+    final rest = total - top.fold<int>(0, (sum, value) => sum + value);
     return Row(
       spacing: 20,
       children: [

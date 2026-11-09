@@ -1564,6 +1564,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "noSearchResults": MessageLookupByLibrary.simpleMessage(
       "No hay resultados",
     ),
+    "nodeTraffic": MessageLookupByLibrary.simpleMessage("Tráfico por nodo"),
+    "nodeTrafficEmpty": MessageLookupByLibrary.simpleMessage(
+      "Aún no hay tráfico proxy. Usa un nodo para ver su consumo.",
+    ),
+    "nodeTrafficHint": MessageLookupByLibrary.simpleMessage(
+      "Tráfico proxy desde el último inicio. Se excluye el tráfico directo.",
+    ),
+    "nodeTrafficSession": MessageLookupByLibrary.simpleMessage("Esta sesión"),
+    "nodeTrafficUnavailable": MessageLookupByLibrary.simpleMessage(
+      "No se pudo actualizar. Se reintentará automáticamente.",
+    ),
     "nodes": MessageLookupByLibrary.simpleMessage("Nodos"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "Este recurso externo no es un archivo de texto",

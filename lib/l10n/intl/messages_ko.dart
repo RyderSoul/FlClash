@@ -1229,6 +1229,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "noResolve": MessageLookupByLibrary.simpleMessage("IP 확인 안 함"),
     "noResolveHostname": MessageLookupByLibrary.simpleMessage("호스트 이름 확인 안 함"),
     "noSearchResults": MessageLookupByLibrary.simpleMessage("일치하는 결과 없음"),
+    "nodeTraffic": MessageLookupByLibrary.simpleMessage("노드별 트래픽"),
+    "nodeTrafficEmpty": MessageLookupByLibrary.simpleMessage(
+      "아직 프록시 트래픽이 없습니다. 노드를 사용하면 여기에 표시됩니다.",
+    ),
+    "nodeTrafficHint": MessageLookupByLibrary.simpleMessage(
+      "마지막 시작 이후의 프록시 트래픽입니다. 직접 연결은 제외됩니다.",
+    ),
+    "nodeTrafficSession": MessageLookupByLibrary.simpleMessage("현재 세션"),
+    "nodeTrafficUnavailable": MessageLookupByLibrary.simpleMessage(
+      "새로고침할 수 없습니다. 자동으로 다시 시도합니다.",
+    ),
     "nodes": MessageLookupByLibrary.simpleMessage("노드"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "이 외부 리소스는 텍스트 파일이 아닙니다",

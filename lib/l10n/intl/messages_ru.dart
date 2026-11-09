@@ -1527,6 +1527,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "noSearchResults": MessageLookupByLibrary.simpleMessage(
       "Ничего не найдено",
     ),
+    "nodeTraffic": MessageLookupByLibrary.simpleMessage("Трафик узлов"),
+    "nodeTrafficEmpty": MessageLookupByLibrary.simpleMessage(
+      "Трафика прокси пока нет. Данные появятся после использования узла.",
+    ),
+    "nodeTrafficHint": MessageLookupByLibrary.simpleMessage(
+      "Трафик прокси с последнего запуска. Прямые подключения не учитываются.",
+    ),
+    "nodeTrafficSession": MessageLookupByLibrary.simpleMessage("Текущий сеанс"),
+    "nodeTrafficUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Не удалось обновить. Повторяем автоматически.",
+    ),
     "nodes": MessageLookupByLibrary.simpleMessage("Узлы"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "Этот внешний ресурс не является текстовым файлом",
