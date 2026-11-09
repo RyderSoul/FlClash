@@ -149,6 +149,7 @@ jobs:
             test/common/compute_test.dart test/common/task_test.dart \
             test/common/proxy_chain_test.dart test/common/profile_binding_test.dart test/common/smart_usage_test.dart \
             test/providers/custom_import_test.dart test/providers/proxies_action_test.dart \
+            test/providers/profile_bindings_action_test.dart test/providers/clash_providers_action_test.dart \
             test/providers/state_derived_test.dart test/providers/config_test.dart \
             test/l10n test/lint \
             test/core/protocol_contract_test.dart test/views/proxies_list_test.dart \
