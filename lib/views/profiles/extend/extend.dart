@@ -206,6 +206,8 @@ class _ModeSection extends ConsumerWidget {
                     (profile) => profile.copyWith(
                       overrides: profile.overrides.copyWith(
                         rulesEnabled: value,
+                        subscriptionEnabled:
+                            profile.subscriptionOverrideEnabled,
                       ),
                     ),
                   ),
@@ -222,6 +224,7 @@ class _ModeSection extends ConsumerWidget {
                     (profile) => profile.copyWith(
                       overrides: profile.overrides.copyWith(
                         subscriptionEnabled: value,
+                        rulesEnabled: profile.rulesOverrideEnabled,
                       ),
                     ),
                   ),

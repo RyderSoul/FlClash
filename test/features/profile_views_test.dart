@@ -234,6 +234,26 @@ void main() {
       );
     });
 
+    testWidgets('override switches remain independent when changing editors', (
+      tester,
+    ) async {
+      await pumpExtendView(tester);
+      final l10n = currentAppLocalizations;
+      await tester.tap(find.text(l10n.subscriptionOverrideEnabled));
+      await tester.pumpAndSettle();
+      await switchToScript(tester);
+      var profile = globalState.container.read(profilesProvider).single;
+      expect(profile.rulesOverrideEnabled, true);
+      expect(profile.subscriptionOverrideEnabled, true);
+      await tester.tap(find.text(l10n.rulesOverrideEnabled));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10n.standard));
+      await tester.pumpAndSettle();
+      profile = globalState.container.read(profilesProvider).single;
+      expect(profile.rulesOverrideEnabled, false);
+      expect(profile.subscriptionOverrideEnabled, true);
+    });
+
     testWidgets('offers applying at once only after a change', (tester) async {
       final setupAction = await pumpExtendView(tester);
       expect(applyNowButton(), findsNothing);
