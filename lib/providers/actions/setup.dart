@@ -501,6 +501,11 @@ class SetupAction extends _$SetupAction {
     final appendSystemDns = networkSetting.appendSystemDns;
     final isCustom = setupState.profileType == ProfileType.custom;
     final scriptContent = await setupState.script?.content;
+    if (setupState.script != null && scriptContent == null) {
+      throw MessageException(
+        currentAppLocalizations.bindingSourceMissing(setupState.script!.label),
+      );
+    }
     final hasScript = scriptContent?.isNotEmpty == true;
     final hasBindings =
         setupState.overrides.subscriptions.any((item) => item.enabled) ||
@@ -771,7 +776,9 @@ class SetupAction extends _$SetupAction {
         profile != null &&
         (profile.overrides.subscriptions.isNotEmpty ||
             profile.overrides.ruleBindings.isNotEmpty ||
-            profile.overrides.chains.isNotEmpty);
+            profile.overrides.chains.isNotEmpty ||
+            (profile.subscriptionOverrideEnabled && profile.scriptId != null) ||
+            profile.overrides.rulesEnabled == true);
     if (preserveOnFailure) {
       if (profileFailed) return _SetupTaskResult.failed;
       final valid = await globalState.safeRun(() async {
