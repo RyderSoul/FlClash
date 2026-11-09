@@ -9082,6 +9082,56 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Node traffic`
+  String get nodeTraffic {
+    return Intl.message(
+      'Node traffic',
+      name: 'nodeTraffic',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This session`
+  String get nodeTrafficSession {
+    return Intl.message(
+      'This session',
+      name: 'nodeTrafficSession',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Proxy traffic since the last start. Direct traffic is excluded.`
+  String get nodeTrafficHint {
+    return Intl.message(
+      'Proxy traffic since the last start. Direct traffic is excluded.',
+      name: 'nodeTrafficHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No proxy traffic yet. Use a node to see its traffic here.`
+  String get nodeTrafficEmpty {
+    return Intl.message(
+      'No proxy traffic yet. Use a node to see its traffic here.',
+      name: 'nodeTrafficEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Unable to refresh. Retrying automatically.`
+  String get nodeTrafficUnavailable {
+    return Intl.message(
+      'Unable to refresh. Retrying automatically.',
+      name: 'nodeTrafficUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

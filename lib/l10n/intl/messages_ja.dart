@@ -1245,6 +1245,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "noResolve": MessageLookupByLibrary.simpleMessage("IPを解決しない"),
     "noResolveHostname": MessageLookupByLibrary.simpleMessage("ホスト名を解決しない"),
     "noSearchResults": MessageLookupByLibrary.simpleMessage("一致する結果はありません"),
+    "nodeTraffic": MessageLookupByLibrary.simpleMessage("ノード別通信量"),
+    "nodeTrafficEmpty": MessageLookupByLibrary.simpleMessage(
+      "プロキシ通信量はまだありません。ノードを使うとここに表示されます。",
+    ),
+    "nodeTrafficHint": MessageLookupByLibrary.simpleMessage(
+      "前回の起動以降のプロキシ通信量です。直接接続は含みません。",
+    ),
+    "nodeTrafficSession": MessageLookupByLibrary.simpleMessage("今回の起動"),
+    "nodeTrafficUnavailable": MessageLookupByLibrary.simpleMessage(
+      "更新できません。自動的に再試行します。",
+    ),
     "nodes": MessageLookupByLibrary.simpleMessage("ノード"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "この外部リソースはテキストファイルではありません",

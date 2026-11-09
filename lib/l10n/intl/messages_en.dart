@@ -1455,6 +1455,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "noSearchResults": MessageLookupByLibrary.simpleMessage(
       "No matching results",
     ),
+    "nodeTraffic": MessageLookupByLibrary.simpleMessage("Node traffic"),
+    "nodeTrafficEmpty": MessageLookupByLibrary.simpleMessage(
+      "No proxy traffic yet. Use a node to see its traffic here.",
+    ),
+    "nodeTrafficHint": MessageLookupByLibrary.simpleMessage(
+      "Proxy traffic since the last start. Direct traffic is excluded.",
+    ),
+    "nodeTrafficSession": MessageLookupByLibrary.simpleMessage("This session"),
+    "nodeTrafficUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Unable to refresh. Retrying automatically.",
+    ),
     "nodes": MessageLookupByLibrary.simpleMessage("Nodes"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage(
       "This external resource is not a text file",

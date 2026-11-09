@@ -1131,6 +1131,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "noResolve": MessageLookupByLibrary.simpleMessage("不解析IP"),
     "noResolveHostname": MessageLookupByLibrary.simpleMessage("不解析主机名"),
     "noSearchResults": MessageLookupByLibrary.simpleMessage("没有匹配的结果"),
+    "nodeTraffic": MessageLookupByLibrary.simpleMessage("节点流量"),
+    "nodeTrafficEmpty": MessageLookupByLibrary.simpleMessage(
+      "暂无节点流量，使用代理后会显示用量。",
+    ),
+    "nodeTrafficHint": MessageLookupByLibrary.simpleMessage(
+      "统计本次启动后的代理流量，不含直连流量。",
+    ),
+    "nodeTrafficSession": MessageLookupByLibrary.simpleMessage("本次运行"),
+    "nodeTrafficUnavailable": MessageLookupByLibrary.simpleMessage(
+      "暂时无法刷新，正在自动重试。",
+    ),
     "nodes": MessageLookupByLibrary.simpleMessage("节点"),
     "nonTextProviderFile": MessageLookupByLibrary.simpleMessage("该外部资源不是文本文件"),
     "none": MessageLookupByLibrary.simpleMessage("无"),
