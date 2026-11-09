@@ -59,13 +59,14 @@ void main() {
   Future<void> pumpCard(
     WidgetTester tester, {
     double width = 400,
+    double height = 1000,
     Brightness brightness = Brightness.light,
   }) async {
-    tester.view.physicalSize = Size(width, 1000);
+    tester.view.physicalSize = Size(width, height);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    container.read(viewSizeProvider.notifier).value = Size(width, 1000);
+    container.read(viewSizeProvider.notifier).value = Size(width, height);
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
@@ -122,17 +123,8 @@ void main() {
   testWidgets('opens the full ranking and resumes after closing it', (
     tester,
   ) async {
-    await pumpCard(tester);
+    await pumpCard(tester, height: 1800);
     await tester.tap(find.text('View all'));
-    await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.text(_samples[5].name),
-      150,
-      scrollable: find.descendant(
-        of: find.byType(PrismListView),
-        matching: find.byType(Scrollable),
-      ),
-    );
     await tester.pumpAndSettle();
     expect(find.text(_samples[5].name), findsOneWidget);
     globalState.navigatorKey.currentState!.pop();
