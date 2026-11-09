@@ -91,13 +91,14 @@ class Migration {
 
   /// One-off setting changes for upgrades, apart from [currentVersion], which
   /// backups carry and an older app refuses when it is newer than its own.
-  static const upgradeVersion = 4;
+  static const upgradeVersion = 5;
 
   static const Map<int, Config Function(Config config)> _upgrades = {
     1: _resetThemeColors,
     2: _keepGlassLook,
     3: _followSystemColors,
     4: _turnOffSidebarBlur,
+    5: _addNodeTrafficCard,
   };
 
   Future<Config> run() async {
@@ -237,6 +238,19 @@ Config _followSystemColors(Config config) {
 // Releases stored sidebar blur on while its switch stayed hidden.
 Config _turnOffSidebarBlur(Config config) =>
     config.copyWith(themeProps: config.themeProps.copyWith(sidebarBlur: false));
+
+Config _addNodeTrafficCard(Config config) {
+  final cards = [...config.appSettingProps.dashboardWidgets];
+  if (cards.contains(DashboardWidget.nodeTraffic)) return config;
+  final index = cards.indexOf(DashboardWidget.networkSpeed);
+  cards.insert(
+    index < 0 ? cards.length : index + 1,
+    DashboardWidget.nodeTraffic,
+  );
+  return config.copyWith(
+    appSettingProps: config.appSettingProps.copyWith(dashboardWidgets: cards),
+  );
+}
 
 bool _isV0(Map<String, Object?>? configMap) =>
     configMap?['proxiesStyle'] != null;

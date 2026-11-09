@@ -218,6 +218,7 @@ var methodHandlers = map[CoreMethod]methodHandler{
 
 	trafficCurrentMethod:     withArguments(handleGetTraffic),
 	trafficTotalMethod:       withArguments(handleGetTotalTraffic),
+	trafficNodesMethod:       withoutArguments(handleGetNodeTraffic),
 	trafficResetMethod:       action(handleResetTraffic),
 	connectionListMethod:     withoutArguments(handleGetConnections),
 	connectionCountMethod:    withoutArguments(handleGetConnectionCount),

@@ -1077,5 +1077,10 @@
   "fakeipFilterDesc": "이 도메인에는 Fake-IP 대신 실제 IP를 반환합니다. whitelist 모드에서는 이 도메인만 Fake-IP를 사용합니다.",
   "fallbackFilterGeositeDesc": "이 GeoSite 분류의 도메인은 바로 Fallback으로 확인합니다.",
   "fallbackFilterIpcidrDesc": "Nameserver가 이 범위의 IP를 반환하면 Fallback 결과를 사용합니다.",
-  "fallbackFilterDomainDesc": "이 도메인은 바로 Fallback으로 확인합니다."
+  "fallbackFilterDomainDesc": "이 도메인은 바로 Fallback으로 확인합니다.",
+  "nodeTraffic": "노드별 트래픽",
+  "nodeTrafficSession": "현재 세션",
+  "nodeTrafficHint": "마지막 시작 이후의 프록시 트래픽입니다. 직접 연결은 제외됩니다.",
+  "nodeTrafficEmpty": "아직 프록시 트래픽이 없습니다. 노드를 사용하면 여기에 표시됩니다.",
+  "nodeTrafficUnavailable": "새로고침할 수 없습니다. 자동으로 다시 시도합니다."
 }
