@@ -188,7 +188,10 @@ void main() {
     await tester.pumpAndSettle();
     final formScroll = find.descendant(
       of: find.byType(FormPage),
-      matching: find.byType(Scrollable),
+      matching: find.byWidgetPredicate(
+        (widget) =>
+            widget is Scrollable && widget.axisDirection == AxisDirection.down,
+      ),
     );
     for (final hop in ['entry', 'exit']) {
       await tester.scrollUntilVisible(
