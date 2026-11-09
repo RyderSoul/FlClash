@@ -10,6 +10,7 @@ import 'package:fl_clash/state.dart';
 import 'package:fl_clash/views/dashboard/widgets/node_traffic.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -30,9 +31,16 @@ const _samples = [
 ];
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   late _MockCore core;
   late ProviderContainer container;
   final previewKey = GlobalKey();
+
+  setUpAll(() async {
+    final loader = FontLoader('JetBrainsMono')
+      ..addFont(rootBundle.load('assets/fonts/JetBrainsMono-Regular.ttf'));
+    await loader.load();
+  });
 
   setUp(() {
     core = _MockCore();
@@ -62,6 +70,14 @@ void main() {
       UncontrolledProviderScope(
         container: container,
         child: TestApp(
+          theme: ThemeData(
+            brightness: Brightness.light,
+            fontFamily: 'JetBrainsMono',
+          ),
+          darkTheme: ThemeData(
+            brightness: Brightness.dark,
+            fontFamily: 'JetBrainsMono',
+          ),
           themeMode: brightness == Brightness.dark
               ? ThemeMode.dark
               : ThemeMode.light,
@@ -187,10 +203,10 @@ void main() {
         final boundary =
             previewKey.currentContext!.findRenderObject()!
                 as RenderRepaintBoundary;
-        final image = await boundary.toImage(pixelRatio: 2);
-        final png = await image.toByteData(format: ui.ImageByteFormat.png);
-        image.dispose();
         await tester.runAsync(() async {
+          final image = await boundary.toImage(pixelRatio: 2);
+          final png = await image.toByteData(format: ui.ImageByteFormat.png);
+          image.dispose();
           await Directory(directory).create(recursive: true);
           await File(
             '$directory/node-traffic-${brightness.name}.png',
