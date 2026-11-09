@@ -231,13 +231,13 @@ void main() {
         tester,
         Builder(
           builder: (context) => TextButton(
-            label: 'Open copy',
             onPressed: () => Navigator.of(context).push(
               PageRouteBuilder<void>(
                 pageBuilder: (_, _, _) =>
                     CopyBindingsView(profileId: source.id),
               ),
             ),
+            child: const Text('Open copy'),
           ),
         ),
       );

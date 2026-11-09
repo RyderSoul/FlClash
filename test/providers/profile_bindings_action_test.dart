@@ -6,6 +6,7 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/core/controller.dart';
 import 'package:fl_clash/core/interface.dart';
 import 'package:fl_clash/database/database.dart' as db;
+import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
@@ -66,6 +67,12 @@ void main() {
     }
     final core = _Core();
     when(() => core.validateConfig(any())).thenAnswer((_) async => null);
+    when(() => core.compileRuleSet(any(), url: any(named: 'url'))).thenAnswer(
+      (_) async => (
+        behavior: RuleProviderBehavior.classical,
+        format: RuleProviderFormat.yaml,
+      ),
+    );
     action = _Bindings();
     container = ProviderContainer(
       overrides: [
@@ -160,6 +167,74 @@ void main() {
       expect(saved.overrides.attachmentsEnabled, true);
     },
   );
+
+  for (final fail in [false, true]) {
+    test(
+      'rule and script independent copies clean up on failure: $fail',
+      () async {
+        final rules = ClashProvider.create(label: 'Rules');
+        final script = await Script.create(
+          label: 'Script',
+        ).save('function main(config) { return config; }');
+        final rulesFile = File(await rules.path);
+        await rulesFile.parent.create(recursive: true);
+        await rulesFile.writeAsString('payload: [DOMAIN,example.com]');
+        await container.read(clashProvidersProvider.future);
+        await container.read(scriptsProvider.future);
+        container.read(clashProvidersProvider.notifier).put(rules);
+        container.read(scriptsProvider.notifier).put(script);
+        final candidate = target.copyWith(
+          scriptId: script.id,
+          overrides: target.overrides.copyWith(
+            ruleBindings: [
+              RuleSetBinding(id: 'rules', sourceId: rules.id, target: 'DIRECT'),
+            ],
+          ),
+        );
+        action.fail = fail;
+        final saving = container
+            .read(profileBindingsActionProvider.notifier)
+            .saveIndependentCopy(
+              candidate,
+              subscriptionIds: {},
+              ruleIds: {'rules'},
+              copyScript: true,
+            );
+        if (fail) {
+          await expectLater(saving, throwsFormatException);
+          expect(await container.read(clashProvidersProvider.future), [rules]);
+          expect(await container.read(scriptsProvider.future), [script]);
+          expect(container.read(profileProvider(target.id)), target);
+          expect(
+            await rulesFile.parent
+                .list()
+                .where((entry) => entry is File)
+                .length,
+            1,
+          );
+          expect(await File(await script.path).parent.list().length, 1);
+        } else {
+          await saving;
+          final saved = container.read(profileProvider(target.id))!;
+          expect(saved.scriptId, isNot(script.id));
+          final copiedScript = (await container.read(
+            scriptsProvider.future,
+          )).get(saved.scriptId)!;
+          expect(await copiedScript.content, await script.content);
+          final copiedRules = (await container.read(
+            clashProvidersProvider.future,
+          )).singleWhere((item) => item.id != rules.id);
+          expect(saved.overrides.ruleBindings.single.sourceId, copiedRules.id);
+          expect(
+            await File(await copiedRules.path).readAsString(),
+            await rulesFile.readAsString(),
+          );
+        }
+        expect(await rulesFile.exists(), true);
+        expect(await File(await script.path).exists(), true);
+      },
+    );
+  }
 
   test(
     'local rules copy maps targets and avoids duplicate rule content',

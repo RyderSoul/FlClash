@@ -155,7 +155,7 @@ void main() {
       'type': 'socks5',
       'server': '127.0.0.1',
       'port': 1080,
-      if (dialer != null) 'dialer-proxy': dialer,
+      'dialer-proxy': ?dialer,
     };
     final result = _build(
       base: {
@@ -402,5 +402,27 @@ void main() {
       };
     (base['proxy-groups'] as List).first['proxies'] = ['gone'];
     expect(() => validatePolicyReferences(base), throwsFormatException);
+  });
+
+  test('provider dialers must reference existing policies', () {
+    for (final provider in [
+      {'dialer-proxy': 'gone'},
+      {
+        'override': {'dialer-proxy': 'gone'},
+      },
+      {
+        'payload': [
+          {'name': 'remote', 'dialer-proxy': 'gone'},
+        ],
+      },
+    ]) {
+      final base = _base()..['proxy-providers'] = {'remote': provider};
+      expect(() => validatePolicyReferences(base), throwsFormatException);
+    }
+    final base = _base()
+      ..['proxy-providers'] = {
+        'remote': {'dialer-proxy': 'original'},
+      };
+    expect(() => validatePolicyReferences(base), returnsNormally);
   });
 }

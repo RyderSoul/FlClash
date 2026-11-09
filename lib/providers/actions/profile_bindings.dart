@@ -316,6 +316,11 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
               proxiesProviderDirectoryName,
             ),
           );
+          cleanup.add(() async {
+            if (await copyCache.exists()) {
+              await copyCache.delete(recursive: true);
+            }
+          });
           if (await sourceCache.exists()) {
             await copyCache.create(recursive: true);
             await for (final file in sourceCache.list()) {
@@ -324,11 +329,6 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
               }
             }
           }
-          cleanup.add(() async {
-            if (await copyCache.exists()) {
-              await copyCache.delete(recursive: true);
-            }
-          });
           ref.read(profilesProvider.notifier).put(saved);
           id = saved.id;
           subscriptionCopies[binding.sourceId] = id;
@@ -364,7 +364,9 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
             ),
           );
           cleanup.add(() async {
-            ref.read(clashProvidersActionProvider.notifier).delProvider(copy);
+            ref.read(clashProvidersProvider.notifier).del(copy.id);
+            await File(await copy.path).safeDelete();
+            await File(await copy.compiledPath).safeDelete();
           });
           final saved = await ref
               .read(clashProvidersActionProvider.notifier)
@@ -386,6 +388,12 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
             currentAppLocalizations.bindingSourceMissing(scriptId.toString()),
           );
         }
+        final content = await script.content;
+        if (content == null) {
+          throw MessageException(
+            currentAppLocalizations.bindingSourceMissing(script.label),
+          );
+        }
         final copy = Script.create(label: script.label, url: script.url);
         cleanup.add(() async {
           ref.read(scriptsProvider.notifier).del(copy.id);
@@ -393,7 +401,7 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
             await appPath.getScriptPath(copy.id.toString()),
           ).safeDelete();
         });
-        final saved = await copy.save(await script.content ?? '');
+        final saved = await copy.save(content);
         ref.read(scriptsProvider.notifier).put(saved);
         scriptId = saved.id;
       }
