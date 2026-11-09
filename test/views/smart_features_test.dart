@@ -195,11 +195,11 @@ void main() {
     );
     for (final hop in ['entry', 'exit']) {
       await tester.scrollUntilVisible(
-        find.byType(MoreActionButton).last,
+        find.byType(MoreActionButton),
         200,
         scrollable: formScroll,
       );
-      await tester.tap(find.byType(MoreActionButton).last);
+      await tester.tap(find.byType(MoreActionButton));
       await tester.pumpAndSettle();
       await tester.tap(find.text(hop).last);
       await tester.pumpAndSettle();
