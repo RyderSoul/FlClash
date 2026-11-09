@@ -39,6 +39,9 @@ class _RecordingCoreHandler extends CoreHandlerInterface {
       CoreMethod.coreInitialized => true,
       CoreMethod.trafficCurrent ||
       CoreMethod.trafficTotal => {'up': 12, 'down': 34},
+      CoreMethod.trafficNodes => [
+        {'name': 'Tokyo', 'provider': 'subscription', 'up': 12, 'down': 34},
+      ],
       CoreMethod.proxyTestDelay => {
         'name': 'DIRECT',
         'url': 'https://example.com',
@@ -227,6 +230,18 @@ void main() {
     expect(goNames, isNotEmpty);
     expect({for (final method in CoreMethod.values) method.wireName}, goNames);
   });
+
+  test(
+    'decodes node traffic from the core without an HTTP controller',
+    () async {
+      final handler = _RecordingCoreHandler();
+      final nodes = await handler.getNodeTraffic();
+      expect(nodes.single.name, 'Tokyo');
+      expect(nodes.single.provider, 'subscription');
+      expect(nodes.single.total, 46);
+      expect(handler.calls, contains(CoreMethod.trafficNodes));
+    },
+  );
 
   test('core interface sends structured request parameters', () async {
     final handler = _RecordingCoreHandler();

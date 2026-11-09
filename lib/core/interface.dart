@@ -298,6 +298,11 @@ abstract class CoreHandlerInterface {
     );
   }
 
+  Future<List<NodeTraffic>> getNodeTraffic() => _query(
+    CoreMethod.trafficNodes,
+    (data) => _jsonList(data).map(NodeTraffic.fromJson).toList(),
+  );
+
   Future<void> resetTraffic() => _commandUnobserved(CoreMethod.trafficReset);
 
   Future<List<TrackerInfo>> getConnections() {

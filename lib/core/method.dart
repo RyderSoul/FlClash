@@ -36,6 +36,7 @@ enum CoreMethod {
   geoUpdate('geo.update'),
   trafficCurrent('traffic.current'),
   trafficTotal('traffic.total'),
+  trafficNodes('traffic.nodes'),
   trafficReset('traffic.reset'),
   connectionList('connection.list'),
   connectionCount('connection.count'),

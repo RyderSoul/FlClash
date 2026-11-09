@@ -18,6 +18,7 @@ func handleGetTotalTraffic(params TrafficParams) Traffic {
 
 func handleResetTraffic() {
 	statistic.DefaultManager.ResetStatistic()
+	currentRequestTraffic.resetNodeTraffic()
 }
 
 func handleGetConnections() *statistic.Snapshot {

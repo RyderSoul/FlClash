@@ -187,6 +187,43 @@ void main() {
     });
 
     group('upgrade', () {
+      test(
+        'adds the node traffic card once and respects later removal',
+        () async {
+          final configMap = _createConfigMap();
+          (configMap['appSettingProps']!
+              as Map<String, Object?>)['dashboardWidgets'] = [
+            'currentOutbound',
+            'networkSpeed',
+            'profiles',
+          ];
+          final store = _FakeMigrationStore(
+            configMap: configMap,
+            version: Migration.currentVersion,
+            upgradeVersion: 4,
+          );
+          final config = await Migration(store: store).run();
+          expect(config.appSettingProps.dashboardWidgets, [
+            DashboardWidget.currentOutbound,
+            DashboardWidget.networkSpeed,
+            DashboardWidget.nodeTraffic,
+            DashboardWidget.profiles,
+          ]);
+          final removed = config.copyWith.appSettingProps(
+            dashboardWidgets: [DashboardWidget.currentOutbound],
+          );
+          final later = _FakeMigrationStore(
+            configMap: jsonDecode(jsonEncode(removed)),
+            version: store.version,
+            upgradeVersion: store.upgradeVersion,
+          );
+          final kept = await Migration(store: later).run();
+          expect(kept.appSettingProps.dashboardWidgets, [
+            DashboardWidget.currentOutbound,
+          ]);
+        },
+      );
+
       Map<String, Object?> customized() =>
           _createConfigMap()
             ..['themeProps'] = {

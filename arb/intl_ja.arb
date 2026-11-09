@@ -1077,5 +1077,10 @@
   "fakeipFilterDesc": "これらのドメインには Fake-IP ではなく実際の IP を返します。whitelist モードでは、これらだけが Fake-IP を使います。",
   "fallbackFilterGeositeDesc": "これらの GeoSite カテゴリのドメインは、直接 Fallback で解決します。",
   "fallbackFilterIpcidrDesc": "Nameserver がこれらの範囲の IP を返したときは、Fallback の結果を使います。",
-  "fallbackFilterDomainDesc": "これらのドメインは、直接 Fallback で解決します。"
+  "fallbackFilterDomainDesc": "これらのドメインは、直接 Fallback で解決します。",
+  "nodeTraffic": "ノード別通信量",
+  "nodeTrafficSession": "今回の起動",
+  "nodeTrafficHint": "前回の起動以降のプロキシ通信量です。直接接続は含みません。",
+  "nodeTrafficEmpty": "プロキシ通信量はまだありません。ノードを使うとここに表示されます。",
+  "nodeTrafficUnavailable": "更新できません。自動的に再試行します。"
 }

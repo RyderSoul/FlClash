@@ -28,12 +28,16 @@ type watchedRequest struct {
 	// missing from the manager on its first report may still be opening.
 	fresh         bool
 	closedReports int
+	node          nodeTrafficKey
+	accountedUp   int64
+	accountedDown int64
 }
 
 type requestTrafficWatch struct {
 	mu       sync.Mutex
 	requests map[string]*watchedRequest
 	running  bool
+	nodes    map[nodeTrafficKey]Traffic
 }
 
 var currentRequestTraffic = requestTrafficWatch{
@@ -49,7 +53,9 @@ func (w *requestTrafficWatch) add(tracker statistic.Tracker) (start bool) {
 		upload:   info.UploadTotal.Load(),
 		download: info.DownloadTotal.Load(),
 		fresh:    true,
+		node:     trafficNode(info),
 	}
+	w.accountNode(w.requests[tracker.ID()])
 	start = !w.running
 	w.running = true
 	return start
@@ -68,6 +74,7 @@ func (w *requestTrafficWatch) collect(
 		}
 		request.fresh = false
 		info := request.tracker.Info()
+		w.accountNode(request)
 		upload, download := info.UploadTotal.Load(), info.DownloadTotal.Load()
 		if upload != request.upload || download != request.download {
 			changed = append(changed, RequestTraffic{Id: id, Upload: upload, Download: download})
@@ -89,16 +96,9 @@ func (w *requestTrafficWatch) collect(
 	return w.running
 }
 
-func (w *requestTrafficWatch) clear() {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-	clear(w.requests)
-	w.running = false
-}
-
 func watchRequestTraffic(tracker statistic.Tracker) {
 	if currentRequestTraffic.add(tracker) {
-		go runRequestTrafficWatch()
+		safeGo("request traffic", runRequestTrafficWatch)
 	}
 }
 
@@ -106,16 +106,12 @@ func runRequestTrafficWatch() {
 	ticker := time.NewTicker(requestTrafficInterval)
 	defer ticker.Stop()
 	for range ticker.C {
-		if !hasEventListener() {
-			currentRequestTraffic.clear()
-			return
-		}
 		watching := currentRequestTraffic.collect(
 			func(id string) bool {
 				return statistic.DefaultManager.Get(id) != nil
 			},
 			func(changed []RequestTraffic) bool {
-				return sendMessage(RequestTrafficMessage, changed)
+				return !hasEventListener() || sendMessage(RequestTrafficMessage, changed)
 			},
 		)
 		if !watching {

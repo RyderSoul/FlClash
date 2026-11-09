@@ -136,17 +136,20 @@ jobs:
           retention-days: 7
 
       - name: Analyze and test Flutter
+        env:
+          NODE_TRAFFIC_PREVIEW_DIR: /tmp/flsmart-preview
         run: |
           dart format --output=none --set-exit-if-changed lib test tool plugins setup.dart
           flutter analyze --no-fatal-infos
           flutter test test/enum/enum_test.dart test/models/config_test.dart \
-            test/common/app_update_test.dart \
+            test/common/app_update_test.dart test/common/migration_test.dart \
             test/common/compute_test.dart \
             test/providers/custom_import_test.dart test/providers/proxies_action_test.dart \
             test/providers/state_derived_test.dart test/providers/config_test.dart \
-            test/l10n test/lint/dynamic_message_key_test.dart \
+            test/l10n test/lint \
             test/core/protocol_contract_test.dart test/views/proxies_list_test.dart \
-            test/widgets/proxies_tab_test.dart test/widgets/proxies_list_test.dart
+            test/widgets/proxies_tab_test.dart test/widgets/proxies_list_test.dart \
+            test/views/dashboard
           dart run tool/test.dart test/widgets -- --reporter expanded
 
       - name: Build ARM64 APK
@@ -177,6 +180,7 @@ jobs:
           mkdir -p dist
           cp "$apk" "dist/flsmart-${GITHUB_RUN_NUMBER}-android-arm64-v8a.apk"
           cp core/smart-source.json dist/
+          cp /tmp/flsmart-preview/*.png dist/
           git diff --binary HEAD -- lib/models/generated lib/providers/generated \
             lib/database/generated lib/l10n > dist/generated-source.patch
           git rev-parse HEAD > dist/source-commit.txt

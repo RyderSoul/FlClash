@@ -1077,5 +1077,10 @@
   "fakeipFilterDesc": "Эти домены получают реальные IP вместо Fake-IP. В режиме whitelist Fake-IP получают только они.",
   "fallbackFilterGeositeDesc": "Домены из этих категорий GeoSite сразу разрешаются через Fallback.",
   "fallbackFilterIpcidrDesc": "Если Nameserver возвращает IP из этих диапазонов, используется ответ Fallback.",
-  "fallbackFilterDomainDesc": "Эти домены сразу разрешаются через Fallback."
+  "fallbackFilterDomainDesc": "Эти домены сразу разрешаются через Fallback.",
+  "nodeTraffic": "Трафик узлов",
+  "nodeTrafficSession": "Текущий сеанс",
+  "nodeTrafficHint": "Трафик прокси с последнего запуска. Прямые подключения не учитываются.",
+  "nodeTrafficEmpty": "Трафика прокси пока нет. Данные появятся после использования узла.",
+  "nodeTrafficUnavailable": "Не удалось обновить. Повторяем автоматически."
 }

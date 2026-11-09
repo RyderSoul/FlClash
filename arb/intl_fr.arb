@@ -1077,5 +1077,10 @@
   "fakeipFilterDesc": "Ces domaines reçoivent leur vraie IP au lieu d’une Fake-IP. En mode whitelist, eux seuls reçoivent une Fake-IP.",
   "fallbackFilterGeositeDesc": "Les domaines de ces catégories GeoSite sont résolus directement par Fallback.",
   "fallbackFilterIpcidrDesc": "Si Nameserver renvoie une IP de ces plages, la réponse de Fallback est utilisée.",
-  "fallbackFilterDomainDesc": "Ces domaines sont résolus directement par Fallback."
+  "fallbackFilterDomainDesc": "Ces domaines sont résolus directement par Fallback.",
+  "nodeTraffic": "Trafic par nœud",
+  "nodeTrafficSession": "Cette session",
+  "nodeTrafficHint": "Trafic proxy depuis le dernier démarrage. Le trafic direct est exclu.",
+  "nodeTrafficEmpty": "Aucun trafic proxy pour le moment. Utilisez un nœud pour voir sa consommation.",
+  "nodeTrafficUnavailable": "Actualisation impossible. Nouvelle tentative automatique."
 }
