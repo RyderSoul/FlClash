@@ -3901,9 +3901,14 @@ class AppLocalizations {
     );
   }
 
-  /// `Proxy chain`
+  /// `Proxy chains`
   String get proxyChains {
-    return Intl.message('Proxy chain', name: 'proxyChains', desc: '', args: []);
+    return Intl.message(
+      'Proxy chains',
+      name: 'proxyChains',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Log`
@@ -9128,6 +9133,161 @@ class AppLocalizations {
     return Intl.message(
       'Unable to refresh. Retrying automatically.',
       name: 'nodeTrafficUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Frequent use`
+  String get smartUsageFrequent {
+    return Intl.message(
+      'Frequent use',
+      name: 'smartUsageFrequent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Occasional use`
+  String get smartUsageOccasional {
+    return Intl.message(
+      'Occasional use',
+      name: 'smartUsageOccasional',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Rare use`
+  String get smartUsageRare {
+    return Intl.message('Rare use', name: 'smartUsageRare', desc: '', args: []);
+  }
+
+  /// `Collecting data`
+  String get smartUsagePending {
+    return Intl.message(
+      'Collecting data',
+      name: 'smartUsagePending',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enable rule override`
+  String get rulesOverrideEnabled {
+    return Intl.message(
+      'Enable rule override',
+      name: 'rulesOverrideEnabled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enable subscription override`
+  String get subscriptionOverrideEnabled {
+    return Intl.message(
+      'Enable subscription override',
+      name: 'subscriptionOverrideEnabled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add proxy chain`
+  String get addProxyChain {
+    return Intl.message(
+      'Add proxy chain',
+      name: 'addProxyChain',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Hops`
+  String get proxyChainHops {
+    return Intl.message('Hops', name: 'proxyChainHops', desc: '', args: []);
+  }
+
+  /// `No proxy chains`
+  String get proxyChainEmpty {
+    return Intl.message(
+      'No proxy chains',
+      name: 'proxyChainEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Replace original rules`
+  String get replaceOriginalRules {
+    return Intl.message(
+      'Replace original rules',
+      name: 'replaceOriginalRules',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add to select group`
+  String get proxyChainTarget {
+    return Intl.message(
+      'Add to select group',
+      name: 'proxyChainTarget',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Hide chain group`
+  String get proxyChainHidden {
+    return Intl.message(
+      'Hide chain group',
+      name: 'proxyChainHidden',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Choose hops from entry to exit. The first hop may be a policy group; subsequent hops must be nodes. Long press a hop to move or remove it.`
+  String get proxyChainHelp {
+    return Intl.message(
+      'Choose hops from entry to exit. The first hop may be a policy group; subsequent hops must be nodes. Long press a hop to move or remove it.',
+      name: 'proxyChainHelp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Client`
+  String get proxyChainClient {
+    return Intl.message('Client', name: 'proxyChainClient', desc: '', args: []);
+  }
+
+  /// `Destination`
+  String get proxyChainDestination {
+    return Intl.message(
+      'Destination',
+      name: 'proxyChainDestination',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Move earlier`
+  String get proxyChainMoveUp {
+    return Intl.message(
+      'Move earlier',
+      name: 'proxyChainMoveUp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Move later`
+  String get proxyChainMoveDown {
+    return Intl.message(
+      'Move later',
+      name: 'proxyChainMoveDown',
       desc: '',
       args: [],
     );

@@ -35,8 +35,11 @@ class _ProxiesViewState extends ConsumerState<ProxiesView>
   @override
   Future<void> poll(PollGuard isCurrent) async {
     if (ref.read(coreStatusProvider) != CoreStatus.connected ||
-        !ref.read(groupsProvider).any((group) => group.type == GroupType.Smart))
+        !ref
+            .read(groupsProvider)
+            .any((group) => group.type == GroupType.Smart)) {
       return;
+    }
     await whenRouteSettled(context);
     if (!isCurrent()) return;
     await ref.read(proxiesActionProvider.notifier).updateGroups();

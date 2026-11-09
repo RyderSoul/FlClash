@@ -326,6 +326,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Ajouter une entrée de remplacement",
     ),
     "addProfile": MessageLookupByLibrary.simpleMessage("Ajouter un profil"),
+    "addProxyChain": MessageLookupByLibrary.simpleMessage(
+      "Ajouter une chaîne de proxy",
+    ),
     "addProxyGroup": MessageLookupByLibrary.simpleMessage(
       "Ajouter un groupe de proxys",
     ),
@@ -1728,7 +1731,28 @@ class MessageLookup extends MessageLookupByLibrary {
     "proxiesProfileLabel": m82,
     "proxiesRemovedTip": m83,
     "proxiesReplacedTip": m84,
-    "proxyChains": MessageLookupByLibrary.simpleMessage("Chaîne de proxys"),
+    "proxyChainClient": MessageLookupByLibrary.simpleMessage("Client"),
+    "proxyChainDestination": MessageLookupByLibrary.simpleMessage(
+      "Destination",
+    ),
+    "proxyChainEmpty": MessageLookupByLibrary.simpleMessage(
+      "Aucune chaîne de proxy",
+    ),
+    "proxyChainHelp": MessageLookupByLibrary.simpleMessage(
+      "Choisissez 2 à 8 sauts de l’entrée à la sortie. Le premier peut être un groupe, les suivants des nœuds. Appui long pour déplacer ou retirer.",
+    ),
+    "proxyChainHidden": MessageLookupByLibrary.simpleMessage(
+      "Masquer le groupe de la chaîne",
+    ),
+    "proxyChainHops": MessageLookupByLibrary.simpleMessage("Sauts"),
+    "proxyChainMoveDown": MessageLookupByLibrary.simpleMessage(
+      "Déplacer après",
+    ),
+    "proxyChainMoveUp": MessageLookupByLibrary.simpleMessage("Déplacer avant"),
+    "proxyChainTarget": MessageLookupByLibrary.simpleMessage(
+      "Ajouter au groupe de sélection",
+    ),
+    "proxyChains": MessageLookupByLibrary.simpleMessage("Chaînes de proxy"),
     "proxyGroup": MessageLookupByLibrary.simpleMessage("Groupe de proxys"),
     "proxyGroupEmpty": MessageLookupByLibrary.simpleMessage(
       "Le groupe de proxys est vide",
@@ -1788,6 +1812,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "rename": MessageLookupByLibrary.simpleMessage("Renommer"),
     "replace": MessageLookupByLibrary.simpleMessage("Remplacer"),
     "replaceAll": MessageLookupByLibrary.simpleMessage("Tout remplacer"),
+    "replaceOriginalRules": MessageLookupByLibrary.simpleMessage(
+      "Remplacer les règles d’origine",
+    ),
     "request": MessageLookupByLibrary.simpleMessage("Requête"),
     "requestBody": MessageLookupByLibrary.simpleMessage("Corps de la requête"),
     "requestHeaders": MessageLookupByLibrary.simpleMessage(
@@ -2006,6 +2033,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "rules": MessageLookupByLibrary.simpleMessage("Règles"),
     "rulesCount": m87,
+    "rulesOverrideEnabled": MessageLookupByLibrary.simpleMessage(
+      "Activer la réécriture des règles",
+    ),
     "runTime": MessageLookupByLibrary.simpleMessage("Durée d’exécution"),
     "running": MessageLookupByLibrary.simpleMessage("En cours d’exécution"),
     "runtimeConfig": MessageLookupByLibrary.simpleMessage(
@@ -2143,6 +2173,16 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "slide": MessageLookupByLibrary.simpleMessage("Glissement"),
     "sliders": MessageLookupByLibrary.simpleMessage("Curseurs"),
+    "smartUsageFrequent": MessageLookupByLibrary.simpleMessage(
+      "Utilisation fréquente",
+    ),
+    "smartUsageOccasional": MessageLookupByLibrary.simpleMessage(
+      "Utilisation occasionnelle",
+    ),
+    "smartUsagePending": MessageLookupByLibrary.simpleMessage(
+      "Collecte des données",
+    ),
+    "smartUsageRare": MessageLookupByLibrary.simpleMessage("Utilisation rare"),
     "sniffProtocols": MessageLookupByLibrary.simpleMessage("Protocoles"),
     "sniffer": MessageLookupByLibrary.simpleMessage("Sniffer"),
     "socksPort": MessageLookupByLibrary.simpleMessage("Port SOCKS"),
@@ -2193,6 +2233,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "submit": MessageLookupByLibrary.simpleMessage("Valider"),
     "subscriptionInfo": MessageLookupByLibrary.simpleMessage(
       "Infos d’abonnement",
+    ),
+    "subscriptionOverrideEnabled": MessageLookupByLibrary.simpleMessage(
+      "Activer la réécriture de l’abonnement",
     ),
     "sudoPasswordTitle": MessageLookupByLibrary.simpleMessage(
       "Saisissez votre mot de passe pour sudo",

@@ -315,6 +315,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Добавить параметр",
     ),
     "addProfile": MessageLookupByLibrary.simpleMessage("Добавить профиль"),
+    "addProxyChain": MessageLookupByLibrary.simpleMessage(
+      "Добавить цепочку прокси",
+    ),
     "addProxyGroup": MessageLookupByLibrary.simpleMessage(
       "Добавить группу прокси",
     ),
@@ -1679,7 +1682,28 @@ class MessageLookup extends MessageLookupByLibrary {
     "proxiesProfileLabel": m82,
     "proxiesRemovedTip": m83,
     "proxiesReplacedTip": m84,
-    "proxyChains": MessageLookupByLibrary.simpleMessage("Цепочка прокси"),
+    "proxyChainClient": MessageLookupByLibrary.simpleMessage("Клиент"),
+    "proxyChainDestination": MessageLookupByLibrary.simpleMessage("Назначение"),
+    "proxyChainEmpty": MessageLookupByLibrary.simpleMessage(
+      "Нет цепочек прокси",
+    ),
+    "proxyChainHelp": MessageLookupByLibrary.simpleMessage(
+      "Выберите 2–8 переходов от входа к выходу. Первый может быть группой, остальные — узлы. Удерживайте для перемещения или удаления.",
+    ),
+    "proxyChainHidden": MessageLookupByLibrary.simpleMessage(
+      "Скрыть группу цепочки",
+    ),
+    "proxyChainHops": MessageLookupByLibrary.simpleMessage("Переходы"),
+    "proxyChainMoveDown": MessageLookupByLibrary.simpleMessage(
+      "Переместить позже",
+    ),
+    "proxyChainMoveUp": MessageLookupByLibrary.simpleMessage(
+      "Переместить раньше",
+    ),
+    "proxyChainTarget": MessageLookupByLibrary.simpleMessage(
+      "Добавить в группу выбора",
+    ),
+    "proxyChains": MessageLookupByLibrary.simpleMessage("Цепочки прокси"),
     "proxyGroup": MessageLookupByLibrary.simpleMessage("Группа прокси"),
     "proxyGroupEmpty": MessageLookupByLibrary.simpleMessage(
       "Группа прокси пуста",
@@ -1737,6 +1761,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "rename": MessageLookupByLibrary.simpleMessage("Переименовать"),
     "replace": MessageLookupByLibrary.simpleMessage("Заменить"),
     "replaceAll": MessageLookupByLibrary.simpleMessage("Заменить все"),
+    "replaceOriginalRules": MessageLookupByLibrary.simpleMessage(
+      "Заменить исходные правила",
+    ),
     "request": MessageLookupByLibrary.simpleMessage("Запрос"),
     "requestBody": MessageLookupByLibrary.simpleMessage("Тело запроса"),
     "requestHeaders": MessageLookupByLibrary.simpleMessage("Заголовки запроса"),
@@ -1953,6 +1980,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "rules": MessageLookupByLibrary.simpleMessage("Правила"),
     "rulesCount": m87,
+    "rulesOverrideEnabled": MessageLookupByLibrary.simpleMessage(
+      "Включить переопределение правил",
+    ),
     "runTime": MessageLookupByLibrary.simpleMessage("Время работы"),
     "running": MessageLookupByLibrary.simpleMessage("Работает"),
     "runtimeConfig": MessageLookupByLibrary.simpleMessage(
@@ -2080,6 +2110,16 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "slide": MessageLookupByLibrary.simpleMessage("Сдвиг"),
     "sliders": MessageLookupByLibrary.simpleMessage("Ползунки"),
+    "smartUsageFrequent": MessageLookupByLibrary.simpleMessage(
+      "Часто используется",
+    ),
+    "smartUsageOccasional": MessageLookupByLibrary.simpleMessage(
+      "Используется иногда",
+    ),
+    "smartUsagePending": MessageLookupByLibrary.simpleMessage("Сбор данных"),
+    "smartUsageRare": MessageLookupByLibrary.simpleMessage(
+      "Используется редко",
+    ),
     "sniffProtocols": MessageLookupByLibrary.simpleMessage("Протоколы"),
     "sniffer": MessageLookupByLibrary.simpleMessage("Сниффер"),
     "socksPort": MessageLookupByLibrary.simpleMessage("Порт SOCKS"),
@@ -2132,6 +2172,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "submit": MessageLookupByLibrary.simpleMessage("Отправить"),
     "subscriptionInfo": MessageLookupByLibrary.simpleMessage(
       "Информация о подписке",
+    ),
+    "subscriptionOverrideEnabled": MessageLookupByLibrary.simpleMessage(
+      "Включить переопределение подписки",
     ),
     "sudoPasswordTitle": MessageLookupByLibrary.simpleMessage(
       "Введите пароль для sudo",

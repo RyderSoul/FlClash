@@ -105,6 +105,7 @@ _Proxy _$ProxyFromJson(Map<String, dynamic> json) => _Proxy(
   type: json['type'] as String,
   now: json['now'] as String?,
   providerName: json['provider-name'] as String?,
+  usageRank: json['usageRank'] as String?,
 );
 
 Map<String, dynamic> _$ProxyToJson(_Proxy instance) => <String, dynamic>{
@@ -112,6 +113,7 @@ Map<String, dynamic> _$ProxyToJson(_Proxy instance) => <String, dynamic>{
   'type': instance.type,
   'now': instance.now,
   'provider-name': instance.providerName,
+  'usageRank': instance.usageRank,
 };
 
 _CustomProxy _$CustomProxyFromJson(Map<String, dynamic> json) => _CustomProxy(
@@ -565,6 +567,14 @@ Map<String, dynamic> _$ProfileTunToJson(_ProfileTun instance) =>
 
 _ProfileOverrides _$ProfileOverridesFromJson(Map<String, dynamic> json) =>
     _ProfileOverrides(
+      rulesEnabled: json['rulesEnabled'] as bool?,
+      replaceRules: json['replaceRules'] as bool? ?? false,
+      subscriptionEnabled: json['subscriptionEnabled'] as bool?,
+      chains:
+          (json['chains'] as List<dynamic>?)
+              ?.map((e) => ProxyChain.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
       dns: json['dns'] == null
           ? defaultDns
           : Dns.safeDnsFromJson(json['dns'] as Map<String, Object?>),
@@ -603,6 +613,10 @@ _ProfileOverrides _$ProfileOverridesFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$ProfileOverridesToJson(_ProfileOverrides instance) =>
     <String, dynamic>{
+      'rulesEnabled': instance.rulesEnabled,
+      'replaceRules': instance.replaceRules,
+      'subscriptionEnabled': instance.subscriptionEnabled,
+      'chains': instance.chains,
       'dns': instance.dns,
       'dns-override-keys': instance.dnsOverrideKeys
           .map((e) => _$DnsOverrideKeyEnumMap[e]!)
