@@ -224,12 +224,15 @@ void main() {
     ]);
     await pumpEditor(tester, size: const Size(412, 700));
     final position = positionOf(tester);
-    await tester.ensureVisible(find.byTooltip('Add Network speed'));
+    position.jumpTo(position.maxScrollExtent - 330);
+    await tester.pump();
+    final add = find.byTooltip('Add Network speed');
+    position.jumpTo(position.pixels + tester.getBottomRight(add).dy - 680);
     await tester.pump();
     final before = position.pixels;
     final speed = find.byType(NetworkSpeedCard);
 
-    await tester.tap(find.byTooltip('Add Network speed'));
+    await tester.tap(add);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
