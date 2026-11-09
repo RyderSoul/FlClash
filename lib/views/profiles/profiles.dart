@@ -7,6 +7,7 @@ import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/views/profiles/custom/custom.dart';
+import 'package:fl_clash/views/profiles/bindings/manager.dart';
 import 'package:fl_clash/views/profiles/extend/extend.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/services.dart';
@@ -407,6 +408,14 @@ class ProfileItem extends ConsumerWidget {
     final isUrl = profile.type == ProfileType.url;
     final isCustom = profile.type == ProfileType.custom;
     return [
+      PopupMenuItem(
+        glyph: AppGlyphs.puzzle,
+        label: appLocalizations.profileManagement,
+        onPressed: () => BaseNavigator.push(
+          context,
+          ProfileBindingsView(profileId: profile.id),
+        ),
+      ),
       PopupMenuItem(
         glyph: AppGlyphs.edit,
         label: appLocalizations.edit,

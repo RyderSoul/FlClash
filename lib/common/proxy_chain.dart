@@ -1,5 +1,7 @@
 import 'package:fl_clash/models/proxy_chain.dart';
 
+import 'profile_binding.dart';
+
 void applyProxyChains(Map<String, dynamic> config, List<ProxyChain> chains) {
   final active = chains.where((chain) => chain.enabled).toList();
   if (active.isEmpty) return;
@@ -66,15 +68,17 @@ void applyProxyChains(Map<String, dynamic> config, List<ProxyChain> chains) {
     });
     edges[chain.name] = [previous];
     roots.add(chain.name);
-    final target = chain.targetGroup;
-    if (target != null && target.isNotEmpty) {
+    for (final target in chain.targets) {
       final group = policies[target];
-      if (group == null || group['type'] != 'select') {
+      if (group == null || !attachableGroupTypes.contains(group['type'])) {
         throw FormatException(
-          'Proxy chain target must be a select group: $target',
+          'Proxy chain target missing or incompatible: $target',
         );
       }
-      group['proxies'] = [...group['proxies'] as List? ?? const [], chain.name];
+      group['proxies'] = {
+        ...group['proxies'] as List? ?? const [],
+        chain.name,
+      }.toList();
       edges[target] = [...edges[target] ?? const [], chain.name];
     }
   }

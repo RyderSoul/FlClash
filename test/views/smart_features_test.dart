@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:fl_clash/common/proxy_chain.dart';
 import 'package:fl_clash/core/controller.dart';
 import 'package:fl_clash/core/interface.dart';
 import 'package:fl_clash/enum/enum.dart';
@@ -23,6 +24,14 @@ import '../helpers/test_app.dart';
 import '../helpers/test_profiles.dart';
 
 class _Core extends Mock implements CoreHandlerInterface {}
+
+class _ChainBindings extends ProfileBindingsAction {
+  @override
+  Future<void> validate(Profile candidate, {List<Rule>? localRules}) async {
+    final config = await ref.read(coreHandlerProvider).readConfig(candidate.id);
+    applyProxyChains(config, candidate.overrides.chains);
+  }
+}
 
 void main() {
   testWidgets('Smart nodes show all Chinese usage states without overflow', (
@@ -83,9 +92,8 @@ void main() {
         final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
         image.dispose();
         await Directory(output).create(recursive: true);
-        await File(
-          '$output/smart-usage.png',
-        ).writeAsBytes(bytes!.buffer.asUint8List());
+        await File('$output/smart-usage.png')
+            .writeAsBytes(bytes!.buffer.asUint8List());
       });
     }
     await tester.pumpWidget(const SizedBox.shrink());
@@ -117,6 +125,7 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         profilesProvider.overrideWith(() => TestProfiles([profile])),
+        profileBindingsActionProvider.overrideWith(_ChainBindings.new),
         coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
         clashConfigProvider(profile.id).overrideWith(
           (_) async => const ClashConfig(

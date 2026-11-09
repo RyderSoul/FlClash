@@ -282,10 +282,8 @@ class Profiles extends _$Profiles {
           }),
         );
       } catch (e, s) {
-        if (applied case (
-          final previous,
-          final next,
-        ) when identical(state, next)) {
+        if (applied case (final previous, final next)
+            when identical(state, next)) {
           state = previous;
         }
         Error.throwWithStackTrace(e, s);
@@ -308,6 +306,20 @@ class Profiles extends _$Profiles {
     final next = List<Profile>.from(state);
     next[index] = newProfile;
     _optimistic(next, () => _serial(() => _putLatest([profileId])));
+  }
+
+  Future<void> updateProfileAndWait(
+    int profileId,
+    Profile Function(Profile profile) builder,
+  ) async {
+    final current = state.getProfile(profileId);
+    if (current == null) throw StateError('Profile no longer exists');
+    final next = builder(current);
+    if (current == next) return;
+    await _optimisticAsync(
+      state.copyAndPut(next, (item) => item.id == profileId),
+      () => _serial(() => _putLatest([profileId])),
+    );
   }
 
   void reorder(List<Profile> profiles) {

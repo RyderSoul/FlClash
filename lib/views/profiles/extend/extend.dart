@@ -7,12 +7,14 @@ import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/widgets.dart';
+import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'script.dart';
 import 'chains.dart';
 import 'standard.dart';
+import '../bindings/manager.dart';
 
 /// Long enough that a quick apply still reads as one, not as a flicker.
 const _minApplyingDuration = Duration(milliseconds: 600);
@@ -118,6 +120,16 @@ class _ExtendViewState extends ConsumerState<ExtendView> {
         child: Scaffold(
           title: appLocalizations.extend,
           isLoading: _applying,
+          iconActions: [
+            IconButtonData(
+              glyph: AppGlyphs.puzzle,
+              tooltip: appLocalizations.profileManagement,
+              onPressed: () => BaseNavigator.push(
+                context,
+                ProfileBindingsView(profileId: widget.profileId),
+              ),
+            ),
+          ],
           actions: [
             if (hasChanges || _applying)
               FilledButton(

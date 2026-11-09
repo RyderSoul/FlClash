@@ -34,10 +34,19 @@ class _ScriptsViewState extends ConsumerState<ScriptsView> {
 
   Future<void> _handleDelete(Script script) async {
     final appLocalizations = context.appLocalizations;
+    final users = ref
+        .read(profilesProvider)
+        .where((profile) => profile.scriptId == script.id)
+        .toList();
     final res = await dialogs.showMessage(
       title: appLocalizations.tip,
       message: TextSpan(
-        text: appLocalizations.deleteTip(appLocalizations.script),
+        text: users.isEmpty
+            ? appLocalizations.deleteTip(appLocalizations.script)
+            : appLocalizations.providerInUse(
+                script.label,
+                users.map((item) => item.realLabel).join(' / '),
+              ),
       ),
       destructive: true,
       confirmText: appLocalizations.delete,
@@ -303,9 +312,8 @@ class _ScriptsViewState extends ConsumerState<ScriptsView> {
       return;
     }
     final fileName =
-        Uri.tryParse(
-          url,
-        )?.pathSegments.lastWhereOrNull((it) => it.isNotEmpty) ??
+        Uri.tryParse(url)?.pathSegments
+            .lastWhereOrNull((it) => it.isNotEmpty) ??
         '';
     await _handleImport(res.data ?? '', url: url, fileName: fileName);
   }

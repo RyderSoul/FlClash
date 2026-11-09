@@ -174,9 +174,29 @@ class ClashProvidersAction extends _$ClashProvidersAction {
         name,
       ),
     };
+    final ruleSources = kind == ProviderKind.rule
+        ? await ref.read(clashProvidersProvider.future)
+        : const <ClashProvider>[];
     return [
       for (final profile in ref.read(profilesProvider))
         if (ids.contains(profile.id) ||
+            kind == ProviderKind.rule &&
+                profile.overrides.ruleBindings.any(
+                  (binding) => ruleSources.any(
+                    (source) =>
+                        source.id == binding.sourceId && source.label == name,
+                  ),
+                ) ||
+            kind == ProviderKind.proxy &&
+                profile.overrides.subscriptions.any(
+                  (binding) => ref
+                      .read(profilesProvider)
+                      .any(
+                        (source) =>
+                            source.id == binding.sourceId &&
+                            source.realLabel == name,
+                      ),
+                ) ||
             kind == ProviderKind.rule &&
                 profile.type == ProfileType.custom &&
                 profile.overrides.ruleSets.contains(name))
@@ -194,6 +214,35 @@ class ClashProvidersAction extends _$ClashProvidersAction {
     ProviderKind kind,
     Set<String> labels,
   ) async {
+    final profile = ref.read(profileProvider(profileId));
+    if (kind == ProviderKind.proxy &&
+        profile?.overrides.attachmentsEnabled == true &&
+        profile!.overrides.subscriptions.any(
+          (binding) =>
+              binding.enabled &&
+              ref
+                  .read(profilesProvider)
+                  .any(
+                    (source) =>
+                        source.id == binding.sourceId &&
+                        labels.contains(source.realLabel),
+                  ),
+        ))
+      return true;
+    if (kind == ProviderKind.rule && profile?.rulesOverrideEnabled == true) {
+      final sources = await ref.read(clashProvidersProvider.future);
+      if (profile!.overrides.ruleBindings.any(
+        (binding) =>
+            binding.enabled &&
+            sources.any(
+              (source) =>
+                  source.id == binding.sourceId &&
+                  labels.contains(source.label),
+            ),
+      ))
+        return true;
+    }
+    if (profile?.type != ProfileType.custom) return false;
     return switch (kind) {
       ProviderKind.proxy =>
         (await database.proxyGroupsDao.query(profileId).get()).any(
@@ -249,6 +298,16 @@ class ClashProvidersAction extends _$ClashProvidersAction {
     )) {
       return;
     }
+    final current = ref.read(currentProfileProvider);
+    if (current?.rulesOverrideEnabled == true &&
+        current!.overrides.ruleBindings.any(
+          (binding) => binding.enabled && binding.sourceId == provider.id,
+        )) {
+      ref
+          .read(setupActionProvider.notifier)
+          .applyProfileDebounce(silence: true, force: true);
+      return;
+    }
     try {
       await _core.updateExternalProvider(provider.label);
       return;
@@ -267,8 +326,6 @@ class ClashProvidersAction extends _$ClashProvidersAction {
     Future<bool> Function(int profileId) isReferenced,
   ) async {
     final profile = ref.read(currentProfileProvider);
-    return profile != null &&
-        profile.type == ProfileType.custom &&
-        await isReferenced(profile.id);
+    return profile != null && await isReferenced(profile.id);
   }
 }
