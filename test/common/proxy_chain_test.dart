@@ -54,11 +54,11 @@ void main() {
     expect(proxies[1].containsKey('dialer-proxy'), isFalse);
     expect(proxies[3]['dialer-proxy'], 'Smart');
     expect(proxies[3]['version'], 6);
-    expect(proxies[4]['dialer-proxy'], '__flsmart_one_1');
+    expect(proxies[4]['dialer-proxy'], 'My chain · 2 · exit');
     final groups = config['proxy-groups'] as List;
     expect(groups[0]['type'], 'smart');
     expect(groups[1]['proxies'], ['Smart', 'exit', 'My chain']);
-    expect(groups.last['proxies'], ['__flsmart_one_2']);
+    expect(groups.last['proxies'], ['My chain · 3 · last']);
     expect(groups.last['hidden'], true);
   });
 
