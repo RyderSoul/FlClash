@@ -56,6 +56,7 @@ class _MessageFailureSetupAction extends SetupAction {
 
 class _ManagedSetupAction extends SetupAction {
   bool failBuild = false;
+  String revision = 'managed';
 
   @override
   Future<BuiltProfile> getProfile({
@@ -64,8 +65,8 @@ class _ManagedSetupAction extends SetupAction {
   }) async {
     if (failBuild) throw const FormatException('broken binding');
     return (
-      yaml: 'rules: [MATCH,DIRECT]',
-      md5: 'managed',
+      yaml: '# $revision\nrules: ["MATCH,DIRECT"]',
+      md5: revision,
       counts: (groups: 0, proxies: 0, rules: 1),
       base: null,
     );
@@ -1276,6 +1277,53 @@ void main() {
     }
 
     test(
+      'a rejected binding reload restores the previous applied configuration',
+      () async {
+        final profile = Profile.normal(label: 'managed').copyWith(
+          overrides: const ProfileOverrides(
+            chains: [
+              ProxyChain(id: 'c', name: 'Chain', hops: ['a', 'b']),
+            ],
+          ),
+        );
+        final configFile = File(await appPath.configFilePath);
+        final core = _MockCoreHandlerInterface();
+        when(() => core.validateConfig(any())).thenAnswer((_) async => null);
+        when(() => core.setupConfig(any())).thenAnswer((_) async {
+          if ((await configFile.readAsString()).contains('# rejected')) {
+            throw const CoreMethodException(
+              code: 'config_rejected',
+              message: 'rejected',
+            );
+          }
+        });
+        final setup = _ManagedSetupAction();
+        final scoped = ProviderContainer(
+          overrides: [
+            profilesProvider.overrideWith(() => TestProfiles([profile])),
+            currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
+            setupStateProvider.overrideWith((_, _) => nullProfileSetupState),
+            coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
+            setupActionProvider.overrideWith(() => setup),
+          ],
+        );
+        addTearDown(scoped.dispose);
+        expect(
+          await scoped
+              .read(setupActionProvider.notifier)
+              .applyProfile(force: true),
+          isTrue,
+        );
+        final applied = await configFile.readAsString();
+        setup.revision = 'rejected';
+        expect(await setup.applyProfile(force: true), isFalse);
+        expect(await configFile.readAsString(), applied);
+        expect(globalState.lastConfigMd5, 'managed');
+        verify(() => core.setupConfig(any())).called(3);
+      },
+    );
+
+    test(
       'a config write failure reports setup as failed without calling core',
       () async {
         final configPath = await appPath.configFilePath;
@@ -1996,49 +2044,52 @@ void main() {
       expect(group['include-all-providers'], isTrue);
     });
 
-    test('only a subscription profile runs its script extension', () async {
-      final engine = scriptEvaluator;
-      addTearDown(() => scriptEvaluator = engine);
-      final evaluated = <String>[];
-      scriptEvaluator =
-          ({required String script, required String config}) async {
-            evaluated.add(script);
-            return config;
-          };
-      final script = await Script(
-        id: 77,
-        label: 'script',
-        lastUpdateTime: DateTime(2026),
-      ).save('const main = (config) => config;');
-      final core = _MockCoreHandlerInterface();
-      when(() => core.readConfig(any())).thenAnswer((_) async => {});
-      final scoped = ProviderContainer(
-        overrides: [
-          coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
-          setupActionProvider.overrideWith(SetupAction.new),
-        ],
-      );
-      addTearDown(scoped.dispose);
-      Future<void> build(ProfileType type) => scoped
-          .read(setupActionProvider.notifier)
-          .getProfile(
-            setupState: nullProfileSetupState.copyWith(
-              profileId: 5,
-              profileType: type,
-              extendType: ExtendType.script,
-              script: script,
-            ),
-            patchConfig: const PatchClashConfig(),
-          );
+    test(
+      'both custom and subscription profiles run enabled script extensions',
+      () async {
+        final engine = scriptEvaluator;
+        addTearDown(() => scriptEvaluator = engine);
+        final evaluated = <String>[];
+        scriptEvaluator =
+            ({required String script, required String config}) async {
+              evaluated.add(script);
+              return config;
+            };
+        final script = await Script(
+          id: 77,
+          label: 'script',
+          lastUpdateTime: DateTime(2026),
+        ).save('const main = (config) => config;');
+        final core = _MockCoreHandlerInterface();
+        when(() => core.readConfig(any())).thenAnswer((_) async => {});
+        final scoped = ProviderContainer(
+          overrides: [
+            coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
+            setupActionProvider.overrideWith(SetupAction.new),
+          ],
+        );
+        addTearDown(scoped.dispose);
+        Future<void> build(ProfileType type) => scoped
+            .read(setupActionProvider.notifier)
+            .getProfile(
+              setupState: nullProfileSetupState.copyWith(
+                profileId: 5,
+                profileType: type,
+                extendType: ExtendType.script,
+                script: script,
+              ),
+              patchConfig: const PatchClashConfig(),
+            );
 
-      await build(ProfileType.custom);
-      expect(evaluated, isEmpty);
-      verifyNever(() => core.readConfig(any()));
+        await build(ProfileType.custom);
+        expect(evaluated, hasLength(1));
+        verifyNever(() => core.readConfig(any()));
 
-      await build(ProfileType.file);
-      expect(evaluated, hasLength(1));
-      verify(() => core.readConfig(any())).called(1);
-    });
+        await build(ProfileType.file);
+        expect(evaluated, hasLength(2));
+        verify(() => core.readConfig(any())).called(1);
+      },
+    );
 
     test(
       'a rejected setupConfig without a handoff reports failure, not success',

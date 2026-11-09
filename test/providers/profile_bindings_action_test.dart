@@ -78,6 +78,8 @@ void main() {
         scriptsProvider.overrideWith(TestScripts.new),
       ],
     );
+    container.listen(clashProvidersProvider, (_, _) {});
+    container.listen(scriptsProvider, (_, _) {});
   });
 
   tearDown(() async {

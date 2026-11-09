@@ -461,7 +461,7 @@ class SetupAction extends _$SetupAction {
       );
     });
     if (result != _SetupTaskResult.handoffToCoreRestart) {
-      ref.invalidate(bindingsAppliedProvider);
+      if (ref.mounted) ref.invalidate(bindingsAppliedProvider);
       return result;
     }
     // Release the current serial task before restartCore reapplies the profile.
