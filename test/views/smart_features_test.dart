@@ -199,6 +199,9 @@ void main() {
         200,
         scrollable: formScroll,
       );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byType(MoreActionButton), alignment: 0.5);
+      await tester.pumpAndSettle();
       await tester.tap(find.byType(MoreActionButton));
       await tester.pumpAndSettle();
       await tester.tap(find.text(hop).last);
@@ -210,6 +213,7 @@ void main() {
         -200,
         scrollable: formScroll,
       );
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Add to policy groups'));
       await tester.pumpAndSettle();
       await tester.tap(find.text(target).last);
