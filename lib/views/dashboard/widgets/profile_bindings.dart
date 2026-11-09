@@ -32,8 +32,9 @@ class _ProfileBindingsCardState extends ConsumerState<ProfileBindingsCard> {
         final applied = await ref
             .read(setupActionProvider.notifier)
             .applyProfile();
-        if (!applied)
+        if (!applied) {
           throw MessageException(currentAppLocalizations.bindingApplyFailed);
+        }
       });
     } finally {
       if (mounted) setState(() => _busy = false);

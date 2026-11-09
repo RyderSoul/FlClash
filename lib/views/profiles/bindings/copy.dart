@@ -28,33 +28,42 @@ class _CopyBindingsViewState extends ConsumerState<CopyBindingsView> {
 
   Set<String> _references(Profile source) =>
       {
-        if (_subscriptions)
-          for (final binding in source.overrides.subscriptions)
-            ...binding.attachments.map((item) => item.target),
-        if (_rules) ...source.overrides.ruleBindings.map((item) => item.target),
-        if (_rules) ..._sourceRules.map((item) => item.ruleTarget).nonNulls,
-        if (_chains)
-          for (final chain in source.overrides.chains) ...chain.targets,
-        if (_chains)
-          for (final chain in source.overrides.chains) ...chain.hops,
-      }..removeAll({
-        'DIRECT',
-        'REJECT',
-        'REJECT-DROP',
-        'PASS',
-        'COMPATIBLE',
-        'GLOBAL',
-        'MATCH',
-        if (_subscriptions)
-          ...source.overrides.subscriptions.map((item) => item.name),
-        if (_chains) ...source.overrides.chains.map((item) => item.name),
-        if (_subscriptions)
-          for (final binding in source.overrides.subscriptions)
-            for (final chain in source.overrides.chains)
-              ...chain.hops.where(
-                (name) => name.startsWith('${binding.name} · '),
+          if (_subscriptions)
+            for (final binding in source.overrides.subscriptions)
+              ...binding.attachments.map((item) => item.target),
+          if (_rules)
+            ...source.overrides.ruleBindings.map((item) => item.target),
+          if (_rules) ..._sourceRules.map((item) => item.ruleTarget).nonNulls,
+          if (_chains)
+            for (final chain in source.overrides.chains) ...chain.targets,
+          if (_chains)
+            for (final chain in source.overrides.chains) ...chain.hops,
+        }
+        ..removeAll({
+          'DIRECT',
+          'REJECT',
+          'REJECT-DROP',
+          'PASS',
+          'COMPATIBLE',
+          'GLOBAL',
+          'MATCH',
+          if (_subscriptions)
+            ...source.overrides.subscriptions.map((item) => item.name),
+          if (_chains) ...source.overrides.chains.map((item) => item.name),
+          if (_subscriptions)
+            for (final binding in source.overrides.subscriptions)
+              for (final chain in source.overrides.chains)
+                ...chain.hops.where(
+                  (name) => name.startsWith('${binding.name} · '),
+                ),
+        })
+        ..removeWhere(
+          (name) =>
+              _subscriptions &&
+              source.overrides.subscriptions.any(
+                (binding) => name.startsWith('${binding.name} · '),
               ),
-      });
+        );
 
   Future<void> _chooseTarget(Profile source) async {
     final profiles = ref
@@ -129,7 +138,13 @@ class _CopyBindingsViewState extends ConsumerState<CopyBindingsView> {
       final original = source.overrides;
       final copied = target.copyWith(
         scriptId: _script ? source.scriptId : target.scriptId,
+        matchTarget: _rules
+            ? _mapping[source.matchTarget] ?? source.matchTarget
+            : target.matchTarget,
         overrides: target.overrides.copyWith(
+          replaceRules: _rules
+              ? original.replaceRules
+              : target.overrides.replaceRules,
           attachmentsEnabled: _subscriptions
               ? original.attachmentsEnabled
               : target.overrides.attachmentsEnabled,

@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:fl_clash/models/models.dart';
-import 'package:fl_clash/enum/enum.dart';
 
 typedef BindingSources = ({
   Map<String, dynamic> config,
@@ -34,8 +33,9 @@ Map<String, dynamic> buildProfileBindings(
   Set<String> plannedPolicies = const {},
 }) {
   if (!data.subscriptions.any((item) => item.enabled) &&
-      !data.rules.any((item) => item.enabled))
+      !data.rules.any((item) => item.enabled)) {
     return data.config;
+  }
   final config = jsonDecode(jsonEncode(data.config)) as Map<String, dynamic>;
   final proxies = _mappings(config['proxies']);
   final groups = _mappings(config['proxy-groups']);
@@ -57,8 +57,9 @@ Map<String, dynamic> buildProfileBindings(
       <({String target, List<String> nodes, List<String> providers})>[];
   for (final binding in data.subscriptions.where((item) => item.enabled)) {
     final source = data.sources[binding.sourceId];
-    if (source == null)
+    if (source == null) {
       throw FormatException('Subscription source missing: ${binding.name}');
+    }
     if (binding.name.trim().isEmpty || !names.add(binding.name)) {
       throw FormatException(
         'Subscription group name conflicts: ${binding.name}',
@@ -79,8 +80,9 @@ Map<String, dynamic> buildProfileBindings(
     for (final node in rawNodes) {
       final original = node['name'] as String;
       final name = renamed[original]!;
-      if (!names.add(name))
+      if (!names.add(name)) {
         throw FormatException('Subscription node name conflicts: $name');
+      }
       final dialer = node['dialer-proxy'];
       proxies.add({
         ...node,
@@ -91,11 +93,11 @@ Map<String, dynamic> buildProfileBindings(
       if (filter == null || filter.hasMatch(original)) members.add(name);
     }
     final memberProviders = <String>[];
-    final providerMemberNames = <String, String>{};
     for (final entry in rawProviders.entries) {
       final name = providerNames[entry.key]!;
-      if (providers.containsKey(name))
+      if (providers.containsKey(name)) {
         throw FormatException('Subscription provider name conflicts: $name');
+      }
       final options = Map<String, dynamic>.from(
         entry.value['override'] as Map? ?? const {},
       );
@@ -127,13 +129,13 @@ Map<String, dynamic> buildProfileBindings(
       };
       if (binding.filter.isEmpty) {
         memberProviders.add(name);
-        providerMemberNames[entry.key] = name;
       } else {
         final filteredName = '$name-members';
-        if (providers.containsKey(filteredName))
+        if (providers.containsKey(filteredName)) {
           throw FormatException(
             'Subscription provider name conflicts: $filteredName',
           );
+        }
         providers[filteredName] = {
           ...providers[name]!,
           'exclude-filter': [
@@ -144,13 +146,13 @@ Map<String, dynamic> buildProfileBindings(
           ].join('`'),
         };
         memberProviders.add(filteredName);
-        providerMemberNames[entry.key] = filteredName;
       }
     }
     for (final group in rawGroups) {
       final name = renamed[group['name']]!;
-      if (!names.add(name))
+      if (!names.add(name)) {
         throw FormatException('Subscription group name conflicts: $name');
+      }
       final all = group['include-all'] == true;
       groups.add({
         ...group,
@@ -165,7 +167,7 @@ Map<String, dynamic> buildProfileBindings(
         if (group['use-position'] is Map)
           'use-position': {
             for (final entry in (group['use-position'] as Map).entries)
-              providerMemberNames[entry.key] ?? entry.key: entry.value,
+              providerNames[entry.key] ?? entry.key: entry.value,
           },
         'include-all': false,
         'include-all-proxies': false,
@@ -178,9 +180,9 @@ Map<String, dynamic> buildProfileBindings(
         }.toList(),
         'use': {
           for (final item in group['use'] as List? ?? const [])
-            providerMemberNames[item] ?? item,
+            providerNames[item] ?? item,
           if (all || group['include-all-providers'] == true)
-            ...providerMemberNames.values,
+            ...providerNames.values,
         }.toList(),
       });
     }
@@ -262,8 +264,9 @@ Map<String, dynamic> buildProfileBindings(
   final rules = <String>[];
   for (final binding in data.rules.where((item) => item.enabled)) {
     final source = data.ruleSources[binding.sourceId];
-    if (source == null)
+    if (source == null) {
       throw FormatException('Rule source missing: ${binding.sourceId}');
+    }
     if ((!names.contains(binding.target) &&
             !plannedPolicies.contains(binding.target)) ||
         binding.target.contains(',')) {
@@ -272,8 +275,9 @@ Map<String, dynamic> buildProfileBindings(
       );
     }
     final name = 'flsmart-rule-${binding.id}';
-    if (ruleProviders.containsKey(name))
+    if (ruleProviders.containsKey(name)) {
       throw FormatException('Rule source name conflicts: $name');
+    }
     ruleProviders[name] = source;
     rules.add('RULE-SET,$name,${binding.target}');
   }
@@ -317,7 +321,7 @@ void validatePolicyReferences(
       group['name'] as String: [
         ...List<String>.from(group['proxies'] as List? ?? const []),
         for (final name in group['use'] as List? ?? const [])
-          if (providerKeys[name] case final key?) key,
+          ?providerKeys[name],
       ],
     for (final entry in providers.entries)
       providerKeys[entry.key]!: [
@@ -334,8 +338,9 @@ void validatePolicyReferences(
   final visited = <String>{};
   void visit(String name) {
     if (visited.contains(name)) return;
-    if (!visiting.add(name))
+    if (!visiting.add(name)) {
       throw FormatException('Policy reference cycle: $name');
+    }
     for (final next in graph[name] ?? const <String>[]) {
       if (names.contains(next)) visit(next);
     }
@@ -345,8 +350,9 @@ void validatePolicyReferences(
 
   for (final group in groups) {
     for (final name in group['use'] as List? ?? const []) {
-      if (!providers.containsKey(name))
+      if (!providers.containsKey(name)) {
         throw FormatException('Proxy provider missing: $name');
+      }
     }
   }
   for (final proxy in proxies) {

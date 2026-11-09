@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/features/form/form.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
@@ -57,21 +58,18 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
   Future<void> _apply() => _run(() async {
     final candidate = ref.read(profileProvider(widget.profileId));
     if (candidate == null) return;
+    final labels = context.appLocalizations;
     await ref.read(profileBindingsActionProvider.notifier).validate(candidate);
+    if (!mounted) return;
     if (ref.read(currentProfileIdProvider) != widget.profileId) {
-      dialogs.showBanner(
-        context.appLocalizations.bindingValidated,
-        level: BannerLevel.success,
-      );
+      dialogs.showBanner(labels.bindingValidated, level: BannerLevel.success);
       return;
     }
     final applied = await ref.read(setupActionProvider.notifier).applyProfile();
-    if (!applied)
-      throw MessageException(context.appLocalizations.bindingApplyFailed);
-    dialogs.showBanner(
-      context.appLocalizations.applied,
-      level: BannerLevel.success,
-    );
+    if (!applied) {
+      throw MessageException(labels.bindingApplyFailed);
+    }
+    dialogs.showBanner(labels.applied, level: BannerLevel.success);
   });
 
   Future<void> _open(Widget page) async {
@@ -98,11 +96,12 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
         ref.watch(clashProvidersProvider).value ?? const <ClashProvider>[];
     final scripts = ref.watch(scriptsProvider).value ?? const <Script>[];
     final sources = ref.watch(profilesProvider);
-    if (profile == null)
+    if (profile == null) {
       return Scaffold(
         title: labels.profileManagement,
         body: const SizedBox.shrink(),
       );
+    }
     final overrides = profile.overrides;
     return Scaffold(
       title: labels.profileManagement,
@@ -173,10 +172,11 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
                       label: labels.update,
                       onPressed: () => _run(() async {
                         final source = sources.getProfile(binding.sourceId);
-                        if (source == null)
+                        if (source == null) {
                           throw MessageException(
                             labels.bindingSourceMissing(binding.name),
                           );
+                        }
                         await ref
                             .read(profilesActionProvider.notifier)
                             .updateProfile(source, showLoading: true);
@@ -256,12 +256,13 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
                         final source = rules
                             .where((item) => item.id == binding.sourceId)
                             .firstOrNull;
-                        if (source == null)
+                        if (source == null) {
                           throw MessageException(
                             labels.bindingSourceMissing(
                               binding.sourceId.toString(),
                             ),
                           );
+                        }
                         await ref
                             .read(resourcesActionProvider.notifier)
                             .updateRuleProvider(source);

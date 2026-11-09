@@ -890,8 +890,9 @@ class SetupAction extends _$SetupAction {
         globalState.lastConfigMd5 = previous.md5;
         globalState.lastConfigCounts = previous.counts;
         _appliedInputs = previousProfile.inputs;
-        if (system.isAndroid)
+        if (system.isAndroid) {
           await preferences.saveAppliedConfigMd5(previous.md5);
+        }
         await onUpdated?.call();
       }, title: 'restore applied profile');
     }

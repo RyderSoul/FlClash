@@ -1244,7 +1244,7 @@ void main() {
           globalState.lastConfigMd5 = 'previous';
           final core = _MockCoreHandlerInterface();
           when(
-            () => core.validateConfigWithData(any()),
+            () => core.validateConfig(any()),
           ).thenAnswer((_) async => 'invalid binding');
           final setup = _ManagedSetupAction()..failBuild = buildFails;
           final scoped = ProviderContainer(
