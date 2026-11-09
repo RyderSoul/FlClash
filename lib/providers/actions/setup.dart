@@ -882,8 +882,9 @@ class SetupAction extends _$SetupAction {
       await globalState.safeRun(() async {
         final previous = previousProfile.profile;
         if (previousProfile.params.base == null) {
-          await File(await appPath.configFilePath)
-              .writeAsStringAtomically(previous.yaml);
+          await File(
+            await appPath.configFilePath,
+          ).writeAsStringAtomically(previous.yaml);
         }
         await _core.setupConfig(params: previousProfile.params);
         globalState.lastConfigMd5 = previous.md5;

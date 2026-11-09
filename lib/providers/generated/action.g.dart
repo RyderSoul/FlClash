@@ -91,7 +91,7 @@ final class SetupActionProvider extends $NotifierProvider<SetupAction, void> {
   }
 }
 
-String _$setupActionHash() => r'66d0a2ff87196ac9fef6fa8e0d944c59935dc0a5';
+String _$setupActionHash() => r'4e8f3887114bd84ad55c7c471bb94200931cbe84';
 
 abstract class _$SetupAction extends $Notifier<void> {
   void build();
@@ -470,6 +470,128 @@ abstract class _$ProfilesAction extends $Notifier<void> {
   }
 }
 
+@ProviderFor(bindingsApplied)
+final bindingsAppliedProvider = BindingsAppliedFamily._();
+
+final class BindingsAppliedProvider
+    extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
+    with $FutureModifier<bool>, $FutureProvider<bool> {
+  BindingsAppliedProvider._({
+    required BindingsAppliedFamily super.from,
+    required int super.argument,
+  }) : super(
+         retry: null,
+         name: r'bindingsAppliedProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$bindingsAppliedHash();
+
+  @override
+  String toString() {
+    return r'bindingsAppliedProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<bool> create(Ref ref) {
+    final argument = this.argument as int;
+    return bindingsApplied(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is BindingsAppliedProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$bindingsAppliedHash() => r'7e1c59c2d52414aa95651255443a5826cc507f10';
+
+final class BindingsAppliedFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<bool>, int> {
+  BindingsAppliedFamily._()
+    : super(
+        retry: null,
+        name: r'bindingsAppliedProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  BindingsAppliedProvider call(int profileId) =>
+      BindingsAppliedProvider._(argument: profileId, from: this);
+
+  @override
+  String toString() => r'bindingsAppliedProvider';
+}
+
+@ProviderFor(ProfileBindingsAction)
+final profileBindingsActionProvider = ProfileBindingsActionProvider._();
+
+final class ProfileBindingsActionProvider
+    extends $NotifierProvider<ProfileBindingsAction, void> {
+  ProfileBindingsActionProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'profileBindingsActionProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$profileBindingsActionHash();
+
+  @$internal
+  @override
+  ProfileBindingsAction create() => ProfileBindingsAction();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(void value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<void>(value),
+    );
+  }
+}
+
+String _$profileBindingsActionHash() =>
+    r'cc01f30e4e3efd3af1e6817a3309aa519ef7fedd';
+
+abstract class _$ProfileBindingsAction extends $Notifier<void> {
+  void build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<void, void>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<void, void>,
+              void,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(ScriptsAction)
 final scriptsActionProvider = ScriptsActionProvider._();
 
@@ -607,7 +729,7 @@ final class ClashProvidersActionProvider
 }
 
 String _$clashProvidersActionHash() =>
-    r'03877ca6677f0ee8ae7bb59408433a1d83916487';
+    r'4252b6f97a2c3ab44796ef9a8a7e81d3eec40107';
 
 abstract class _$ClashProvidersAction extends $Notifier<void> {
   void build();

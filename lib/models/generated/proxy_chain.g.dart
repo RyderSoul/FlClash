@@ -15,6 +15,11 @@ _ProxyChain _$ProxyChainFromJson(Map<String, dynamic> json) => _ProxyChain(
   enabled: json['enabled'] as bool? ?? true,
   hidden: json['hidden'] as bool? ?? false,
   targetGroup: json['targetGroup'] as String?,
+  targetGroups:
+      (json['targetGroups'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$ProxyChainToJson(_ProxyChain instance) =>
@@ -25,4 +30,5 @@ Map<String, dynamic> _$ProxyChainToJson(_ProxyChain instance) =>
       'enabled': instance.enabled,
       'hidden': instance.hidden,
       'targetGroup': instance.targetGroup,
+      'targetGroups': instance.targetGroups,
     };

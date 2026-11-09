@@ -5440,7 +5440,7 @@ as List<int>,
 /// @nodoc
 mixin _$ProfileOverrides {
 
- bool? get rulesEnabled; bool get replaceRules; bool? get subscriptionEnabled; List<ProxyChain> get chains;@JsonKey(fromJson: Dns.safeDnsFromJson) Dns get dns;@JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson) Set<DnsOverrideKey> get dnsOverrideKeys;@JsonKey(fromJson: Ntp.safeNtpFromJson) Ntp get ntp;@JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson) Set<NtpOverrideKey> get ntpOverrideKeys;@JsonKey(fromJson: Sniffer.safeSnifferFromJson) Sniffer get sniffer;@JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson) Set<SnifferOverrideKey> get snifferOverrideKeys;@JsonKey(fromJson: ProfileTun.safeFromJson) ProfileTun get tun;@JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson) Set<TunOverrideKey> get tunOverrideKeys;@JsonKey(name: 'proxy-providers') Map<String, ProxyProviderOptions> get proxyProviders;
+ bool? get rulesEnabled; bool get replaceRules; bool? get subscriptionEnabled; bool get attachmentsEnabled; bool get chainsEnabled; List<SubscriptionBinding> get subscriptions; List<RuleSetBinding> get ruleBindings; List<ProxyChain> get chains;@JsonKey(fromJson: Dns.safeDnsFromJson) Dns get dns;@JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson) Set<DnsOverrideKey> get dnsOverrideKeys;@JsonKey(fromJson: Ntp.safeNtpFromJson) Ntp get ntp;@JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson) Set<NtpOverrideKey> get ntpOverrideKeys;@JsonKey(fromJson: Sniffer.safeSnifferFromJson) Sniffer get sniffer;@JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson) Set<SnifferOverrideKey> get snifferOverrideKeys;@JsonKey(fromJson: ProfileTun.safeFromJson) ProfileTun get tun;@JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson) Set<TunOverrideKey> get tunOverrideKeys;@JsonKey(name: 'proxy-providers') Map<String, ProxyProviderOptions> get proxyProviders;
 /// Create a copy of ProfileOverrides
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -5454,20 +5454,20 @@ $ProfileOverridesCopyWith<ProfileOverrides> get copyWith => _$ProfileOverridesCo
 @override
 bool operator ==(Object other) {
   final _this = this as ProfileOverrides;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProfileOverrides&&(identical(other.rulesEnabled, _this.rulesEnabled) || other.rulesEnabled == _this.rulesEnabled)&&(identical(other.replaceRules, _this.replaceRules) || other.replaceRules == _this.replaceRules)&&(identical(other.subscriptionEnabled, _this.subscriptionEnabled) || other.subscriptionEnabled == _this.subscriptionEnabled)&&const DeepCollectionEquality().equals(other.chains, _this.chains)&&(identical(other.dns, _this.dns) || other.dns == _this.dns)&&const DeepCollectionEquality().equals(other.dnsOverrideKeys, _this.dnsOverrideKeys)&&(identical(other.ntp, _this.ntp) || other.ntp == _this.ntp)&&const DeepCollectionEquality().equals(other.ntpOverrideKeys, _this.ntpOverrideKeys)&&(identical(other.sniffer, _this.sniffer) || other.sniffer == _this.sniffer)&&const DeepCollectionEquality().equals(other.snifferOverrideKeys, _this.snifferOverrideKeys)&&(identical(other.tun, _this.tun) || other.tun == _this.tun)&&const DeepCollectionEquality().equals(other.tunOverrideKeys, _this.tunOverrideKeys)&&const DeepCollectionEquality().equals(other.proxyProviders, _this.proxyProviders));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProfileOverrides&&(identical(other.rulesEnabled, _this.rulesEnabled) || other.rulesEnabled == _this.rulesEnabled)&&(identical(other.replaceRules, _this.replaceRules) || other.replaceRules == _this.replaceRules)&&(identical(other.subscriptionEnabled, _this.subscriptionEnabled) || other.subscriptionEnabled == _this.subscriptionEnabled)&&(identical(other.attachmentsEnabled, _this.attachmentsEnabled) || other.attachmentsEnabled == _this.attachmentsEnabled)&&(identical(other.chainsEnabled, _this.chainsEnabled) || other.chainsEnabled == _this.chainsEnabled)&&const DeepCollectionEquality().equals(other.subscriptions, _this.subscriptions)&&const DeepCollectionEquality().equals(other.ruleBindings, _this.ruleBindings)&&const DeepCollectionEquality().equals(other.chains, _this.chains)&&(identical(other.dns, _this.dns) || other.dns == _this.dns)&&const DeepCollectionEquality().equals(other.dnsOverrideKeys, _this.dnsOverrideKeys)&&(identical(other.ntp, _this.ntp) || other.ntp == _this.ntp)&&const DeepCollectionEquality().equals(other.ntpOverrideKeys, _this.ntpOverrideKeys)&&(identical(other.sniffer, _this.sniffer) || other.sniffer == _this.sniffer)&&const DeepCollectionEquality().equals(other.snifferOverrideKeys, _this.snifferOverrideKeys)&&(identical(other.tun, _this.tun) || other.tun == _this.tun)&&const DeepCollectionEquality().equals(other.tunOverrideKeys, _this.tunOverrideKeys)&&const DeepCollectionEquality().equals(other.proxyProviders, _this.proxyProviders));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ProfileOverrides;
-  return Object.hash(runtimeType,_this.rulesEnabled,_this.replaceRules,_this.subscriptionEnabled,const DeepCollectionEquality().hash(_this.chains),_this.dns,const DeepCollectionEquality().hash(_this.dnsOverrideKeys),_this.ntp,const DeepCollectionEquality().hash(_this.ntpOverrideKeys),_this.sniffer,const DeepCollectionEquality().hash(_this.snifferOverrideKeys),_this.tun,const DeepCollectionEquality().hash(_this.tunOverrideKeys),const DeepCollectionEquality().hash(_this.proxyProviders));
+  return Object.hash(runtimeType,_this.rulesEnabled,_this.replaceRules,_this.subscriptionEnabled,_this.attachmentsEnabled,_this.chainsEnabled,const DeepCollectionEquality().hash(_this.subscriptions),const DeepCollectionEquality().hash(_this.ruleBindings),const DeepCollectionEquality().hash(_this.chains),_this.dns,const DeepCollectionEquality().hash(_this.dnsOverrideKeys),_this.ntp,const DeepCollectionEquality().hash(_this.ntpOverrideKeys),_this.sniffer,const DeepCollectionEquality().hash(_this.snifferOverrideKeys),_this.tun,const DeepCollectionEquality().hash(_this.tunOverrideKeys),const DeepCollectionEquality().hash(_this.proxyProviders));
 }
 
 @override
 String toString() {
   final _this = this as ProfileOverrides;
-  return 'ProfileOverrides(rulesEnabled: ${_this.rulesEnabled}, replaceRules: ${_this.replaceRules}, subscriptionEnabled: ${_this.subscriptionEnabled}, chains: ${_this.chains}, dns: ${_this.dns}, dnsOverrideKeys: ${_this.dnsOverrideKeys}, ntp: ${_this.ntp}, ntpOverrideKeys: ${_this.ntpOverrideKeys}, sniffer: ${_this.sniffer}, snifferOverrideKeys: ${_this.snifferOverrideKeys}, tun: ${_this.tun}, tunOverrideKeys: ${_this.tunOverrideKeys}, proxyProviders: ${_this.proxyProviders})';
+  return 'ProfileOverrides(rulesEnabled: ${_this.rulesEnabled}, replaceRules: ${_this.replaceRules}, subscriptionEnabled: ${_this.subscriptionEnabled}, attachmentsEnabled: ${_this.attachmentsEnabled}, chainsEnabled: ${_this.chainsEnabled}, subscriptions: ${_this.subscriptions}, ruleBindings: ${_this.ruleBindings}, chains: ${_this.chains}, dns: ${_this.dns}, dnsOverrideKeys: ${_this.dnsOverrideKeys}, ntp: ${_this.ntp}, ntpOverrideKeys: ${_this.ntpOverrideKeys}, sniffer: ${_this.sniffer}, snifferOverrideKeys: ${_this.snifferOverrideKeys}, tun: ${_this.tun}, tunOverrideKeys: ${_this.tunOverrideKeys}, proxyProviders: ${_this.proxyProviders})';
 }
 
 
@@ -5478,7 +5478,7 @@ abstract mixin class $ProfileOverridesCopyWith<$Res>  {
   factory $ProfileOverridesCopyWith(ProfileOverrides value, $Res Function(ProfileOverrides) _then) = _$ProfileOverridesCopyWithImpl;
 @useResult
 $Res call({
- bool? rulesEnabled, bool replaceRules, bool? subscriptionEnabled, List<ProxyChain> chains,@JsonKey(fromJson: Dns.safeDnsFromJson) Dns dns,@JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson) Set<DnsOverrideKey> dnsOverrideKeys,@JsonKey(fromJson: Ntp.safeNtpFromJson) Ntp ntp,@JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson) Set<NtpOverrideKey> ntpOverrideKeys,@JsonKey(fromJson: Sniffer.safeSnifferFromJson) Sniffer sniffer,@JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson) Set<SnifferOverrideKey> snifferOverrideKeys,@JsonKey(fromJson: ProfileTun.safeFromJson) ProfileTun tun,@JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson) Set<TunOverrideKey> tunOverrideKeys,@JsonKey(name: 'proxy-providers') Map<String, ProxyProviderOptions> proxyProviders
+ bool? rulesEnabled, bool replaceRules, bool? subscriptionEnabled, bool attachmentsEnabled, bool chainsEnabled, List<SubscriptionBinding> subscriptions, List<RuleSetBinding> ruleBindings, List<ProxyChain> chains,@JsonKey(fromJson: Dns.safeDnsFromJson) Dns dns,@JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson) Set<DnsOverrideKey> dnsOverrideKeys,@JsonKey(fromJson: Ntp.safeNtpFromJson) Ntp ntp,@JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson) Set<NtpOverrideKey> ntpOverrideKeys,@JsonKey(fromJson: Sniffer.safeSnifferFromJson) Sniffer sniffer,@JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson) Set<SnifferOverrideKey> snifferOverrideKeys,@JsonKey(fromJson: ProfileTun.safeFromJson) ProfileTun tun,@JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson) Set<TunOverrideKey> tunOverrideKeys,@JsonKey(name: 'proxy-providers') Map<String, ProxyProviderOptions> proxyProviders
 });
 
 
@@ -5495,12 +5495,16 @@ class _$ProfileOverridesCopyWithImpl<$Res>
 
 /// Create a copy of ProfileOverrides
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? rulesEnabled = freezed,Object? replaceRules = null,Object? subscriptionEnabled = freezed,Object? chains = null,Object? dns = null,Object? dnsOverrideKeys = null,Object? ntp = null,Object? ntpOverrideKeys = null,Object? sniffer = null,Object? snifferOverrideKeys = null,Object? tun = null,Object? tunOverrideKeys = null,Object? proxyProviders = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? rulesEnabled = freezed,Object? replaceRules = null,Object? subscriptionEnabled = freezed,Object? attachmentsEnabled = null,Object? chainsEnabled = null,Object? subscriptions = null,Object? ruleBindings = null,Object? chains = null,Object? dns = null,Object? dnsOverrideKeys = null,Object? ntp = null,Object? ntpOverrideKeys = null,Object? sniffer = null,Object? snifferOverrideKeys = null,Object? tun = null,Object? tunOverrideKeys = null,Object? proxyProviders = null,}) {
   return _then(ProfileOverrides(
 rulesEnabled: freezed == rulesEnabled ? _self.rulesEnabled : rulesEnabled // ignore: cast_nullable_to_non_nullable
 as bool?,replaceRules: null == replaceRules ? _self.replaceRules : replaceRules // ignore: cast_nullable_to_non_nullable
 as bool,subscriptionEnabled: freezed == subscriptionEnabled ? _self.subscriptionEnabled : subscriptionEnabled // ignore: cast_nullable_to_non_nullable
-as bool?,chains: null == chains ? _self.chains : chains // ignore: cast_nullable_to_non_nullable
+as bool?,attachmentsEnabled: null == attachmentsEnabled ? _self.attachmentsEnabled : attachmentsEnabled // ignore: cast_nullable_to_non_nullable
+as bool,chainsEnabled: null == chainsEnabled ? _self.chainsEnabled : chainsEnabled // ignore: cast_nullable_to_non_nullable
+as bool,subscriptions: null == subscriptions ? _self.subscriptions : subscriptions // ignore: cast_nullable_to_non_nullable
+as List<SubscriptionBinding>,ruleBindings: null == ruleBindings ? _self.ruleBindings : ruleBindings // ignore: cast_nullable_to_non_nullable
+as List<RuleSetBinding>,chains: null == chains ? _self.chains : chains // ignore: cast_nullable_to_non_nullable
 as List<ProxyChain>,dns: null == dns ? _self.dns : dns // ignore: cast_nullable_to_non_nullable
 as Dns,dnsOverrideKeys: null == dnsOverrideKeys ? _self.dnsOverrideKeys : dnsOverrideKeys // ignore: cast_nullable_to_non_nullable
 as Set<DnsOverrideKey>,ntp: null == ntp ? _self.ntp : ntp // ignore: cast_nullable_to_non_nullable
@@ -5631,10 +5635,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool? rulesEnabled,  bool replaceRules,  bool? subscriptionEnabled,  List<ProxyChain> chains, @JsonKey(fromJson: Dns.safeDnsFromJson)  Dns dns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys, @JsonKey(fromJson: Ntp.safeNtpFromJson)  Ntp ntp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys, @JsonKey(fromJson: Sniffer.safeSnifferFromJson)  Sniffer sniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys, @JsonKey(fromJson: ProfileTun.safeFromJson)  ProfileTun tun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool? rulesEnabled,  bool replaceRules,  bool? subscriptionEnabled,  bool attachmentsEnabled,  bool chainsEnabled,  List<SubscriptionBinding> subscriptions,  List<RuleSetBinding> ruleBindings,  List<ProxyChain> chains, @JsonKey(fromJson: Dns.safeDnsFromJson)  Dns dns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys, @JsonKey(fromJson: Ntp.safeNtpFromJson)  Ntp ntp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys, @JsonKey(fromJson: Sniffer.safeSnifferFromJson)  Sniffer sniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys, @JsonKey(fromJson: ProfileTun.safeFromJson)  ProfileTun tun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProfileOverrides() when $default != null:
-return $default(_that.rulesEnabled,_that.replaceRules,_that.subscriptionEnabled,_that.chains,_that.dns,_that.dnsOverrideKeys,_that.ntp,_that.ntpOverrideKeys,_that.sniffer,_that.snifferOverrideKeys,_that.tun,_that.tunOverrideKeys,_that.proxyProviders);case _:
+return $default(_that.rulesEnabled,_that.replaceRules,_that.subscriptionEnabled,_that.attachmentsEnabled,_that.chainsEnabled,_that.subscriptions,_that.ruleBindings,_that.chains,_that.dns,_that.dnsOverrideKeys,_that.ntp,_that.ntpOverrideKeys,_that.sniffer,_that.snifferOverrideKeys,_that.tun,_that.tunOverrideKeys,_that.proxyProviders);case _:
   return orElse();
 
 }
@@ -5652,10 +5656,10 @@ return $default(_that.rulesEnabled,_that.replaceRules,_that.subscriptionEnabled,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool? rulesEnabled,  bool replaceRules,  bool? subscriptionEnabled,  List<ProxyChain> chains, @JsonKey(fromJson: Dns.safeDnsFromJson)  Dns dns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys, @JsonKey(fromJson: Ntp.safeNtpFromJson)  Ntp ntp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys, @JsonKey(fromJson: Sniffer.safeSnifferFromJson)  Sniffer sniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys, @JsonKey(fromJson: ProfileTun.safeFromJson)  ProfileTun tun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool? rulesEnabled,  bool replaceRules,  bool? subscriptionEnabled,  bool attachmentsEnabled,  bool chainsEnabled,  List<SubscriptionBinding> subscriptions,  List<RuleSetBinding> ruleBindings,  List<ProxyChain> chains, @JsonKey(fromJson: Dns.safeDnsFromJson)  Dns dns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys, @JsonKey(fromJson: Ntp.safeNtpFromJson)  Ntp ntp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys, @JsonKey(fromJson: Sniffer.safeSnifferFromJson)  Sniffer sniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys, @JsonKey(fromJson: ProfileTun.safeFromJson)  ProfileTun tun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders)  $default,) {final _that = this;
 switch (_that) {
 case _ProfileOverrides():
-return $default(_that.rulesEnabled,_that.replaceRules,_that.subscriptionEnabled,_that.chains,_that.dns,_that.dnsOverrideKeys,_that.ntp,_that.ntpOverrideKeys,_that.sniffer,_that.snifferOverrideKeys,_that.tun,_that.tunOverrideKeys,_that.proxyProviders);case _:
+return $default(_that.rulesEnabled,_that.replaceRules,_that.subscriptionEnabled,_that.attachmentsEnabled,_that.chainsEnabled,_that.subscriptions,_that.ruleBindings,_that.chains,_that.dns,_that.dnsOverrideKeys,_that.ntp,_that.ntpOverrideKeys,_that.sniffer,_that.snifferOverrideKeys,_that.tun,_that.tunOverrideKeys,_that.proxyProviders);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -5672,10 +5676,10 @@ return $default(_that.rulesEnabled,_that.replaceRules,_that.subscriptionEnabled,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool? rulesEnabled,  bool replaceRules,  bool? subscriptionEnabled,  List<ProxyChain> chains, @JsonKey(fromJson: Dns.safeDnsFromJson)  Dns dns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys, @JsonKey(fromJson: Ntp.safeNtpFromJson)  Ntp ntp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys, @JsonKey(fromJson: Sniffer.safeSnifferFromJson)  Sniffer sniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys, @JsonKey(fromJson: ProfileTun.safeFromJson)  ProfileTun tun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool? rulesEnabled,  bool replaceRules,  bool? subscriptionEnabled,  bool attachmentsEnabled,  bool chainsEnabled,  List<SubscriptionBinding> subscriptions,  List<RuleSetBinding> ruleBindings,  List<ProxyChain> chains, @JsonKey(fromJson: Dns.safeDnsFromJson)  Dns dns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys, @JsonKey(fromJson: Ntp.safeNtpFromJson)  Ntp ntp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys, @JsonKey(fromJson: Sniffer.safeSnifferFromJson)  Sniffer sniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys, @JsonKey(fromJson: ProfileTun.safeFromJson)  ProfileTun tun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders)?  $default,) {final _that = this;
 switch (_that) {
 case _ProfileOverrides() when $default != null:
-return $default(_that.rulesEnabled,_that.replaceRules,_that.subscriptionEnabled,_that.chains,_that.dns,_that.dnsOverrideKeys,_that.ntp,_that.ntpOverrideKeys,_that.sniffer,_that.snifferOverrideKeys,_that.tun,_that.tunOverrideKeys,_that.proxyProviders);case _:
+return $default(_that.rulesEnabled,_that.replaceRules,_that.subscriptionEnabled,_that.attachmentsEnabled,_that.chainsEnabled,_that.subscriptions,_that.ruleBindings,_that.chains,_that.dns,_that.dnsOverrideKeys,_that.ntp,_that.ntpOverrideKeys,_that.sniffer,_that.snifferOverrideKeys,_that.tun,_that.tunOverrideKeys,_that.proxyProviders);case _:
   return null;
 
 }
@@ -5687,12 +5691,28 @@ return $default(_that.rulesEnabled,_that.replaceRules,_that.subscriptionEnabled,
 @JsonSerializable()
 
 class _ProfileOverrides implements ProfileOverrides {
-  const _ProfileOverrides({this.rulesEnabled, this.replaceRules = false, this.subscriptionEnabled,  List<ProxyChain> chains = const [], @JsonKey(fromJson: Dns.safeDnsFromJson) this.dns = defaultDns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys = const {}, @JsonKey(fromJson: Ntp.safeNtpFromJson) this.ntp = defaultNtp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys = const {}, @JsonKey(fromJson: Sniffer.safeSnifferFromJson) this.sniffer = defaultSniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys = const {}, @JsonKey(fromJson: ProfileTun.safeFromJson) this.tun = defaultProfileTun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys = const {}, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders = const {}}): _chains = chains,_dnsOverrideKeys = dnsOverrideKeys,_ntpOverrideKeys = ntpOverrideKeys,_snifferOverrideKeys = snifferOverrideKeys,_tunOverrideKeys = tunOverrideKeys,_proxyProviders = proxyProviders;
+  const _ProfileOverrides({this.rulesEnabled, this.replaceRules = false, this.subscriptionEnabled, this.attachmentsEnabled = true, this.chainsEnabled = true,  List<SubscriptionBinding> subscriptions = const [],  List<RuleSetBinding> ruleBindings = const [],  List<ProxyChain> chains = const [], @JsonKey(fromJson: Dns.safeDnsFromJson) this.dns = defaultDns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys = const {}, @JsonKey(fromJson: Ntp.safeNtpFromJson) this.ntp = defaultNtp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys = const {}, @JsonKey(fromJson: Sniffer.safeSnifferFromJson) this.sniffer = defaultSniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys = const {}, @JsonKey(fromJson: ProfileTun.safeFromJson) this.tun = defaultProfileTun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys = const {}, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders = const {}}): _subscriptions = subscriptions,_ruleBindings = ruleBindings,_chains = chains,_dnsOverrideKeys = dnsOverrideKeys,_ntpOverrideKeys = ntpOverrideKeys,_snifferOverrideKeys = snifferOverrideKeys,_tunOverrideKeys = tunOverrideKeys,_proxyProviders = proxyProviders;
   factory _ProfileOverrides.fromJson(Map<String, dynamic> json) => _$ProfileOverridesFromJson(json);
 
 @override final  bool? rulesEnabled;
 @override@JsonKey() final  bool replaceRules;
 @override final  bool? subscriptionEnabled;
+@override@JsonKey() final  bool attachmentsEnabled;
+@override@JsonKey() final  bool chainsEnabled;
+ final  List<SubscriptionBinding> _subscriptions;
+@override@JsonKey() List<SubscriptionBinding> get subscriptions {
+  if (_subscriptions is EqualUnmodifiableListView) return _subscriptions;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_subscriptions);
+}
+
+ final  List<RuleSetBinding> _ruleBindings;
+@override@JsonKey() List<RuleSetBinding> get ruleBindings {
+  if (_ruleBindings is EqualUnmodifiableListView) return _ruleBindings;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_ruleBindings);
+}
+
  final  List<ProxyChain> _chains;
 @override@JsonKey() List<ProxyChain> get chains {
   if (_chains is EqualUnmodifiableListView) return _chains;
@@ -5753,18 +5773,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProfileOverrides&&(identical(other.rulesEnabled, rulesEnabled) || other.rulesEnabled == rulesEnabled)&&(identical(other.replaceRules, replaceRules) || other.replaceRules == replaceRules)&&(identical(other.subscriptionEnabled, subscriptionEnabled) || other.subscriptionEnabled == subscriptionEnabled)&&const DeepCollectionEquality().equals(other.chains, _chains)&&(identical(other.dns, dns) || other.dns == dns)&&const DeepCollectionEquality().equals(other.dnsOverrideKeys, _dnsOverrideKeys)&&(identical(other.ntp, ntp) || other.ntp == ntp)&&const DeepCollectionEquality().equals(other.ntpOverrideKeys, _ntpOverrideKeys)&&(identical(other.sniffer, sniffer) || other.sniffer == sniffer)&&const DeepCollectionEquality().equals(other.snifferOverrideKeys, _snifferOverrideKeys)&&(identical(other.tun, tun) || other.tun == tun)&&const DeepCollectionEquality().equals(other.tunOverrideKeys, _tunOverrideKeys)&&const DeepCollectionEquality().equals(other.proxyProviders, _proxyProviders));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProfileOverrides&&(identical(other.rulesEnabled, rulesEnabled) || other.rulesEnabled == rulesEnabled)&&(identical(other.replaceRules, replaceRules) || other.replaceRules == replaceRules)&&(identical(other.subscriptionEnabled, subscriptionEnabled) || other.subscriptionEnabled == subscriptionEnabled)&&(identical(other.attachmentsEnabled, attachmentsEnabled) || other.attachmentsEnabled == attachmentsEnabled)&&(identical(other.chainsEnabled, chainsEnabled) || other.chainsEnabled == chainsEnabled)&&const DeepCollectionEquality().equals(other.subscriptions, _subscriptions)&&const DeepCollectionEquality().equals(other.ruleBindings, _ruleBindings)&&const DeepCollectionEquality().equals(other.chains, _chains)&&(identical(other.dns, dns) || other.dns == dns)&&const DeepCollectionEquality().equals(other.dnsOverrideKeys, _dnsOverrideKeys)&&(identical(other.ntp, ntp) || other.ntp == ntp)&&const DeepCollectionEquality().equals(other.ntpOverrideKeys, _ntpOverrideKeys)&&(identical(other.sniffer, sniffer) || other.sniffer == sniffer)&&const DeepCollectionEquality().equals(other.snifferOverrideKeys, _snifferOverrideKeys)&&(identical(other.tun, tun) || other.tun == tun)&&const DeepCollectionEquality().equals(other.tunOverrideKeys, _tunOverrideKeys)&&const DeepCollectionEquality().equals(other.proxyProviders, _proxyProviders));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,rulesEnabled,replaceRules,subscriptionEnabled,const DeepCollectionEquality().hash(_chains),dns,const DeepCollectionEquality().hash(_dnsOverrideKeys),ntp,const DeepCollectionEquality().hash(_ntpOverrideKeys),sniffer,const DeepCollectionEquality().hash(_snifferOverrideKeys),tun,const DeepCollectionEquality().hash(_tunOverrideKeys),const DeepCollectionEquality().hash(_proxyProviders));
+    return Object.hash(runtimeType,rulesEnabled,replaceRules,subscriptionEnabled,attachmentsEnabled,chainsEnabled,const DeepCollectionEquality().hash(_subscriptions),const DeepCollectionEquality().hash(_ruleBindings),const DeepCollectionEquality().hash(_chains),dns,const DeepCollectionEquality().hash(_dnsOverrideKeys),ntp,const DeepCollectionEquality().hash(_ntpOverrideKeys),sniffer,const DeepCollectionEquality().hash(_snifferOverrideKeys),tun,const DeepCollectionEquality().hash(_tunOverrideKeys),const DeepCollectionEquality().hash(_proxyProviders));
 }
 
 @override
 String toString() {
-    return 'ProfileOverrides(rulesEnabled: $rulesEnabled, replaceRules: $replaceRules, subscriptionEnabled: $subscriptionEnabled, chains: $chains, dns: $dns, dnsOverrideKeys: $dnsOverrideKeys, ntp: $ntp, ntpOverrideKeys: $ntpOverrideKeys, sniffer: $sniffer, snifferOverrideKeys: $snifferOverrideKeys, tun: $tun, tunOverrideKeys: $tunOverrideKeys, proxyProviders: $proxyProviders)';
+    return 'ProfileOverrides(rulesEnabled: $rulesEnabled, replaceRules: $replaceRules, subscriptionEnabled: $subscriptionEnabled, attachmentsEnabled: $attachmentsEnabled, chainsEnabled: $chainsEnabled, subscriptions: $subscriptions, ruleBindings: $ruleBindings, chains: $chains, dns: $dns, dnsOverrideKeys: $dnsOverrideKeys, ntp: $ntp, ntpOverrideKeys: $ntpOverrideKeys, sniffer: $sniffer, snifferOverrideKeys: $snifferOverrideKeys, tun: $tun, tunOverrideKeys: $tunOverrideKeys, proxyProviders: $proxyProviders)';
 }
 
 
@@ -5775,7 +5795,7 @@ abstract mixin class _$ProfileOverridesCopyWith<$Res> implements $ProfileOverrid
   factory _$ProfileOverridesCopyWith(_ProfileOverrides value, $Res Function(_ProfileOverrides) _then) = __$ProfileOverridesCopyWithImpl;
 @override @useResult
 $Res call({
- bool? rulesEnabled, bool replaceRules, bool? subscriptionEnabled, List<ProxyChain> chains,@JsonKey(fromJson: Dns.safeDnsFromJson) Dns dns,@JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson) Set<DnsOverrideKey> dnsOverrideKeys,@JsonKey(fromJson: Ntp.safeNtpFromJson) Ntp ntp,@JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson) Set<NtpOverrideKey> ntpOverrideKeys,@JsonKey(fromJson: Sniffer.safeSnifferFromJson) Sniffer sniffer,@JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson) Set<SnifferOverrideKey> snifferOverrideKeys,@JsonKey(fromJson: ProfileTun.safeFromJson) ProfileTun tun,@JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson) Set<TunOverrideKey> tunOverrideKeys,@JsonKey(name: 'proxy-providers') Map<String, ProxyProviderOptions> proxyProviders
+ bool? rulesEnabled, bool replaceRules, bool? subscriptionEnabled, bool attachmentsEnabled, bool chainsEnabled, List<SubscriptionBinding> subscriptions, List<RuleSetBinding> ruleBindings, List<ProxyChain> chains,@JsonKey(fromJson: Dns.safeDnsFromJson) Dns dns,@JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson) Set<DnsOverrideKey> dnsOverrideKeys,@JsonKey(fromJson: Ntp.safeNtpFromJson) Ntp ntp,@JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson) Set<NtpOverrideKey> ntpOverrideKeys,@JsonKey(fromJson: Sniffer.safeSnifferFromJson) Sniffer sniffer,@JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson) Set<SnifferOverrideKey> snifferOverrideKeys,@JsonKey(fromJson: ProfileTun.safeFromJson) ProfileTun tun,@JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson) Set<TunOverrideKey> tunOverrideKeys,@JsonKey(name: 'proxy-providers') Map<String, ProxyProviderOptions> proxyProviders
 });
 
 
@@ -5792,12 +5812,16 @@ class __$ProfileOverridesCopyWithImpl<$Res>
 
 /// Create a copy of ProfileOverrides
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? rulesEnabled = freezed,Object? replaceRules = null,Object? subscriptionEnabled = freezed,Object? chains = null,Object? dns = null,Object? dnsOverrideKeys = null,Object? ntp = null,Object? ntpOverrideKeys = null,Object? sniffer = null,Object? snifferOverrideKeys = null,Object? tun = null,Object? tunOverrideKeys = null,Object? proxyProviders = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? rulesEnabled = freezed,Object? replaceRules = null,Object? subscriptionEnabled = freezed,Object? attachmentsEnabled = null,Object? chainsEnabled = null,Object? subscriptions = null,Object? ruleBindings = null,Object? chains = null,Object? dns = null,Object? dnsOverrideKeys = null,Object? ntp = null,Object? ntpOverrideKeys = null,Object? sniffer = null,Object? snifferOverrideKeys = null,Object? tun = null,Object? tunOverrideKeys = null,Object? proxyProviders = null,}) {
   return _then(_ProfileOverrides(
 rulesEnabled: freezed == rulesEnabled ? _self.rulesEnabled : rulesEnabled // ignore: cast_nullable_to_non_nullable
 as bool?,replaceRules: null == replaceRules ? _self.replaceRules : replaceRules // ignore: cast_nullable_to_non_nullable
 as bool,subscriptionEnabled: freezed == subscriptionEnabled ? _self.subscriptionEnabled : subscriptionEnabled // ignore: cast_nullable_to_non_nullable
-as bool?,chains: null == chains ? _self._chains : chains // ignore: cast_nullable_to_non_nullable
+as bool?,attachmentsEnabled: null == attachmentsEnabled ? _self.attachmentsEnabled : attachmentsEnabled // ignore: cast_nullable_to_non_nullable
+as bool,chainsEnabled: null == chainsEnabled ? _self.chainsEnabled : chainsEnabled // ignore: cast_nullable_to_non_nullable
+as bool,subscriptions: null == subscriptions ? _self._subscriptions : subscriptions // ignore: cast_nullable_to_non_nullable
+as List<SubscriptionBinding>,ruleBindings: null == ruleBindings ? _self._ruleBindings : ruleBindings // ignore: cast_nullable_to_non_nullable
+as List<RuleSetBinding>,chains: null == chains ? _self._chains : chains // ignore: cast_nullable_to_non_nullable
 as List<ProxyChain>,dns: null == dns ? _self.dns : dns // ignore: cast_nullable_to_non_nullable
 as Dns,dnsOverrideKeys: null == dnsOverrideKeys ? _self._dnsOverrideKeys : dnsOverrideKeys // ignore: cast_nullable_to_non_nullable
 as Set<DnsOverrideKey>,ntp: null == ntp ? _self.ntp : ntp // ignore: cast_nullable_to_non_nullable

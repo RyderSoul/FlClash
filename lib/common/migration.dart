@@ -7,9 +7,8 @@ import 'package:prism_ui/color.dart';
 import 'preferences.dart';
 import 'task.dart';
 
-typedef MigrationTransform = Future<MigrationData> Function(
-  Map<String, Object?> configMap,
-);
+typedef MigrationTransform =
+    Future<MigrationData> Function(Map<String, Object?> configMap);
 
 abstract interface class MigrationStore {
   /// False when the backing store could not be opened at all, as opposed to a

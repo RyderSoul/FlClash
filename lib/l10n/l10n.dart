@@ -9183,10 +9183,10 @@ class AppLocalizations {
     );
   }
 
-  /// `Enable subscription override`
+  /// `Enable JS script override`
   String get subscriptionOverrideEnabled {
     return Intl.message(
-      'Enable subscription override',
+      'Enable JS script override',
       name: 'subscriptionOverrideEnabled',
       desc: '',
       args: [],
@@ -9288,6 +9288,331 @@ class AppLocalizations {
     return Intl.message(
       'Move later',
       name: 'proxyChainMoveDown',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configuration manager`
+  String get profileManagement {
+    return Intl.message(
+      'Configuration manager',
+      name: 'profileManagement',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Additional subscriptions`
+  String get attachedSubscriptions {
+    return Intl.message(
+      'Additional subscriptions',
+      name: 'attachedSubscriptions',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Resource library`
+  String get bindingLibrary {
+    return Intl.message(
+      'Resource library',
+      name: 'bindingLibrary',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Resources are shared; switches and group bindings belong to each configuration.`
+  String get bindingLibraryHint {
+    return Intl.message(
+      'Resources are shared; switches and group bindings belong to each configuration.',
+      name: 'bindingLibraryHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Source`
+  String get bindingSource {
+    return Intl.message('Source', name: 'bindingSource', desc: '', args: []);
+  }
+
+  /// `Select a resource`
+  String get bindingSelectSource {
+    return Intl.message(
+      'Select a resource',
+      name: 'bindingSelectSource',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Resource missing: {name}`
+  String bindingSourceMissing(Object name) {
+    return Intl.message(
+      'Resource missing: $name',
+      name: 'bindingSourceMissing',
+      desc: '',
+      args: [name],
+    );
+  }
+
+  /// `A configuration cannot import itself.`
+  String get bindingSelfReference {
+    return Intl.message(
+      'A configuration cannot import itself.',
+      name: 'bindingSelfReference',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select a source and enter a unique name.`
+  String get bindingRequired {
+    return Intl.message(
+      'Select a source and enter a unique name.',
+      name: 'bindingRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Node name filter (regex)`
+  String get bindingFilter {
+    return Intl.message(
+      'Node name filter (regex)',
+      name: 'bindingFilter',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Expand nodes lists the source nodes directly. Reference group adds one subgroup entry. You may choose differently for each target group.`
+  String get bindingModesHint {
+    return Intl.message(
+      'Expand nodes lists the source nodes directly. Reference group adds one subgroup entry. You may choose differently for each target group.',
+      name: 'bindingModesHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Expand nodes`
+  String get bindingExpandNodes {
+    return Intl.message(
+      'Expand nodes',
+      name: 'bindingExpandNodes',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reference group`
+  String get bindingReferenceGroup {
+    return Intl.message(
+      'Reference group',
+      name: 'bindingReferenceGroup',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add to policy groups`
+  String get bindingTargetGroups {
+    return Intl.message(
+      'Add to policy groups',
+      name: 'bindingTargetGroups',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Routing overrides`
+  String get bindingRuleSources {
+    return Intl.message(
+      'Routing overrides',
+      name: 'bindingRuleSources',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enable additional subscriptions`
+  String get bindingSubscriptionsEnabled {
+    return Intl.message(
+      'Enable additional subscriptions',
+      name: 'bindingSubscriptionsEnabled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enable proxy chains`
+  String get bindingChainsEnabled {
+    return Intl.message(
+      'Enable proxy chains',
+      name: 'bindingChainsEnabled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Edit local rules and script`
+  String get bindingLocalRules {
+    return Intl.message(
+      'Edit local rules and script',
+      name: 'bindingLocalRules',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Changes are saved per configuration. Apply to load them; hold a row to edit, update or remove it.`
+  String get bindingApplyHint {
+    return Intl.message(
+      'Changes are saved per configuration. Apply to load them; hold a row to edit, update or remove it.',
+      name: 'bindingApplyHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configuration was not applied. See the error details.`
+  String get bindingApplyFailed {
+    return Intl.message(
+      'Configuration was not applied. See the error details.',
+      name: 'bindingApplyFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Apply to another configuration`
+  String get bindingApplyToProfiles {
+    return Intl.message(
+      'Apply to another configuration',
+      name: 'bindingApplyToProfiles',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Target configuration`
+  String get bindingTargetProfile {
+    return Intl.message(
+      'Target configuration',
+      name: 'bindingTargetProfile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Create independent resources`
+  String get bindingIndependentCopy {
+    return Intl.message(
+      'Create independent resources',
+      name: 'bindingIndependentCopy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Off: share resources with independent bindings. On: duplicate subscription, rule and script resources.`
+  String get bindingCopyHint {
+    return Intl.message(
+      'Off: share resources with independent bindings. On: duplicate subscription, rule and script resources.',
+      name: 'bindingCopyHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Content to apply`
+  String get bindingCopyItems {
+    return Intl.message(
+      'Content to apply',
+      name: 'bindingCopyItems',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Confirm group and node mappings`
+  String get bindingReferenceMapping {
+    return Intl.message(
+      'Confirm group and node mappings',
+      name: 'bindingReferenceMapping',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Choose a target`
+  String get bindingNeedsMapping {
+    return Intl.message(
+      'Choose a target',
+      name: 'bindingNeedsMapping',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select a target configuration and resolve every reference.`
+  String get bindingMappingRequired {
+    return Intl.message(
+      'Select a target configuration and resolve every reference.',
+      name: 'bindingMappingRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Matching names are suggested. Saving validates the merged configuration before adding these bindings. Existing unrelated bindings are kept. Apply in the target configuration to activate.`
+  String get bindingCopyPreview {
+    return Intl.message(
+      'Matching names are suggested. Saving validates the merged configuration before adding these bindings. Existing unrelated bindings are kept. Apply in the target configuration to activate.',
+      name: 'bindingCopyPreview',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tap to manage resources and group bindings`
+  String get bindingDashboardHint {
+    return Intl.message(
+      'Tap to manage resources and group bindings',
+      name: 'bindingDashboardHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configuration changed while saving. Please review and save again.`
+  String get bindingChanged {
+    return Intl.message(
+      'Configuration changed while saving. Please review and save again.',
+      name: 'bindingChanged',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Copied configuration bindings successfully.`
+  String get bindingCopySaved {
+    return Intl.message(
+      'Copied configuration bindings successfully.',
+      name: 'bindingCopySaved',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Configuration validated. Switch to this profile to apply it.`
+  String get bindingValidated {
+    return Intl.message(
+      'Configuration validated. Switch to this profile to apply it.',
+      name: 'bindingValidated',
       desc: '',
       args: [],
     );

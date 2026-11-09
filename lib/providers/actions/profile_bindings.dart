@@ -371,8 +371,9 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
         final copy = Script.create(label: script.label, url: script.url);
         cleanup.add(() async {
           ref.read(scriptsProvider.notifier).del(copy.id);
-          await File(await appPath.getScriptPath(copy.id.toString()))
-              .safeDelete();
+          await File(
+            await appPath.getScriptPath(copy.id.toString()),
+          ).safeDelete();
         });
         final saved = await copy.save(await script.content ?? '');
         ref.read(scriptsProvider.notifier).put(saved);

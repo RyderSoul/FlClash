@@ -92,8 +92,9 @@ void main() {
         final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
         image.dispose();
         await Directory(output).create(recursive: true);
-        await File('$output/smart-usage.png')
-            .writeAsBytes(bytes!.buffer.asUint8List());
+        await File(
+          '$output/smart-usage.png',
+        ).writeAsBytes(bytes!.buffer.asUint8List());
       });
     }
     await tester.pumpWidget(const SizedBox.shrink());

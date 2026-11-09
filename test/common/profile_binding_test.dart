@@ -132,7 +132,7 @@ void main() {
         ],
       );
       final provider =
-          (result['proxy-providers'] as Map)['flsmart-s-remote'] as Map;
+          (result['proxy-providers'] as Map)['flsmart-s-remote-members'] as Map;
       expect(provider['filter'], 'HK|JP');
       expect(provider['exclude-filter'], startsWith('expired`'));
       expect(provider['exclude-filter'], contains('^HK'));
