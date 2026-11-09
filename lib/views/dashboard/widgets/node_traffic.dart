@@ -421,7 +421,7 @@ class _NodeTrafficSheetState extends ConsumerState<_NodeTrafficSheet>
   @override
   Widget build(BuildContext context) => Scaffold(
     title: context.appLocalizations.nodeTraffic,
-    body: ListView.builder(
+    body: PrismListView(
       padding: const EdgeInsets.symmetric(horizontal: 20).copyWith(
         top: context.contentTopPadding,
         bottom: 20 + context.bottomInset,

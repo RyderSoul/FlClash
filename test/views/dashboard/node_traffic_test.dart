@@ -125,6 +125,12 @@ void main() {
     await pumpCard(tester);
     await tester.tap(find.text('View all'));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text(_samples[5].name),
+      150,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
     expect(find.text(_samples[5].name), findsOneWidget);
     globalState.navigatorKey.currentState!.pop();
     await tester.pumpAndSettle();
