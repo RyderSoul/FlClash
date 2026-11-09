@@ -200,7 +200,10 @@ void main() {
         scrollable: formScroll,
       );
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.byType(MoreActionButton), alignment: 0.5);
+      await Scrollable.ensureVisible(
+        tester.element(find.byType(MoreActionButton)),
+        alignment: 0.5,
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.byType(MoreActionButton));
       await tester.pumpAndSettle();
