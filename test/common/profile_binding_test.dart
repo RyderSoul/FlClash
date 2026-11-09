@@ -138,8 +138,8 @@ void main() {
       expect(provider['exclude-filter'], contains('^HK'));
       expect(provider['proxy'], 'Extra · Entry');
       expect(provider['override']['additional-prefix'], 'Extra · ');
-      expect((result['proxy-groups'] as List).first['use'], [
-        'flsmart-s-remote',
+      expect((result['proxy-groups'] as List).last['use'], [
+        'flsmart-s-remote-members',
       ]);
     },
   );
