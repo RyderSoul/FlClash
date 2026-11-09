@@ -31,11 +31,13 @@ class ProfileBindingsView extends ConsumerStatefulWidget {
 class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
   String? _error;
   bool _busy = false;
+  Object? _busyKey;
 
-  Future<void> _run(Future<void> Function() operation) async {
+  Future<void> _run(Future<void> Function() operation, {Object? key}) async {
     if (_busy) return;
     setState(() {
       _busy = true;
+      _busyKey = key;
       _error = null;
     });
     try {
@@ -43,17 +45,23 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
     } catch (error) {
       if (mounted) setState(() => _error = error.toString());
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _busyKey = null;
+        });
+      }
     }
   }
 
-  Future<void> _change(Profile Function(Profile) change) => _run(() async {
-    final profile = ref.read(profileProvider(widget.profileId));
-    if (profile == null) return;
-    await ref
-        .read(profileBindingsActionProvider.notifier)
-        .save(change(profile));
-  });
+  Future<void> _change(Profile Function(Profile) change, {Object? key}) =>
+      _run(() async {
+        final profile = ref.read(profileProvider(widget.profileId));
+        if (profile == null) return;
+        await ref
+            .read(profileBindingsActionProvider.notifier)
+            .save(change(profile));
+      }, key: key);
 
   Future<void> _apply() => _run(() async {
     final candidate = ref.read(profileProvider(widget.profileId));
@@ -79,6 +87,7 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
   Widget _section({required List<Widget> items}) => generateGroup(items);
 
   Widget _toggle(
+    Object key,
     String title,
     String subtitle,
     Glyph glyph,
@@ -90,9 +99,9 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
     title: Text(title, style: AppTextStyle.headline.of(context)),
     subtitle: Text(subtitle),
     value: value,
-    onChanged: _busy
+    onChanged: _busy && _busyKey == key
         ? null
-        : (next) => _change((profile) => update(profile, next)),
+        : (next) => _change((profile) => update(profile, next), key: key),
   );
 
   Widget _action(String label, Glyph glyph, VoidCallback onPressed) => ListItem(
@@ -172,6 +181,7 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
           _section(
             items: [
               _toggle(
+                'attachments',
                 labels.attachedSubscriptions,
                 labels.bindingSubscriptionsEnabled,
                 AppGlyphs.link,
@@ -243,7 +253,7 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
                             ].join('\n'),
                     ),
                     value: binding.enabled,
-                    onChanged: _busy
+                    onChanged: _busy && _busyKey == ('subscription', binding.id)
                         ? null
                         : (enabled) => _change(
                             (p) => p.copyWith(
@@ -256,6 +266,7 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
                                 ],
                               ),
                             ),
+                            key: ('subscription', binding.id),
                           ),
                   ),
                 ),
@@ -270,6 +281,7 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
           _section(
             items: [
               _toggle(
+                'rules',
                 labels.bindingRuleSources,
                 labels.rulesOverrideEnabled,
                 AppGlyphs.rules,
@@ -335,7 +347,7 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
                     ),
                     subtitle: Text(binding.target),
                     value: binding.enabled,
-                    onChanged: _busy
+                    onChanged: _busy && _busyKey == ('rule', binding.id)
                         ? null
                         : (enabled) => _change(
                             (p) => p.copyWith(
@@ -348,6 +360,7 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
                                 ],
                               ),
                             ),
+                            key: ('rule', binding.id),
                           ),
                   ),
                 ),
@@ -368,6 +381,7 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
           _section(
             items: [
               _toggle(
+                'script',
                 labels.script,
                 labels.subscriptionOverrideEnabled,
                 AppGlyphs.code,
@@ -396,6 +410,7 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
           _section(
             items: [
               _toggle(
+                'chains',
                 labels.proxyChains,
                 labels.bindingChainsEnabled,
                 AppGlyphs.layers,

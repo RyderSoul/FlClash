@@ -24,9 +24,13 @@ import '../helpers/test_database_providers.dart';
 
 class _Bindings extends ProfileBindingsAction {
   bool fail = false;
+  Completer<void>? pending;
+  int validations = 0;
 
   @override
   Future<void> validate(Profile candidate, {List<Rule>? localRules}) async {
+    validations++;
+    await pending?.future;
     if (fail) throw StateError('Invalid reference');
   }
 }
@@ -131,14 +135,15 @@ void main() {
     WidgetTester tester,
     Widget child, {
     double width = 400,
+    double height = 1000,
     bool dark = false,
     double textScale = 1,
   }) async {
-    tester.view.physicalSize = Size(width, 1000);
+    tester.view.physicalSize = Size(width, height);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    container.read(viewSizeProvider.notifier).value = Size(width, 1000);
+    container.read(viewSizeProvider.notifier).value = Size(width, height);
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
@@ -200,6 +205,90 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  for (final dashboard in [false, true]) {
+    for (final fail in [false, true]) {
+      for (var target = 0; target < (dashboard ? 4 : 6); target++) {
+        testWidgets(
+          '${dashboard ? 'dashboard' : 'manager'} keeps other switches stable '
+          'while switch $target ${fail ? 'fails' : 'saves'}',
+          (tester) async {
+            final pending = Completer<void>();
+            bindings
+              ..pending = pending
+              ..fail = fail;
+            await pump(
+              tester,
+              dashboard
+                  ? const HostScaffold(body: ProfileBindingsCard())
+                  : ProfileBindingsView(profileId: profile.id),
+              height: 2400,
+            );
+            final switches = find.byType(Switch);
+            final before = tester.widgetList<Switch>(switches).toList();
+            final states = [
+              for (var index = 0; index < before.length; index++)
+                tester.state(switches.at(index)),
+            ];
+            List<Decoration> decorations(int index) => tester
+                .widgetList<DecoratedBox>(
+                  find.descendant(
+                    of: switches.at(index),
+                    matching: find.byType(DecoratedBox),
+                  ),
+                )
+                .map((box) => box.decoration)
+                .toList();
+            final fills = [
+              for (var index = 0; index < before.length; index++)
+                decorations(index),
+            ];
+            void expectOthersStable() {
+              for (var index = 0; index < before.length; index++) {
+                if (index == target) continue;
+                final current = tester.widget<Switch>(switches.at(index));
+                expect(current.value, before[index].value);
+                expect(current.onChanged, isNotNull);
+                expect(tester.state(switches.at(index)), same(states[index]));
+                expect(decorations(index), fills[index]);
+              }
+            }
+
+            await tester.tap(switches.at(target));
+            await tester.pump();
+            expect(bindings.validations, 1);
+            expect(
+              tester.widget<Switch>(switches.at(target)).onChanged,
+              isNull,
+            );
+            expectOthersStable();
+            final other = (target + 1) % before.length;
+            tester.widget<Switch>(switches.at(other)).onChanged!(
+              !before[other].value,
+            );
+            for (var frame = 0; frame < 24; frame++) {
+              await tester.pump(const Duration(milliseconds: 16));
+              expectOthersStable();
+            }
+            expect(bindings.validations, 1);
+            pending.complete();
+            await tester.pumpAndSettle();
+            expectOthersStable();
+            final changed = tester.widget<Switch>(switches.at(target));
+            expect(changed.onChanged, isNotNull);
+            expect(
+              changed.value,
+              fail ? before[target].value : !before[target].value,
+            );
+            if (fail) {
+              expect(find.textContaining('Invalid reference'), findsOneWidget);
+            }
+            expect(tester.takeException(), isNull);
+          },
+        );
+      }
+    }
+  }
 
   for (final dashboard in [false, true]) {
     testWidgets(
