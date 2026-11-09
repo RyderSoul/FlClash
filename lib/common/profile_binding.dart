@@ -383,11 +383,26 @@ void validatePolicyReferences(
   final providerKeys = {
     for (final name in providers.keys) name: '@provider:$name',
   };
+  List<String> providerDialers(Map<String, dynamic> provider) {
+    final override = (provider['override'] as Map?)?['dialer-proxy'];
+    if (override is String) {
+      return [if (override.isNotEmpty) override];
+    }
+    final dialer = provider['dialer-proxy'];
+    if (dialer is String && dialer.isNotEmpty) return [dialer];
+    return [
+      for (final node in _mappings(provider['payload']))
+        if (node['dialer-proxy'] case final String value when value.isNotEmpty)
+          value,
+    ];
+  }
+
   names.addAll(providerKeys.values);
   final graph = <String, List<String>>{
     for (final node in proxies)
       node['name'] as String: [
-        if (node['dialer-proxy'] is String) node['dialer-proxy'] as String,
+        if (node['dialer-proxy'] case final String value when value.isNotEmpty)
+          value,
       ],
     for (final group in groups)
       group['name'] as String: [
@@ -396,15 +411,7 @@ void validatePolicyReferences(
           ?providerKeys[name],
       ],
     for (final entry in providers.entries)
-      providerKeys[entry.key]!: [
-        if (entry.value['dialer-proxy'] is String)
-          entry.value['dialer-proxy'] as String,
-        if (entry.value['override'] case final Map options)
-          if (options['dialer-proxy'] is String)
-            options['dialer-proxy'] as String,
-        for (final node in _mappings(entry.value['payload']))
-          if (node['dialer-proxy'] is String) node['dialer-proxy'] as String,
-      ],
+      providerKeys[entry.key]!: providerDialers(entry.value),
   };
   final visiting = <String>{};
   final visited = <String>{};

@@ -425,4 +425,33 @@ void main() {
       };
     expect(() => validatePolicyReferences(base), returnsNormally);
   });
+
+  test(
+    'provider dialer overrides replace earlier values and may clear them',
+    () {
+      for (final override in ['', 'DIRECT']) {
+        final base = _base()
+          ..['proxy-providers'] = {
+            'remote': {
+              'dialer-proxy': 'gone',
+              'override': {'dialer-proxy': override},
+              'payload': [
+                {'name': 'remote', 'dialer-proxy': 'also gone'},
+              ],
+            },
+          };
+        expect(() => validatePolicyReferences(base), returnsNormally);
+      }
+      final base = _base()
+        ..['proxy-providers'] = {
+          'remote': {
+            'dialer-proxy': 'DIRECT',
+            'payload': [
+              {'name': 'remote', 'dialer-proxy': 'gone'},
+            ],
+          },
+        };
+      expect(() => validatePolicyReferences(base), returnsNormally);
+    },
+  );
 }
