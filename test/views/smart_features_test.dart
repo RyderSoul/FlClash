@@ -5,6 +5,7 @@ import 'package:fl_clash/common/proxy_chain.dart';
 import 'package:fl_clash/core/controller.dart';
 import 'package:fl_clash/core/interface.dart';
 import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/features/form/form.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
@@ -183,15 +184,29 @@ void main() {
       hasLength(1),
     );
     await tester.enterText(find.byType(EditableText).first, 'Multi-target');
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    final formScroll = find.descendant(
+      of: find.byType(FormPage),
+      matching: find.byType(Scrollable),
+    );
     for (final hop in ['entry', 'exit']) {
-      await tester.ensureVisible(find.text('Add').last);
+      await tester.scrollUntilVisible(
+        find.text('Add'),
+        200,
+        scrollable: formScroll,
+      );
       await tester.tap(find.text('Add').last);
       await tester.pumpAndSettle();
       await tester.tap(find.text(hop).last);
       await tester.pumpAndSettle();
     }
     for (final target in ['Smart', 'Select']) {
-      await tester.ensureVisible(find.text('Add to policy groups'));
+      await tester.scrollUntilVisible(
+        find.text('Add to policy groups'),
+        -200,
+        scrollable: formScroll,
+      );
       await tester.tap(find.text('Add to policy groups'));
       await tester.pumpAndSettle();
       await tester.tap(find.text(target).last);

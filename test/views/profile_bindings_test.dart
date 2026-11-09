@@ -254,13 +254,7 @@ void main() {
       await tester.ensureVisible(find.text('Old'));
       await tester.tap(find.text('Old'));
       await tester.pumpAndSettle();
-      final sheet = tester.widget<SelectionSheet<String>>(
-        find.byType(SelectionSheet<String>),
-      );
-      expect(
-        sheet.sections.expand((section) => section.items),
-        contains('New'),
-      );
+      expect(find.text('New'), findsOneWidget);
       await tester.tap(find.text('New').last);
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('保存'));
