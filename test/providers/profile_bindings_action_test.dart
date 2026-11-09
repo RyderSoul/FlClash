@@ -16,6 +16,7 @@ import 'package:mocktail/mocktail.dart';
 
 import '../helpers/app_paths.dart';
 import '../helpers/test_profiles.dart';
+import '../helpers/test_database_providers.dart';
 
 class _Core extends Mock implements CoreHandlerInterface {}
 
@@ -64,9 +65,7 @@ void main() {
       await file.writeAsString('proxies: []');
     }
     final core = _Core();
-    when(
-      () => core.validateProfile(any(), any()),
-    ).thenAnswer((_) async => null);
+    when(() => core.validateConfig(any())).thenAnswer((_) async => null);
     action = _Bindings();
     container = ProviderContainer(
       overrides: [
@@ -75,10 +74,8 @@ void main() {
         ),
         coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
         profileBindingsActionProvider.overrideWith(() => action),
-        clashProvidersProvider.overrideWith(
-          (_) => Stream.value(<ClashProvider>[]),
-        ),
-        scriptsProvider.overrideWith((_) => Stream.value(<Script>[])),
+        clashProvidersProvider.overrideWith(TestClashProviders.new),
+        scriptsProvider.overrideWith(TestScripts.new),
       ],
     );
   });

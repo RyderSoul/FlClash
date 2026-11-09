@@ -33,8 +33,8 @@ Future<Profile?> importBindingSubscription(
           ref.read(coreHandlerProvider).validateProfile(path, key),
     );
     ref.read(profilesProvider.notifier).put(saved);
-    return ref.read(profilesProvider).getProfile(saved.id);
-  });
+    return ref.read(profilesProvider).getProfile(saved.id) ?? saved;
+  }, tag: null);
 }
 
 Future<void> editSubscriptionBinding(
@@ -116,8 +116,9 @@ class _SubscriptionFormState extends ConsumerState<_SubscriptionForm> {
     if (source == null || !mounted) return;
     setState(() {
       _source = source;
-      if (_name.text.isEmpty)
+      if (_name.text.isEmpty) {
         _name.text = sources.firstWhere((item) => item.id == source).realLabel;
+      }
     });
   }
 
@@ -332,7 +333,7 @@ class _RuleBindingFormState extends ConsumerState<_RuleBindingForm> {
       return ref
           .read(clashProvidersActionProvider.notifier)
           .putProvider(ClashProvider.create(label: label, url: input.url));
-    });
+    }, tag: null);
     if (saved != null && mounted) setState(() => _source = saved.id);
   }
 

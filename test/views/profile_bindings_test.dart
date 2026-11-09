@@ -16,6 +16,7 @@ import 'package:prism_ui/prism_ui.dart';
 import '../helpers/host_scaffold.dart';
 import '../helpers/test_app.dart';
 import '../helpers/test_profiles.dart';
+import '../helpers/test_database_providers.dart';
 
 class _Bindings extends ProfileBindingsAction {
   bool fail = false;
@@ -65,10 +66,8 @@ void main() {
         profileBindingsActionProvider.overrideWith(() => bindings),
         setupActionProvider.overrideWith(_Setup.new),
         bindingsAppliedProvider.overrideWith((_, _) async => false),
-        scriptsProvider.overrideWith((_) => Stream.value(<Script>[])),
-        clashProvidersProvider.overrideWith(
-          (_) => Stream.value(<ClashProvider>[]),
-        ),
+        scriptsProvider.overrideWith(TestScripts.new),
+        clashProvidersProvider.overrideWith(TestClashProviders.new),
       ],
     );
     globalState.container = container;

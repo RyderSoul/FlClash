@@ -100,8 +100,9 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
       final source = ref.read(profilesProvider).getProfile(binding.sourceId);
       if (source == null ||
           source.type == ProfileType.custom ||
-          source.id == profileId)
+          source.id == profileId) {
         continue;
+      }
       final data = await ref.read(clashConfigProvider(source.id).future);
       nodes.addAll([
         for (final node in data.proxies)
@@ -127,6 +128,15 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
         candidate.subscriptionOverrideEnabled && candidate.scriptId != null
         ? await database.scriptsDao.get(candidate.scriptId!).getSingleOrNull()
         : null;
+    if (candidate.subscriptionOverrideEnabled &&
+        candidate.scriptId != null &&
+        script == null) {
+      throw MessageException(
+        currentAppLocalizations.bindingSourceMissing(
+          candidate.scriptId.toString(),
+        ),
+      );
+    }
     final managed = candidate.type == ProfileType.custom
         ? candidate.overrides
         : candidate.overrides.copyWith(
@@ -162,6 +172,7 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
           .toList(),
       clashProviders: await ref.read(clashProvidersProvider.future),
       script: script,
+      matchTarget: candidate.matchTarget,
       rules: candidate.type == ProfileType.custom && localRules != null
           ? localRules
           : original.rules,
@@ -204,13 +215,15 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
     final latest = ref.read(profileProvider(candidate.id));
     if (latest == null) throw StateError('Profile no longer exists');
     if (latest.overrides != before?.overrides ||
-        latest.scriptId != before?.scriptId) {
+        latest.scriptId != before?.scriptId ||
+        latest.matchTarget != before?.matchTarget) {
       throw MessageException(currentAppLocalizations.bindingChanged);
     }
     final profiles = ref.read(profilesProvider.notifier);
     Profile update(Profile value) => value.copyWith(
       overrides: candidate.overrides,
       scriptId: candidate.scriptId,
+      matchTarget: candidate.matchTarget,
     );
     if (localRules == null) {
       await profiles.updateProfileAndWait(candidate.id, update);
@@ -269,10 +282,11 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
           final original = ref
               .read(profilesProvider)
               .getProfile(binding.sourceId);
-          if (original == null)
+          if (original == null) {
             throw MessageException(
               currentAppLocalizations.bindingSourceMissing(binding.name),
             );
+          }
           final copy = Profile.normal(
             label: original.realLabel,
             url: original.url,
@@ -305,13 +319,15 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
           if (await sourceCache.exists()) {
             await copyCache.create(recursive: true);
             await for (final file in sourceCache.list()) {
-              if (file is File)
+              if (file is File) {
                 await file.copy(join(copyCache.path, basename(file.path)));
+              }
             }
           }
           cleanup.add(() async {
-            if (await copyCache.exists())
+            if (await copyCache.exists()) {
               await copyCache.delete(recursive: true);
+            }
           });
           ref.read(profilesProvider.notifier).put(saved);
           id = saved.id;
@@ -332,12 +348,13 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
           final original = providers
               .where((item) => item.id == binding.sourceId)
               .firstOrNull;
-          if (original == null)
+          if (original == null) {
             throw MessageException(
               currentAppLocalizations.bindingSourceMissing(
                 binding.sourceId.toString(),
               ),
             );
+          }
           final copy = original.copyWith(
             id: snowflake.id,
             label: uniqueLabelFor(
@@ -364,10 +381,11 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
       var scriptId = candidate.scriptId;
       if (copyScript && scriptId != null) {
         final script = (await ref.read(scriptsProvider.future)).get(scriptId);
-        if (script == null)
+        if (script == null) {
           throw MessageException(
             currentAppLocalizations.bindingSourceMissing(scriptId.toString()),
           );
+        }
         final copy = Script.create(label: script.label, url: script.url);
         cleanup.add(() async {
           ref.read(scriptsProvider.notifier).del(copy.id);

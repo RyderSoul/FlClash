@@ -227,8 +227,9 @@ class ClashProvidersAction extends _$ClashProvidersAction {
                         source.id == binding.sourceId &&
                         labels.contains(source.realLabel),
                   ),
-        ))
+        )) {
       return true;
+    }
     if (kind == ProviderKind.rule && profile?.rulesOverrideEnabled == true) {
       final sources = await ref.read(clashProvidersProvider.future);
       if (profile!.overrides.ruleBindings.any(
@@ -239,8 +240,9 @@ class ClashProvidersAction extends _$ClashProvidersAction {
                   source.id == binding.sourceId &&
                   labels.contains(source.label),
             ),
-      ))
+      )) {
         return true;
+      }
     }
     if (profile?.type != ProfileType.custom) return false;
     return switch (kind) {
