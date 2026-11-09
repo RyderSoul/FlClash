@@ -121,6 +121,18 @@ void main() {
           {'name': 'entry', 'type': 'socks5'},
           {'name': 'exit', 'type': 'snell'},
         ],
+        'proxy-groups': [
+          {
+            'name': 'Smart',
+            'type': 'smart',
+            'proxies': ['entry'],
+          },
+          {
+            'name': 'Select',
+            'type': 'select',
+            'proxies': ['entry'],
+          },
+        ],
       },
     );
     final container = ProviderContainer(
@@ -133,6 +145,10 @@ void main() {
             proxies: [
               Proxy(name: 'entry', type: 'socks5'),
               Proxy(name: 'exit', type: 'snell'),
+            ],
+            proxyGroups: [
+              ProxyGroup(id: 1, name: 'Smart', type: GroupType.Smart),
+              ProxyGroup(id: 2, name: 'Select', type: GroupType.Selector),
             ],
           ),
         ),
@@ -166,6 +182,27 @@ void main() {
       container.read(profilesProvider).single.overrides.chains,
       hasLength(1),
     );
+    await tester.enterText(find.byType(EditableText).first, 'Multi-target');
+    for (final hop in ['entry', 'exit']) {
+      await tester.ensureVisible(find.text('Add').last);
+      await tester.tap(find.text('Add').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(hop).last);
+      await tester.pumpAndSettle();
+    }
+    for (final target in ['Smart', 'Select']) {
+      await tester.ensureVisible(find.text('Add to select group'));
+      await tester.tap(find.text('Add to select group'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(target).last);
+      await tester.pumpAndSettle();
+    }
+    await tester.tap(find.byTooltip('Save'));
+    await tester.pumpAndSettle();
+    final saved = container.read(profilesProvider).single.overrides.chains.last;
+    expect(saved.name, 'Multi-target');
+    expect(saved.hops, ['entry', 'exit']);
+    expect(saved.targets, {'Smart', 'Select'});
     expect(tester.takeException(), isNull);
   });
 }
