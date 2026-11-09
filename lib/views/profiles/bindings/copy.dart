@@ -34,6 +34,7 @@ class _CopyBindingsViewState extends ConsumerState<CopyBindingsView> {
           if (_rules)
             ...source.overrides.ruleBindings.map((item) => item.target),
           if (_rules) ..._sourceRules.map((item) => item.ruleTarget).nonNulls,
+          if (_rules) ?source.matchTarget,
           if (_chains)
             for (final chain in source.overrides.chains) ...chain.targets,
           if (_chains)

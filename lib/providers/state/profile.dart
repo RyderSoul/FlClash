@@ -113,6 +113,11 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
   }
   if (profile?.subscriptionOverrideEnabled == true && scriptId != null) {
     script = await database.scriptsDao.get(scriptId).getSingleOrNull();
+    if (script == null) {
+      throw MessageException(
+        currentAppLocalizations.bindingSourceMissing(scriptId.toString()),
+      );
+    }
   }
   return SetupState(
     mitmModules: mitmModules == null
