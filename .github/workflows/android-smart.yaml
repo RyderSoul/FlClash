@@ -141,6 +141,7 @@ jobs:
       - name: Analyze and test Flutter
         env:
           NODE_TRAFFIC_PREVIEW_DIR: /tmp/flsmart-preview
+          FLSMART_BINDING_FIXTURE: /tmp/flsmart-bindings.json
         run: |
           dart format --output=none --set-exit-if-changed lib test tool plugins setup.dart
           flutter analyze --no-fatal-infos
@@ -158,6 +159,13 @@ jobs:
             test/providers/setup_action_test.dart test/features/profile_views_test.dart \
             test/database/generated_contract_test.dart
           dart run tool/test.dart test/widgets -- --reporter expanded
+
+      - name: Validate compiled bindings with Smart core
+        working-directory: core
+        env:
+          CGO_ENABLED: 0
+          FLSMART_BINDING_FIXTURE: /tmp/flsmart-bindings.json
+        run: go test -count=1 -run '^TestCompiledProfileBindings$' .
 
       - name: Upload panel previews
         if: always()

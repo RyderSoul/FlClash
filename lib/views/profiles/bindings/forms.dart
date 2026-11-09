@@ -142,7 +142,7 @@ class _SubscriptionFormState extends ConsumerState<_SubscriptionForm> {
       _error = null;
     });
     try {
-      if (_filter.text.isNotEmpty) RegExp(_filter.text);
+      if (_filter.text.isNotEmpty) subscriptionNodeFilter(_filter.text);
       final binding = SubscriptionBinding(
         id: widget.binding?.id ?? uniqueId,
         sourceId: _source!,

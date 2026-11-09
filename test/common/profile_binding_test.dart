@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:fl_clash/common/profile_binding.dart';
 import 'package:fl_clash/common/proxy_chain.dart';
@@ -107,6 +108,137 @@ void main() {
   });
 
   test(
+    'source include-all groups keep filtered static nodes and providers',
+    () {
+      final source = _source()
+        ..['proxy-groups'] = [
+          ..._source()['proxy-groups'] as List,
+          {
+            'name': 'All',
+            'type': 'select',
+            'include-all': true,
+            'filter': '^HK',
+          },
+        ];
+      final result = _build(
+        source: source,
+        subscriptions: const [
+          SubscriptionBinding(id: 's', sourceId: 2, name: 'Extra'),
+        ],
+      );
+      final group = (result['proxy-groups'] as List)[3] as Map;
+      expect(group['proxies'], ['Extra · HK']);
+      expect(group['use'], isEmpty);
+      expect(group['filter'], contains('Extra'));
+    },
+  );
+
+  test('subscription filters accept leading case-insensitive options', () {
+    final result = _build(
+      subscriptions: const [
+        SubscriptionBinding(
+          id: 's',
+          sourceId: 2,
+          name: 'Extra',
+          filter: '(?i)^hk',
+        ),
+      ],
+    );
+    expect((result['proxy-groups'] as List).last['proxies'], ['Extra · HK']);
+  });
+
+  test('exports compiled bindings for real core validation', () async {
+    final path = Platform.environment['FLSMART_BINDING_FIXTURE'];
+    if (path == null) return;
+    Map<String, dynamic> node(String name, {String? dialer}) => {
+      'name': name,
+      'type': 'socks5',
+      'server': '127.0.0.1',
+      'port': 1080,
+      if (dialer != null) 'dialer-proxy': dialer,
+    };
+    final result = _build(
+      base: {
+        'proxies': [node('original'), node('exit')],
+        'proxy-groups': [
+          {
+            'name': 'Select',
+            'type': 'select',
+            'proxies': ['original'],
+          },
+        ],
+        'rules': ['MATCH,Select'],
+      },
+      source: {
+        'proxies': [node('HK'), node('JP', dialer: 'Entry')],
+        'proxy-providers': {
+          'remote': {
+            'type': 'inline',
+            'payload': [node('HK'), node('US')],
+            'override': {'additional-prefix': 'r-'},
+          },
+        },
+        'proxy-groups': [
+          {
+            'name': 'Entry',
+            'type': 'select',
+            'include-all-proxies': true,
+            'filter': '(?i)^hk',
+          },
+          {
+            'name': 'Remote',
+            'type': 'select',
+            'use': ['remote'],
+            'filter': '^r-HK',
+          },
+          {
+            'name': 'Exclude',
+            'type': 'select',
+            'proxies': ['DIRECT', 'HK', 'JP'],
+            'exclude-filter': '^JP`^DIRECT',
+          },
+        ],
+      },
+      subscriptions: const [
+        SubscriptionBinding(
+          id: 's',
+          sourceId: 2,
+          name: 'Extra',
+          filter: '^JP',
+          attachments: [
+            GroupAttachment(
+              target: 'Select',
+              mode: SubscriptionAttachMode.group,
+            ),
+          ],
+        ),
+      ],
+      rules: const [RuleSetBinding(id: 'r', sourceId: 3, target: 'Chain')],
+      planned: {'Chain'},
+    );
+    applyProxyChains(result, const [
+      ProxyChain(
+        id: 'c',
+        name: 'Chain',
+        hops: ['Extra', 'exit'],
+        targetGroups: ['Select'],
+      ),
+    ]);
+    await File(path).writeAsString(
+      jsonEncode({
+        'config': result,
+        'groups': {
+          'Extra · Entry': ['Extra · HK'],
+          'Extra · Remote': ['Extra · r-HK'],
+          'Extra · Exclude': ['Extra · HK'],
+          'Extra': ['Extra · JP'],
+          'Select': ['original', 'Extra', 'Chain'],
+        },
+      }),
+    );
+  });
+
+  test(
     'provider flattening retains source filters and adds the binding filter',
     () {
       final source = _source()
@@ -119,6 +251,11 @@ void main() {
             'proxy': 'Entry',
           },
         };
+      (source['proxy-groups'] as List).add({
+        'name': 'Dynamic entry',
+        'type': 'select',
+        'use': ['remote'],
+      });
       final result = _build(
         source: source,
         subscriptions: const [
@@ -141,6 +278,7 @@ void main() {
       expect((result['proxy-groups'] as List).last['use'], [
         'flsmart-s-remote-members',
       ]);
+      expect((result['proxy-groups'] as List)[3]['use'], ['flsmart-s-remote']);
     },
   );
 

@@ -28,6 +28,51 @@ const attachableGroupTypes = {
   'smart',
 };
 
+RegExp subscriptionNodeFilter(String pattern) {
+  final flags = RegExp(r'^\(\?([ims]+)\)').firstMatch(pattern);
+  final options = flags?.group(1) ?? '';
+  return RegExp(
+    flags == null ? pattern : pattern.substring(flags.end),
+    caseSensitive: !options.contains('i'),
+    multiLine: options.contains('m'),
+    dotAll: options.contains('s'),
+  );
+}
+
+String _namespacedFilter(
+  String pattern,
+  String prefix, {
+  bool exclude = false,
+}) {
+  final escaped = RegExp.escape(prefix).replaceAll('`', r'\x60');
+  return pattern
+      .split('`')
+      .map((part) {
+        final value = StringBuffer();
+        var inClass = false;
+        for (var index = 0; index < part.length; index++) {
+          final char = part[index];
+          if (char == r'\' && index + 1 < part.length) {
+            final next = part[++index];
+            value.write(
+              !inClass && next == 'A' ? '(?<=\\A$escaped)' : '\\$next',
+            );
+          } else if (char == '^' && !inClass) {
+            value.write('(?:^|(?<=\\A$escaped))');
+          } else {
+            if (char == '[') inClass = true;
+            if (char == ']') inClass = false;
+            value.write(char);
+          }
+        }
+        final prefixed = '\\A$escaped[\\s\\S]*?(?:$value)';
+        return exclude
+            ? '(?:$prefixed)|(?:\\A(?!$escaped)[\\s\\S]*?(?:$part))'
+            : prefixed;
+      })
+      .join('`');
+}
+
 Map<String, dynamic> buildProfileBindings(
   BindingSources data, {
   Set<String> plannedPolicies = const {},
@@ -75,7 +120,9 @@ Map<String, dynamic> buildProfileBindings(
     final providerNames = {
       for (final key in rawProviders.keys) key: 'flsmart-${binding.id}-$key',
     };
-    final filter = binding.filter.isEmpty ? null : RegExp(binding.filter);
+    final filter = binding.filter.isEmpty
+        ? null
+        : subscriptionNodeFilter(binding.filter);
     final members = <String>[];
     for (final node in rawNodes) {
       final original = node['name'] as String;
@@ -130,6 +177,12 @@ Map<String, dynamic> buildProfileBindings(
       if (binding.filter.isEmpty) {
         memberProviders.add(name);
       } else {
+        if (entry.value['type'] == 'inline' &&
+            !_mappings(
+              entry.value['payload'],
+            ).any((node) => filter!.hasMatch(node['name'] as String))) {
+          continue;
+        }
         final filteredName = '$name-members';
         if (providers.containsKey(filteredName)) {
           throw FormatException(
@@ -154,10 +207,24 @@ Map<String, dynamic> buildProfileBindings(
         throw FormatException('Subscription group name conflicts: $name');
       }
       final all = group['include-all'] == true;
+      final sourceFilter = group['filter'];
+      final staticFilters =
+          (all || group['include-all-proxies'] == true) &&
+              sourceFilter is String &&
+              sourceFilter.isNotEmpty
+          ? sourceFilter.split('`').map(subscriptionNodeFilter).toList()
+          : <RegExp>[];
       groups.add({
         ...group,
         'name': name,
         'hidden': true,
+        for (final key in ['filter', 'exclude-filter'])
+          if (group[key] case final String value when value.isNotEmpty)
+            key: _namespacedFilter(
+              value,
+              '${binding.name} · ',
+              exclude: key == 'exclude-filter',
+            ),
         if (group['default-selected'] is String)
           'default-selected':
               renamed[group['default-selected']] ?? group['default-selected'],
@@ -176,7 +243,12 @@ Map<String, dynamic> buildProfileBindings(
           for (final item in group['proxies'] as List? ?? const [])
             renamed[item] ?? item,
           if (all || group['include-all-proxies'] == true)
-            for (final node in rawNodes) renamed[node['name']]!,
+            for (final node in rawNodes)
+              if (staticFilters.isEmpty ||
+                  staticFilters.any(
+                    (filter) => filter.hasMatch(node['name'] as String),
+                  ))
+                renamed[node['name']]!,
         }.toList(),
         'use': {
           for (final item in group['use'] as List? ?? const [])
@@ -186,7 +258,7 @@ Map<String, dynamic> buildProfileBindings(
         }.toList(),
       });
     }
-    if (members.isEmpty && providerNames.isEmpty) {
+    if (members.isEmpty && memberProviders.isEmpty) {
       throw FormatException(
         'Subscription has no matching nodes: ${binding.name}',
       );
