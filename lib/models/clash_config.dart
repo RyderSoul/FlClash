@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/core.dart';
+import 'package:fl_clash/models/proxy_chain.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:yaml/yaml.dart';
 
@@ -243,6 +244,7 @@ abstract class Proxy with _$Proxy {
     required String type,
     String? now,
     @JsonKey(name: 'provider-name') String? providerName,
+    @JsonKey(name: 'usageRank') String? usageRank,
   }) = _Proxy;
 
   factory Proxy.fromJson(Map<String, Object?> json) => _$ProxyFromJson(json);
@@ -1660,6 +1662,10 @@ Map<String, Object?> _withLegacyTunOverride(Map<String, Object?> json) {
 @freezed
 abstract class ProfileOverrides with _$ProfileOverrides {
   const factory ProfileOverrides({
+    bool? rulesEnabled,
+    @Default(false) bool replaceRules,
+    bool? subscriptionEnabled,
+    @Default([]) List<ProxyChain> chains,
     @Default(defaultDns) @JsonKey(fromJson: Dns.safeDnsFromJson) Dns dns,
     @Default({})
     @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)

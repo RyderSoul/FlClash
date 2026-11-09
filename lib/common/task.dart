@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/common/mitm_module.dart';
+import 'package:fl_clash/common/proxy_chain.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:flutter/foundation.dart';
@@ -60,8 +61,23 @@ Future<List<Group>> buildGroups(ComputeGroupsState state) async {
     if (!GroupTypeExtension.valueList.contains(raw['type'])) continue;
     final memberNames = raw['all'];
     final group = Map<String, dynamic>.from(raw);
+    final ranks = group['usageRanks'] is Map
+        ? Map<String, dynamic>.from(group['usageRanks'] as Map)
+        : const <String, dynamic>{};
     group['all'] = memberNames is List
-        ? memberNames.map((name) => proxies[name]).nonNulls.toList()
+        ? memberNames
+              .map((name) {
+                final rawProxy = proxies[name];
+                if (rawProxy is! Map || group['type'] != 'Smart') {
+                  return rawProxy;
+                }
+                return {
+                  ...Map<String, dynamic>.from(rawProxy),
+                  'usageRank': ranks[name] ?? 'Pending',
+                };
+              })
+              .nonNulls
+              .toList()
         : const [];
     groups.add(Group.fromJson(group));
   }
@@ -337,7 +353,7 @@ Future<RealProfile> _makeRealProfileTask(MakeRealProfileState data) async {
   }
   List<String> rules = [];
   if (data.rules.isEmpty) {
-    if (rawConfig['rules'] != null) {
+    if (!overrides.replaceRules && rawConfig['rules'] != null) {
       rules = List<String>.from(rawConfig['rules']);
     }
     if (addedRules.isNotEmpty) {
@@ -350,7 +366,9 @@ Future<RealProfile> _makeRealProfileTask(MakeRealProfileState data) async {
       }
 
       if (hasMatchPlaceholder && replacementTarget == null) {
-        replacementTarget = lastMatchTarget(rules);
+        replacementTarget = lastMatchTarget(
+          List<String>.from(rawConfig['rules'] as List? ?? const []),
+        );
       }
       final List<String> finalAddedRules;
 
@@ -380,6 +398,7 @@ Future<RealProfile> _makeRealProfileTask(MakeRealProfileState data) async {
         .toList();
   }
   rawConfig['rules'] = [...mitm.rules, ...rules];
+  applyProxyChains(rawConfig, overrides.chains);
   final yaml = await _encodeYaml(Map<String, dynamic>.from(rawConfig));
   return (yaml: yaml, md5: yaml.toMd5(), counts: configCountsOf(rawConfig));
 }

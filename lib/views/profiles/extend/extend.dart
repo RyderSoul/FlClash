@@ -3,14 +3,15 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
-import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'script.dart';
+import 'chains.dart';
 import 'standard.dart';
 
 /// Long enough that a quick apply still reads as one, not as a flicker.
@@ -54,7 +55,12 @@ class _ExtendViewState extends ConsumerState<ExtendView> {
     final profileId = widget.profileId;
     final profile = ref.watch(
       profileProvider(profileId).select(
-        (state) => (state?.extendType, state?.scriptId, state?.matchTarget),
+        (state) => (
+          state?.extendType,
+          state?.scriptId,
+          state?.matchTarget,
+          state?.overrides,
+        ),
       ),
     );
     final rules = ref.watch(profileRulesProvider(profileId)).value;
@@ -151,43 +157,75 @@ class _ExtendViewState extends ConsumerState<ExtendView> {
 class _ModeSection extends ConsumerWidget {
   const _ModeSection();
 
-  String _label(AppLocalizations l, ExtendType type) => switch (type) {
-    ExtendType.standard => l.standard,
-    ExtendType.script => l.script,
-  };
-
-  String _description(AppLocalizations l, ExtendType type) => switch (type) {
-    ExtendType.standard => l.standardModeDesc,
-    ExtendType.script => l.scriptModeDesc,
-  };
-
-  void _handleChangeType(WidgetRef ref, int profileId, ExtendType type) {
-    ref.read(profilesProvider.notifier).updateProfile(profileId, (state) {
-      return state.copyWith(extendType: type);
-    });
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final appLocalizations = context.appLocalizations;
     final profileId = ProfileIdProvider.of(context)!.profileId;
-    final extendType = ref.watch(extendTypeProvider(profileId));
+    final provider = profileProvider(profileId);
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverToBoxAdapter(
         child: generateSection(
-          title: appLocalizations.extendMode,
+          title: context.appLocalizations.extendMode,
           items: [
             for (final type in ExtendType.values)
               DecorationListItem(
-                isSelected: type == extendType,
-                title: Text(_label(appLocalizations, type)),
-                subtitle: Text(_description(appLocalizations, type)),
-                trailing: type == extendType
+                isSelected: ref.watch(
+                  provider.select((profile) => profile?.extendType == type),
+                ),
+                title: Text(switch (type) {
+                  ExtendType.standard => context.appLocalizations.standard,
+                  ExtendType.script => context.appLocalizations.script,
+                }),
+                subtitle: Text(switch (type) {
+                  ExtendType.standard =>
+                    context.appLocalizations.standardModeDesc,
+                  ExtendType.script => context.appLocalizations.scriptModeDesc,
+                }),
+                trailing:
+                    ref.watch(
+                      provider.select((profile) => profile?.extendType == type),
+                    )
                     ? const SelectionBadge(size: 24)
                     : null,
-                onPressed: () => _handleChangeType(ref, profileId, type),
+                onPressed: () => ref
+                    .read(profilesProvider.notifier)
+                    .updateProfile(
+                      profileId,
+                      (profile) => profile.copyWith(extendType: type),
+                    ),
               ),
+            ConfigToggleItem(
+              selector: provider.select(
+                (profile) => profile?.rulesOverrideEnabled ?? true,
+              ),
+              title: (l) => l.rulesOverrideEnabled,
+              onChanged: (ref, value) => ref
+                  .read(profilesProvider.notifier)
+                  .updateProfile(
+                    profileId,
+                    (profile) => profile.copyWith(
+                      overrides: profile.overrides.copyWith(
+                        rulesEnabled: value,
+                      ),
+                    ),
+                  ),
+            ),
+            ConfigToggleItem(
+              selector: provider.select(
+                (profile) => profile?.subscriptionOverrideEnabled ?? false,
+              ),
+              title: (l) => l.subscriptionOverrideEnabled,
+              onChanged: (ref, value) => ref
+                  .read(profilesProvider.notifier)
+                  .updateProfile(
+                    profileId,
+                    (profile) => profile.copyWith(
+                      overrides: profile.overrides.copyWith(
+                        subscriptionEnabled: value,
+                      ),
+                    ),
+                  ),
+            ),
           ],
         ),
       ),
@@ -199,12 +237,23 @@ class _Content extends ConsumerWidget {
   const _Content();
 
   @override
-  Widget build(BuildContext context, ref) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final profileId = ProfileIdProvider.of(context)!.profileId;
-    final extendType = ref.watch(extendTypeProvider(profileId));
-    return switch (extendType) {
-      ExtendType.standard => const StandardContent(),
-      ExtendType.script => const ScriptContent(),
-    };
+    final profile = ref.watch(profileProvider(profileId));
+    return SliverMainAxisGroup(
+      slivers: [
+        if (profile?.extendType != ExtendType.script) const StandardContent(),
+        if (profile?.extendType == ExtendType.script) const ScriptContent(),
+        SliverToBoxAdapter(
+          child: MoreActionButton(
+            label: context.appLocalizations.proxyChains,
+            onPressed: () => BaseNavigator.push(
+              context,
+              ProxyChainsView(profileId: profileId),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

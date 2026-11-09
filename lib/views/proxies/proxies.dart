@@ -21,7 +21,27 @@ class ProxiesView extends ConsumerStatefulWidget {
   ConsumerState<ProxiesView> createState() => _ProxiesViewState();
 }
 
-class _ProxiesViewState extends ConsumerState<ProxiesView> {
+class _ProxiesViewState extends ConsumerState<ProxiesView>
+    with
+        WidgetsBindingObserver,
+        ActivePollingMixin<ProxiesView>,
+        RouteMotionHoldMixin<ProxiesView> {
+  @override
+  Duration get pollInterval => const Duration(seconds: 30);
+
+  @override
+  bool get pollOnStart => false;
+
+  @override
+  Future<void> poll(PollGuard isCurrent) async {
+    if (ref.read(coreStatusProvider) != CoreStatus.connected ||
+        !ref.read(groupsProvider).any((group) => group.type == GroupType.Smart))
+      return;
+    await whenRouteSettled(context);
+    if (!isCurrent()) return;
+    await ref.read(proxiesActionProvider.notifier).updateGroups();
+  }
+
   final GlobalKey<ProxiesTabViewState> _proxiesTabKey = GlobalKey();
 
   // The same instance on every build, so the bar changing with the current

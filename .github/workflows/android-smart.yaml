@@ -20,6 +20,8 @@ jobs:
   apk:
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    outputs:
+      version: ${{ steps.output.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -125,6 +127,7 @@ jobs:
 
       - name: Collect generated source
         run: |
+          git add -N -- lib/models/generated lib/providers/generated lib/database/generated lib/l10n
           git diff --binary HEAD -- lib/models/generated lib/providers/generated \
             lib/database/generated lib/l10n > /tmp/generated-source.patch
 
@@ -143,13 +146,16 @@ jobs:
           flutter analyze --no-fatal-infos
           flutter test test/enum/enum_test.dart test/models/config_test.dart \
             test/common/app_update_test.dart test/common/migration_test.dart \
-            test/common/compute_test.dart \
+            test/common/compute_test.dart test/common/task_test.dart \
+            test/common/proxy_chain_test.dart test/common/smart_usage_test.dart \
             test/providers/custom_import_test.dart test/providers/proxies_action_test.dart \
             test/providers/state_derived_test.dart test/providers/config_test.dart \
             test/l10n test/lint \
             test/core/protocol_contract_test.dart test/views/proxies_list_test.dart \
             test/widgets/proxies_tab_test.dart test/widgets/proxies_list_test.dart \
-            test/views/dashboard
+            test/views/dashboard test/views/smart_features_test.dart \
+            test/providers/setup_action_test.dart test/features/profile_views_test.dart \
+            test/database/generated_contract_test.dart
           dart run tool/test.dart test/widgets -- --reporter expanded
 
       - name: Upload panel previews
@@ -167,7 +173,7 @@ jobs:
         run: |
           yq -i '.hooks.user_defines.setup.build_assets = true' pubspec.yaml
           flutter build apk --release --split-per-abi --target-platform android-arm64 \
-            --build-number "$((2000 + GITHUB_RUN_NUMBER))"
+            --build-number "$((4000 + GITHUB_RUN_NUMBER))"
 
       - name: Test Android components
         working-directory: android
@@ -179,6 +185,7 @@ jobs:
             -x :app:compileFlutterBuildDebug -x :app:copyFlutterAssetsDebug
 
       - name: Verify APK identity and collect output
+        id: output
         run: |
           set -euo pipefail
           apk=build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
@@ -187,7 +194,9 @@ jobs:
           apksigner="$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)"
           "$apksigner" verify "$apk"
           mkdir -p dist
-          cp "$apk" "dist/flsmart-${GITHUB_RUN_NUMBER}-android-arm64-v8a.apk"
+          version=$(sed -n 's/^version: \([^+]*\).*/\1/p' pubspec.yaml)
+          cp "$apk" "dist/flsmart-${version}-android-arm64-v8a.apk"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
           cp core/smart-source.json dist/
           cp /tmp/flsmart-preview/*.png dist/
           git diff --binary HEAD -- lib/models/generated lib/providers/generated \
@@ -206,3 +215,43 @@ jobs:
       - name: Remove signing material
         if: always()
         run: rm -f android/app/keystore.jks android/local.properties
+
+  release:
+    needs: apk
+    if: github.ref == 'refs/heads/custom/smart-core'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout verified source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Download verified APK
+        uses: actions/download-artifact@v4
+        with:
+          name: flsmart-android-arm64-${{ github.run_number }}
+          path: dist
+
+      - name: Prepare Chinese release notes
+        env:
+          FLSMART_VERSION: ${{ needs.apk.outputs.version }}
+        run: python3 tool/flsmart_release_notes.py
+
+      - name: Publish new version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FLSMART_VERSION: ${{ needs.apk.outputs.version }}
+        run: |
+          set -euo pipefail
+          existing=$(gh release list --limit 100 --json tagName --jq '.[].tagName')
+          if echo "$existing" | grep -Fxq "$FLSMART_VERSION"; then
+            echo "Release $FLSMART_VERSION already exists; keep its APK and notes."
+            exit 0
+          fi
+          (cd dist && sha256sum -c SHA256SUMS)
+          gh release create "$FLSMART_VERSION" --target "$GITHUB_SHA" \
+            --title "flsmart $FLSMART_VERSION" --draft --notes-file dist/release.md \
+            dist/*.apk dist/SHA256SUMS dist/source-commit.txt dist/smart-source.json dist/generated-source.patch dist/*.png
+          gh release edit "$FLSMART_VERSION" --draft=false --latest
