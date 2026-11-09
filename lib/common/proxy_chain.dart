@@ -25,6 +25,7 @@ void applyProxyChains(Map<String, dynamic> config, List<ProxyChain> chains) {
       ),
   };
   final roots = <String>[];
+  final generatedNames = <String>[];
   for (final chain in active) {
     if (chain.name.trim().isEmpty || !names.add(chain.name)) {
       throw FormatException(
@@ -48,10 +49,11 @@ void applyProxyChains(Map<String, dynamic> config, List<ProxyChain> chains) {
       if (definition == null) {
         throw FormatException('Proxy chain hop must be a concrete node: $hop');
       }
-      final name = '__flsmart_${chain.id}_$i';
+      final name = '${chain.name} · ${i + 1} · $hop';
       if (!names.add(name)) {
         throw FormatException('Proxy chain generated name conflicts: $name');
       }
+      generatedNames.add(name);
       proxies.add({...definition, 'name': name, 'dialer-proxy': previous});
       edges[name] = [previous];
       previous = name;
@@ -93,12 +95,17 @@ void applyProxyChains(Map<String, dynamic> config, List<ProxyChain> chains) {
   for (final name in roots) {
     visit(name);
   }
+  final generatedFilter =
+      '^(?:${generatedNames.map(RegExp.escape).join('|')})\$'.replaceAll(
+        '`',
+        r'\x60',
+      );
   for (final group in groups) {
     if (group['include-all'] == true || group['include-all-proxies'] == true) {
       final exclude = group['exclude-filter'];
       group['exclude-filter'] = exclude is String && exclude.isNotEmpty
-          ? '(?:$exclude)|^__flsmart_'
-          : '^__flsmart_';
+          ? '$exclude`$generatedFilter'
+          : generatedFilter;
     }
   }
   config['proxies'] = proxies;
