@@ -565,57 +565,72 @@ Map<String, dynamic> _$ProfileTunToJson(_ProfileTun instance) =>
       'exclude-dst-port': instance.excludeDstPort,
     };
 
-_ProfileOverrides _$ProfileOverridesFromJson(Map<String, dynamic> json) =>
-    _ProfileOverrides(
-      rulesEnabled: json['rulesEnabled'] as bool?,
-      replaceRules: json['replaceRules'] as bool? ?? false,
-      subscriptionEnabled: json['subscriptionEnabled'] as bool?,
-      chains:
-          (json['chains'] as List<dynamic>?)
-              ?.map((e) => ProxyChain.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
-      dns: json['dns'] == null
-          ? defaultDns
-          : Dns.safeDnsFromJson(json['dns'] as Map<String, Object?>),
-      dnsOverrideKeys: json['dns-override-keys'] == null
-          ? const {}
-          : _dnsOverrideKeysFromJson(json['dns-override-keys'] as List),
-      ntp: json['ntp'] == null
-          ? defaultNtp
-          : Ntp.safeNtpFromJson(json['ntp'] as Map<String, Object?>),
-      ntpOverrideKeys: json['ntp-override-keys'] == null
-          ? const {}
-          : _ntpOverrideKeysFromJson(json['ntp-override-keys'] as List),
-      sniffer: json['sniffer'] == null
-          ? defaultSniffer
-          : Sniffer.safeSnifferFromJson(
-              json['sniffer'] as Map<String, Object?>,
-            ),
-      snifferOverrideKeys: json['sniffer-override-keys'] == null
-          ? const {}
-          : _snifferOverrideKeysFromJson(json['sniffer-override-keys'] as List),
-      tun: json['tun'] == null
-          ? defaultProfileTun
-          : ProfileTun.safeFromJson(json['tun'] as Map<String, Object?>),
-      tunOverrideKeys: json['tun-override-keys'] == null
-          ? const {}
-          : _tunOverrideKeysFromJson(json['tun-override-keys'] as List),
-      proxyProviders:
-          (json['proxy-providers'] as Map<String, dynamic>?)?.map(
-            (k, e) => MapEntry(
-              k,
-              ProxyProviderOptions.fromJson(e as Map<String, dynamic>),
-            ),
-          ) ??
-          const {},
-    );
+_ProfileOverrides _$ProfileOverridesFromJson(
+  Map<String, dynamic> json,
+) => _ProfileOverrides(
+  rulesEnabled: json['rulesEnabled'] as bool?,
+  replaceRules: json['replaceRules'] as bool? ?? false,
+  subscriptionEnabled: json['subscriptionEnabled'] as bool?,
+  attachmentsEnabled: json['attachmentsEnabled'] as bool? ?? true,
+  chainsEnabled: json['chainsEnabled'] as bool? ?? true,
+  subscriptions:
+      (json['subscriptions'] as List<dynamic>?)
+          ?.map((e) => SubscriptionBinding.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  ruleBindings:
+      (json['ruleBindings'] as List<dynamic>?)
+          ?.map((e) => RuleSetBinding.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  chains:
+      (json['chains'] as List<dynamic>?)
+          ?.map((e) => ProxyChain.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  dns: json['dns'] == null
+      ? defaultDns
+      : Dns.safeDnsFromJson(json['dns'] as Map<String, Object?>),
+  dnsOverrideKeys: json['dns-override-keys'] == null
+      ? const {}
+      : _dnsOverrideKeysFromJson(json['dns-override-keys'] as List),
+  ntp: json['ntp'] == null
+      ? defaultNtp
+      : Ntp.safeNtpFromJson(json['ntp'] as Map<String, Object?>),
+  ntpOverrideKeys: json['ntp-override-keys'] == null
+      ? const {}
+      : _ntpOverrideKeysFromJson(json['ntp-override-keys'] as List),
+  sniffer: json['sniffer'] == null
+      ? defaultSniffer
+      : Sniffer.safeSnifferFromJson(json['sniffer'] as Map<String, Object?>),
+  snifferOverrideKeys: json['sniffer-override-keys'] == null
+      ? const {}
+      : _snifferOverrideKeysFromJson(json['sniffer-override-keys'] as List),
+  tun: json['tun'] == null
+      ? defaultProfileTun
+      : ProfileTun.safeFromJson(json['tun'] as Map<String, Object?>),
+  tunOverrideKeys: json['tun-override-keys'] == null
+      ? const {}
+      : _tunOverrideKeysFromJson(json['tun-override-keys'] as List),
+  proxyProviders:
+      (json['proxy-providers'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(
+          k,
+          ProxyProviderOptions.fromJson(e as Map<String, dynamic>),
+        ),
+      ) ??
+      const {},
+);
 
 Map<String, dynamic> _$ProfileOverridesToJson(_ProfileOverrides instance) =>
     <String, dynamic>{
       'rulesEnabled': instance.rulesEnabled,
       'replaceRules': instance.replaceRules,
       'subscriptionEnabled': instance.subscriptionEnabled,
+      'attachmentsEnabled': instance.attachmentsEnabled,
+      'chainsEnabled': instance.chainsEnabled,
+      'subscriptions': instance.subscriptions,
+      'ruleBindings': instance.ruleBindings,
       'chains': instance.chains,
       'dns': instance.dns,
       'dns-override-keys': instance.dnsOverrideKeys

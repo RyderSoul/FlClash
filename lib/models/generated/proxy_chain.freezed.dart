@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ProxyChain {
 
- String get id; String get name; List<String> get hops; bool get enabled; bool get hidden; String? get targetGroup;
+ String get id; String get name; List<String> get hops; bool get enabled; bool get hidden; String? get targetGroup; List<String> get targetGroups;
 /// Create a copy of ProxyChain
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $ProxyChainCopyWith<ProxyChain> get copyWith => _$ProxyChainCopyWithImpl<ProxyCh
 @override
 bool operator ==(Object other) {
   final _this = this as ProxyChain;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProxyChain&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&const DeepCollectionEquality().equals(other.hops, _this.hops)&&(identical(other.enabled, _this.enabled) || other.enabled == _this.enabled)&&(identical(other.hidden, _this.hidden) || other.hidden == _this.hidden)&&(identical(other.targetGroup, _this.targetGroup) || other.targetGroup == _this.targetGroup));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProxyChain&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&const DeepCollectionEquality().equals(other.hops, _this.hops)&&(identical(other.enabled, _this.enabled) || other.enabled == _this.enabled)&&(identical(other.hidden, _this.hidden) || other.hidden == _this.hidden)&&(identical(other.targetGroup, _this.targetGroup) || other.targetGroup == _this.targetGroup)&&const DeepCollectionEquality().equals(other.targetGroups, _this.targetGroups));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ProxyChain;
-  return Object.hash(runtimeType,_this.id,_this.name,const DeepCollectionEquality().hash(_this.hops),_this.enabled,_this.hidden,_this.targetGroup);
+  return Object.hash(runtimeType,_this.id,_this.name,const DeepCollectionEquality().hash(_this.hops),_this.enabled,_this.hidden,_this.targetGroup,const DeepCollectionEquality().hash(_this.targetGroups));
 }
 
 @override
 String toString() {
   final _this = this as ProxyChain;
-  return 'ProxyChain(id: ${_this.id}, name: ${_this.name}, hops: ${_this.hops}, enabled: ${_this.enabled}, hidden: ${_this.hidden}, targetGroup: ${_this.targetGroup})';
+  return 'ProxyChain(id: ${_this.id}, name: ${_this.name}, hops: ${_this.hops}, enabled: ${_this.enabled}, hidden: ${_this.hidden}, targetGroup: ${_this.targetGroup}, targetGroups: ${_this.targetGroups})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $ProxyChainCopyWith<$Res>  {
   factory $ProxyChainCopyWith(ProxyChain value, $Res Function(ProxyChain) _then) = _$ProxyChainCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, List<String> hops, bool enabled, bool hidden, String? targetGroup
+ String id, String name, List<String> hops, bool enabled, bool hidden, String? targetGroup, List<String> targetGroups
 });
 
 
@@ -71,7 +71,7 @@ class _$ProxyChainCopyWithImpl<$Res>
 
 /// Create a copy of ProxyChain
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? hops = null,Object? enabled = null,Object? hidden = null,Object? targetGroup = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? hops = null,Object? enabled = null,Object? hidden = null,Object? targetGroup = freezed,Object? targetGroups = null,}) {
   return _then(ProxyChain(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -79,7 +79,8 @@ as String,hops: null == hops ? _self.hops : hops // ignore: cast_nullable_to_non
 as List<String>,enabled: null == enabled ? _self.enabled : enabled // ignore: cast_nullable_to_non_nullable
 as bool,hidden: null == hidden ? _self.hidden : hidden // ignore: cast_nullable_to_non_nullable
 as bool,targetGroup: freezed == targetGroup ? _self.targetGroup : targetGroup // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,targetGroups: null == targetGroups ? _self.targetGroups : targetGroups // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 
@@ -164,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  List<String> hops,  bool enabled,  bool hidden,  String? targetGroup)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  List<String> hops,  bool enabled,  bool hidden,  String? targetGroup,  List<String> targetGroups)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProxyChain() when $default != null:
-return $default(_that.id,_that.name,_that.hops,_that.enabled,_that.hidden,_that.targetGroup);case _:
+return $default(_that.id,_that.name,_that.hops,_that.enabled,_that.hidden,_that.targetGroup,_that.targetGroups);case _:
   return orElse();
 
 }
@@ -185,10 +186,10 @@ return $default(_that.id,_that.name,_that.hops,_that.enabled,_that.hidden,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  List<String> hops,  bool enabled,  bool hidden,  String? targetGroup)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  List<String> hops,  bool enabled,  bool hidden,  String? targetGroup,  List<String> targetGroups)  $default,) {final _that = this;
 switch (_that) {
 case _ProxyChain():
-return $default(_that.id,_that.name,_that.hops,_that.enabled,_that.hidden,_that.targetGroup);case _:
+return $default(_that.id,_that.name,_that.hops,_that.enabled,_that.hidden,_that.targetGroup,_that.targetGroups);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -205,10 +206,10 @@ return $default(_that.id,_that.name,_that.hops,_that.enabled,_that.hidden,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  List<String> hops,  bool enabled,  bool hidden,  String? targetGroup)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  List<String> hops,  bool enabled,  bool hidden,  String? targetGroup,  List<String> targetGroups)?  $default,) {final _that = this;
 switch (_that) {
 case _ProxyChain() when $default != null:
-return $default(_that.id,_that.name,_that.hops,_that.enabled,_that.hidden,_that.targetGroup);case _:
+return $default(_that.id,_that.name,_that.hops,_that.enabled,_that.hidden,_that.targetGroup,_that.targetGroups);case _:
   return null;
 
 }
@@ -220,7 +221,7 @@ return $default(_that.id,_that.name,_that.hops,_that.enabled,_that.hidden,_that.
 @JsonSerializable()
 
 class _ProxyChain implements ProxyChain {
-  const _ProxyChain({required this.id, required this.name,  List<String> hops = const [], this.enabled = true, this.hidden = false, this.targetGroup}): _hops = hops;
+  const _ProxyChain({required this.id, required this.name,  List<String> hops = const [], this.enabled = true, this.hidden = false, this.targetGroup,  List<String> targetGroups = const []}): _hops = hops,_targetGroups = targetGroups;
   factory _ProxyChain.fromJson(Map<String, dynamic> json) => _$ProxyChainFromJson(json);
 
 @override final  String id;
@@ -235,6 +236,13 @@ class _ProxyChain implements ProxyChain {
 @override@JsonKey() final  bool enabled;
 @override@JsonKey() final  bool hidden;
 @override final  String? targetGroup;
+ final  List<String> _targetGroups;
+@override@JsonKey() List<String> get targetGroups {
+  if (_targetGroups is EqualUnmodifiableListView) return _targetGroups;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_targetGroups);
+}
+
 
 /// Create a copy of ProxyChain
 /// with the given fields replaced by the non-null parameter values.
@@ -249,18 +257,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProxyChain&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.hops, _hops)&&(identical(other.enabled, enabled) || other.enabled == enabled)&&(identical(other.hidden, hidden) || other.hidden == hidden)&&(identical(other.targetGroup, targetGroup) || other.targetGroup == targetGroup));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProxyChain&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.hops, _hops)&&(identical(other.enabled, enabled) || other.enabled == enabled)&&(identical(other.hidden, hidden) || other.hidden == hidden)&&(identical(other.targetGroup, targetGroup) || other.targetGroup == targetGroup)&&const DeepCollectionEquality().equals(other.targetGroups, _targetGroups));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,name,const DeepCollectionEquality().hash(_hops),enabled,hidden,targetGroup);
+    return Object.hash(runtimeType,id,name,const DeepCollectionEquality().hash(_hops),enabled,hidden,targetGroup,const DeepCollectionEquality().hash(_targetGroups));
 }
 
 @override
 String toString() {
-    return 'ProxyChain(id: $id, name: $name, hops: $hops, enabled: $enabled, hidden: $hidden, targetGroup: $targetGroup)';
+    return 'ProxyChain(id: $id, name: $name, hops: $hops, enabled: $enabled, hidden: $hidden, targetGroup: $targetGroup, targetGroups: $targetGroups)';
 }
 
 
@@ -271,7 +279,7 @@ abstract mixin class _$ProxyChainCopyWith<$Res> implements $ProxyChainCopyWith<$
   factory _$ProxyChainCopyWith(_ProxyChain value, $Res Function(_ProxyChain) _then) = __$ProxyChainCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, List<String> hops, bool enabled, bool hidden, String? targetGroup
+ String id, String name, List<String> hops, bool enabled, bool hidden, String? targetGroup, List<String> targetGroups
 });
 
 
@@ -288,7 +296,7 @@ class __$ProxyChainCopyWithImpl<$Res>
 
 /// Create a copy of ProxyChain
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? hops = null,Object? enabled = null,Object? hidden = null,Object? targetGroup = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? hops = null,Object? enabled = null,Object? hidden = null,Object? targetGroup = freezed,Object? targetGroups = null,}) {
   return _then(_ProxyChain(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -296,7 +304,8 @@ as String,hops: null == hops ? _self._hops : hops // ignore: cast_nullable_to_no
 as List<String>,enabled: null == enabled ? _self.enabled : enabled // ignore: cast_nullable_to_non_nullable
 as bool,hidden: null == hidden ? _self.hidden : hidden // ignore: cast_nullable_to_non_nullable
 as bool,targetGroup: freezed == targetGroup ? _self.targetGroup : targetGroup // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,targetGroups: null == targetGroups ? _self._targetGroups : targetGroups // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 

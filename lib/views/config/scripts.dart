@@ -312,8 +312,9 @@ class _ScriptsViewState extends ConsumerState<ScriptsView> {
       return;
     }
     final fileName =
-        Uri.tryParse(url)?.pathSegments
-            .lastWhereOrNull((it) => it.isNotEmpty) ??
+        Uri.tryParse(
+          url,
+        )?.pathSegments.lastWhereOrNull((it) => it.isNotEmpty) ??
         '';
     await _handleImport(res.data ?? '', url: url, fileName: fileName);
   }

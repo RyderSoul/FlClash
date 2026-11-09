@@ -90,6 +90,7 @@ Map<String, dynamic> buildProfileBindings(
       injectedNodes.add(name);
       if (filter == null || filter.hasMatch(original)) members.add(name);
     }
+    final memberProviders = <String>[];
     for (final entry in rawProviders.entries) {
       final name = providerNames[entry.key]!;
       if (providers.containsKey(name))
@@ -106,13 +107,16 @@ Map<String, dynamic> buildProfileBindings(
           'dialer-proxy':
               renamed[entry.value['dialer-proxy']] ??
               entry.value['dialer-proxy'],
-        if (binding.filter.isNotEmpty)
-          'exclude-filter': [
-            if (entry.value['exclude-filter'] case final String value
-                when value.isNotEmpty)
-              value,
-            '^(?![\\s\\S]*(?:${binding.filter.replaceAll('`', r'\x60')}))[\\s\\S]*\$',
-          ].join('`'),
+        if (entry.value['payload'] is List)
+          'payload': [
+            for (final node in _mappings(entry.value['payload']))
+              {
+                ...node,
+                if (node['dialer-proxy'] is String)
+                  'dialer-proxy':
+                      renamed[node['dialer-proxy']] ?? node['dialer-proxy'],
+              },
+          ],
         'override': {
           ...options,
           'additional-prefix':
@@ -120,6 +124,25 @@ Map<String, dynamic> buildProfileBindings(
           if (dialer is String) 'dialer-proxy': renamed[dialer] ?? dialer,
         },
       };
+      if (binding.filter.isEmpty) {
+        memberProviders.add(name);
+      } else {
+        final filteredName = '$name-members';
+        if (providers.containsKey(filteredName))
+          throw FormatException(
+            'Subscription provider name conflicts: $filteredName',
+          );
+        providers[filteredName] = {
+          ...providers[name]!,
+          'exclude-filter': [
+            if (entry.value['exclude-filter'] case final String value
+                when value.isNotEmpty)
+              value,
+            '^(?![\\s\\S]*(?:${binding.filter.replaceAll('`', r'\x60')}))[\\s\\S]*\$',
+          ].join('`'),
+        };
+        memberProviders.add(filteredName);
+      }
     }
     for (final group in rawGroups) {
       final name = renamed[group['name']]!;
@@ -130,6 +153,17 @@ Map<String, dynamic> buildProfileBindings(
         ...group,
         'name': name,
         'hidden': true,
+        if (group['default-selected'] is String)
+          'default-selected':
+              renamed[group['default-selected']] ?? group['default-selected'],
+        if (group['empty-fallback'] is String)
+          'empty-fallback':
+              renamed[group['empty-fallback']] ?? group['empty-fallback'],
+        if (group['use-position'] is Map)
+          'use-position': {
+            for (final entry in (group['use-position'] as Map).entries)
+              providerNames[entry.key] ?? entry.key: entry.value,
+          },
         'include-all': false,
         'include-all-proxies': false,
         'include-all-providers': false,
@@ -156,7 +190,7 @@ Map<String, dynamic> buildProfileBindings(
       'name': binding.name,
       'type': binding.groupType.value,
       'proxies': members,
-      'use': providerNames.values.toList(),
+      'use': memberProviders,
       'url': 'https://www.gstatic.com/generate_204',
       'interval': 300,
     });
@@ -167,7 +201,7 @@ Map<String, dynamic> buildProfileBindings(
             ? members
             : [binding.name],
         providers: attachment.mode == SubscriptionAttachMode.nodes
-            ? providerNames.values.toList()
+            ? memberProviders
             : const [],
       ));
       if (attachment.mode == SubscriptionAttachMode.nodes) {

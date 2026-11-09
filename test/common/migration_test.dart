@@ -208,6 +208,7 @@ void main() {
             DashboardWidget.networkSpeed,
             DashboardWidget.nodeTraffic,
             DashboardWidget.profiles,
+            DashboardWidget.profileBindings,
           ]);
           final removed = config.copyWith.appSettingProps(
             dashboardWidgets: [DashboardWidget.currentOutbound],
