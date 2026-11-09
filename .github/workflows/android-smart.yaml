@@ -152,13 +152,22 @@ jobs:
             test/views/dashboard
           dart run tool/test.dart test/widgets -- --reporter expanded
 
+      - name: Upload panel previews
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flsmart-panel-preview-${{ github.run_number }}
+          path: /tmp/flsmart-preview/*.png
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Build ARM64 APK
         env:
           ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
         run: |
           yq -i '.hooks.user_defines.setup.build_assets = true' pubspec.yaml
           flutter build apk --release --split-per-abi --target-platform android-arm64 \
-            --build-number "$GITHUB_RUN_NUMBER"
+            --build-number "$((2000 + GITHUB_RUN_NUMBER))"
 
       - name: Test Android components
         working-directory: android
