@@ -18,9 +18,12 @@ const _previewCount = 4;
 
 Color _nodeColor(BuildContext context, int index) => switch (index % 4) {
   0 => context.colorScheme.primary,
-  1 => context.colorScheme.tertiary,
-  2 => DashboardColors.of(context).series2,
-  _ => context.colorScheme.secondary,
+  1 => DashboardColors.of(context).series2,
+  2 => context.colorScheme.secondary,
+  _ => Color.alphaBlend(
+    context.colorScheme.secondary.withValues(alpha: 0.45),
+    DashboardColors.of(context).card,
+  ),
 };
 
 mixin _NodeTrafficPolling<T extends ConsumerStatefulWidget>
@@ -348,7 +351,7 @@ class _NodeTrafficRow extends StatelessWidget {
           ),
           end: Text(
             '${(ratio * 100).toStringAsFixed(1)}%',
-            style: DashboardText.label(context, color: color),
+            style: DashboardText.label(context),
           ),
         ),
       ],
