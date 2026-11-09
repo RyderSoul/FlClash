@@ -186,7 +186,7 @@ jobs:
         run: |
           yq -i '.hooks.user_defines.setup.build_assets = true' pubspec.yaml
           flutter build apk --release --split-per-abi --target-platform android-arm64 \
-            --build-number "$((4000 + GITHUB_RUN_NUMBER))"
+            --build-number "$((6000 + GITHUB_RUN_NUMBER))"
 
       - name: Test Android components
         working-directory: android
@@ -204,6 +204,9 @@ jobs:
           apk=build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
           apkanalyzer="$ANDROID_HOME/cmdline-tools/latest/bin/apkanalyzer"
           test "$("$apkanalyzer" manifest application-id "$apk")" = com.rydersoul.flclash
+          code="$("$apkanalyzer" manifest version-code "$apk")"
+          test "$code" -eq "$((6000 + GITHUB_RUN_NUMBER))"
+          test "$code" -gt 6023
           apksigner="$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)"
           "$apksigner" verify "$apk"
           mkdir -p dist
