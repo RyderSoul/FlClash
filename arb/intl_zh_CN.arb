@@ -1082,5 +1082,22 @@
   "nodeTrafficSession": "本次运行",
   "nodeTrafficHint": "统计本次启动后的代理流量，不含直连流量。",
   "nodeTrafficEmpty": "暂无节点流量，使用代理后会显示用量。",
-  "nodeTrafficUnavailable": "暂时无法刷新，正在自动重试。"
+  "nodeTrafficUnavailable": "暂时无法刷新，正在自动重试。",
+  "smartUsageFrequent": "经常使用",
+  "smartUsageOccasional": "偶尔使用",
+  "smartUsageRare": "很少使用",
+  "smartUsagePending": "统计中",
+  "rulesOverrideEnabled": "启用分流覆写",
+  "subscriptionOverrideEnabled": "启用订阅覆写",
+  "addProxyChain": "添加代理链",
+  "proxyChainHops": "跳转节点",
+  "proxyChainEmpty": "暂无代理链",
+  "replaceOriginalRules": "替换原有规则",
+  "proxyChainTarget": "加入选择策略组",
+  "proxyChainHidden": "隐藏代理链策略组",
+  "proxyChainHelp": "按入口到出口的顺序添加 2–8 跳。第一跳可选策略组，其余跳请选择具体节点；长按节点可调整顺序或移除。",
+  "proxyChainClient": "客户端",
+  "proxyChainDestination": "目标网站",
+  "proxyChainMoveUp": "前移一跳",
+  "proxyChainMoveDown": "后移一跳"
 }

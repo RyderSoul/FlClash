@@ -13,6 +13,7 @@ import (
 	"github.com/metacubex/mihomo/adapter/outboundgroup"
 	"github.com/metacubex/mihomo/adapter/provider"
 	"github.com/metacubex/mihomo/common/convert"
+	"github.com/metacubex/mihomo/component/profile/cachefile"
 	"github.com/metacubex/mihomo/config"
 	"github.com/metacubex/mihomo/constant"
 	"github.com/metacubex/mihomo/log"
@@ -135,6 +136,19 @@ func groupView(proxy constant.Proxy) (json.RawMessage, error) {
 		}
 		if proxy.Type() == constant.Smart {
 			view["now"] = view["fixed"]
+			if group, ok := proxy.Adapter().(*outboundgroup.Smart); ok {
+				if store := cachefile.GetSmartStore(); store != nil {
+					if ranking, err := store.GetNodeWeightRankingCache(
+						group.Name(), group.GetConfigFilename(),
+					); err == nil {
+						ranks := make(map[string]string, len(ranking.Result))
+						for _, item := range ranking.Result {
+							ranks[item.Name] = item.Rank
+						}
+						view["usageRanks"] = ranks
+					}
+				}
+			}
 		}
 		if data, err = json.Marshal(view); err != nil {
 			return nil, err

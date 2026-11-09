@@ -1082,5 +1082,22 @@
   "nodeTrafficSession": "今回の起動",
   "nodeTrafficHint": "前回の起動以降のプロキシ通信量です。直接接続は含みません。",
   "nodeTrafficEmpty": "プロキシ通信量はまだありません。ノードを使うとここに表示されます。",
-  "nodeTrafficUnavailable": "更新できません。自動的に再試行します。"
+  "nodeTrafficUnavailable": "更新できません。自動的に再試行します。",
+  "smartUsageFrequent": "よく使用",
+  "smartUsageOccasional": "時々使用",
+  "smartUsageRare": "ほとんど使用しない",
+  "smartUsagePending": "データ収集中",
+  "rulesOverrideEnabled": "ルール上書きを有効化",
+  "subscriptionOverrideEnabled": "サブスクリプション上書きを有効化",
+  "addProxyChain": "プロキシチェーンを追加",
+  "proxyChainHops": "ホップ",
+  "proxyChainEmpty": "プロキシチェーンなし",
+  "replaceOriginalRules": "元のルールを置換",
+  "proxyChainTarget": "選択グループに追加",
+  "proxyChainHidden": "チェーングループを非表示",
+  "proxyChainHelp": "入口から出口へ2〜8ホップを選択。最初はグループ、以降はノード。長押しで移動・削除。",
+  "proxyChainClient": "クライアント",
+  "proxyChainDestination": "接続先",
+  "proxyChainMoveUp": "前へ移動",
+  "proxyChainMoveDown": "後へ移動"
 }

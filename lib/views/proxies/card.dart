@@ -82,6 +82,27 @@ class ProxyCard extends ConsumerWidget {
     }
   }
 
+  Widget? _buildUsageRank(BuildContext context) {
+    final label = switch (proxy.usageRank) {
+      'MostUsed' => context.appLocalizations.smartUsageFrequent,
+      'OccasionalUsed' => context.appLocalizations.smartUsageOccasional,
+      'RarelyUsed' => context.appLocalizations.smartUsageRare,
+      'Pending' => context.appLocalizations.smartUsagePending,
+      _ => null,
+    };
+    if (label == null) {
+      return null;
+    }
+    return Text(
+      label,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: AppTextStyle.caption2
+          .of(context)
+          .copyWith(color: context.colorScheme.tertiary),
+    );
+  }
+
   void _handleSelect(WidgetRef ref) {
     selectGroupProxy(
       ref,
@@ -150,7 +171,9 @@ class ProxyCard extends ConsumerWidget {
             children: [
               SizedBox(
                 height: measure.textHeight(AppTextStyle.footnote),
-                child: _ProxyDesc(proxy: proxy, style: typeStyle),
+                child:
+                    _buildUsageRank(context) ??
+                    _ProxyDesc(proxy: proxy, style: typeStyle),
               ),
               const SizedBox(height: 6),
               delayText,
@@ -164,9 +187,11 @@ class ProxyCard extends ConsumerWidget {
               children: [
                 Flexible(
                   flex: 1,
-                  child: TooltipText(
-                    text: Text(proxy.type, maxLines: 1, style: typeStyle),
-                  ),
+                  child:
+                      _buildUsageRank(context) ??
+                      TooltipText(
+                        text: Text(proxy.type, maxLines: 1, style: typeStyle),
+                      ),
                 ),
                 delayText,
               ],

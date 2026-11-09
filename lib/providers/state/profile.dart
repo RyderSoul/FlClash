@@ -60,6 +60,10 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
       : ref.watch(
           patchClashConfigProvider.select(
             (state) => ProfileOverrides(
+              rulesEnabled: profile?.overrides.rulesEnabled,
+              subscriptionEnabled: profile?.overrides.subscriptionEnabled,
+              replaceRules: profile?.overrides.replaceRules ?? false,
+              chains: profile?.overrides.chains ?? const [],
               dns: state.dns,
               dnsOverrideKeys: state.dnsOverrideKeys.intersection(
                 DnsOverrideKey.normalProfileKeys,
@@ -97,12 +101,15 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
             in await database.proxyDialersDao.query(profileId).get())
           dialer.proxyId: dialer.target,
       };
-    } else if (extendType == ExtendType.standard) {
-      addedRules = await database.rulesDao.queryAddedRules(profileId).get();
-    } else if (extendType == ExtendType.script) {
-      script = scriptId == null
-          ? null
-          : await database.scriptsDao.get(scriptId).getSingleOrNull();
+    } else {
+      if (profile?.rulesOverrideEnabled == true) {
+        addedRules = await database.rulesDao.queryAddedRules(profileId).get();
+      }
+      if (profile?.subscriptionOverrideEnabled == true) {
+        script = scriptId == null
+            ? null
+            : await database.scriptsDao.get(scriptId).getSingleOrNull();
+      }
     }
   }
   return SetupState(
@@ -121,9 +128,15 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
     extendType: extendType,
     addedRules: addedRules,
     script: script,
-    overrides: overrides,
+    overrides: overrides.copyWith(
+      replaceRules:
+          profileType != ProfileType.custom &&
+          profile?.rulesOverrideEnabled == true &&
+          overrides.replaceRules,
+    ),
     matchTarget:
-        profileType != ProfileType.custom && extendType == ExtendType.standard
+        profileType != ProfileType.custom &&
+            profile?.rulesOverrideEnabled == true
         ? profile?.matchTarget
         : null,
   );

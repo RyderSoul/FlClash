@@ -137,6 +137,12 @@ extension ProfilesExt on List<Profile> {
 }
 
 extension ProfileExtension on Profile {
+  bool get rulesOverrideEnabled =>
+      overrides.rulesEnabled ?? extendType == ExtendType.standard;
+
+  bool get subscriptionOverrideEnabled =>
+      overrides.subscriptionEnabled ?? extendType == ExtendType.script;
+
   bool get realAutoUpdate => type == ProfileType.url && autoUpdate;
 
   String get realLabel => label.takeFirstValid([defaultLabel]);

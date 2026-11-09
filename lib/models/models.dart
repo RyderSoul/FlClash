@@ -7,6 +7,7 @@ export 'core.dart';
 export 'ip_quality.dart';
 export 'node_traffic.dart';
 export 'profile.dart';
+export 'proxy_chain.dart';
 export 'record_filter.dart';
 export 'references.dart';
 export 'state.dart';

@@ -5,7 +5,8 @@
 > Build with **Actions → flsmart Android APK** on `custom/smart-core`, or push that branch.
 > Add the Actions secrets `KEYSTORE` (base64 keystore), `KEY_ALIAS`, `STORE_PASSWORD` and `KEY_PASSWORD` first.
 > Keep the signing key backed up; later APK updates must use the same key. The workflow uploads an ARM64 APK,
-> checksums, source commit and generated-source patch as an artifact; it does not publish a Release.
+> checksums, source commit and generated-source patch as an artifact. After validation, a new version is published
+> as a GitHub Release with Chinese notes from `.github/releases/<version>.md`; existing releases are preserved.
 >
 > For local builds, initialize submodules, run `bash tool/prepare_smart_core.sh`, then `flutter pub get` and
 > `dart run intl_utils:generate` and `dart run build_runner build --delete-conflicting-outputs` before the normal build command below.

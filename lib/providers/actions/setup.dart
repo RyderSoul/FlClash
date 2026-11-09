@@ -399,7 +399,7 @@ class SetupAction extends _$SetupAction {
     final profile = ref.read(currentProfileProvider);
     if (profile == null ||
         profile.type == ProfileType.custom ||
-        profile.extendType != ExtendType.standard) {
+        !profile.rulesOverrideEnabled) {
       return;
     }
     applyProfileDebounce(silence: true);
@@ -499,12 +499,17 @@ class SetupAction extends _$SetupAction {
     );
     final appendSystemDns = networkSetting.appendSystemDns;
     final isCustom = setupState.profileType == ProfileType.custom;
-    final scriptContent =
-        !isCustom && setupState.extendType == ExtendType.script
-        ? await setupState.script?.content
-        : null;
+    final scriptContent = !isCustom ? await setupState.script?.content : null;
     final hasScript = scriptContent?.isNotEmpty == true;
-    final profileBase = !isCustom && !hasScript
+    final changesOutbounds = setupState.overrides.chains.any(
+      (chain) => chain.enabled,
+    );
+    final replacesRules =
+        setupState.overrides.replaceRules &&
+        (setupState.overrides.rulesEnabled ??
+            setupState.extendType == ExtendType.standard);
+    final profileBase =
+        !isCustom && !hasScript && !changesOutbounds && !replacesRules
         ? await _core.getProfileBase(profileId)
         : null;
     Map<String, dynamic> rawConfig = isCustom

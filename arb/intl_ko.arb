@@ -1082,5 +1082,22 @@
   "nodeTrafficSession": "현재 세션",
   "nodeTrafficHint": "마지막 시작 이후의 프록시 트래픽입니다. 직접 연결은 제외됩니다.",
   "nodeTrafficEmpty": "아직 프록시 트래픽이 없습니다. 노드를 사용하면 여기에 표시됩니다.",
-  "nodeTrafficUnavailable": "새로고침할 수 없습니다. 자동으로 다시 시도합니다."
+  "nodeTrafficUnavailable": "새로고침할 수 없습니다. 자동으로 다시 시도합니다.",
+  "smartUsageFrequent": "자주 사용",
+  "smartUsageOccasional": "가끔 사용",
+  "smartUsageRare": "거의 사용하지 않음",
+  "smartUsagePending": "데이터 수집 중",
+  "rulesOverrideEnabled": "규칙 덮어쓰기 사용",
+  "subscriptionOverrideEnabled": "구독 덮어쓰기 사용",
+  "addProxyChain": "프록시 체인 추가",
+  "proxyChainHops": "홉",
+  "proxyChainEmpty": "프록시 체인 없음",
+  "replaceOriginalRules": "기존 규칙 교체",
+  "proxyChainTarget": "선택 그룹에 추가",
+  "proxyChainHidden": "체인 그룹 숨기기",
+  "proxyChainHelp": "입구부터 출구까지 2–8개 홉을 선택하세요. 첫 홉은 그룹, 이후는 노드입니다. 길게 눌러 이동하거나 삭제하세요.",
+  "proxyChainClient": "클라이언트",
+  "proxyChainDestination": "대상",
+  "proxyChainMoveUp": "앞으로 이동",
+  "proxyChainMoveDown": "뒤로 이동"
 }

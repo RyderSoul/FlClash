@@ -132,6 +132,29 @@ class _StandardContentState extends ConsumerState<StandardContent> {
             },
       child: SliverMainAxisGroup(
         slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            sliver: SliverToBoxAdapter(
+              child: generateGroup([
+                ConfigToggleItem(
+                  selector: profileProvider(_profileId).select(
+                    (profile) => profile?.overrides.replaceRules ?? false,
+                  ),
+                  title: (l) => l.replaceOriginalRules,
+                  onChanged: (ref, value) => ref
+                      .read(profilesProvider.notifier)
+                      .updateProfile(
+                        _profileId,
+                        (profile) => profile.copyWith(
+                          overrides: profile.overrides.copyWith(
+                            replaceRules: value,
+                          ),
+                        ),
+                      ),
+                ),
+              ]),
+            ),
+          ),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
