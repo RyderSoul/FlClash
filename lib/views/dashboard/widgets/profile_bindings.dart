@@ -20,11 +20,15 @@ class ProfileBindingsCard extends ConsumerStatefulWidget {
 }
 
 class _ProfileBindingsCardState extends ConsumerState<ProfileBindingsCard> {
-  bool _busy = false;
+  String? _busyKey;
 
-  Future<void> _toggle(Profile profile, ProfileOverrides overrides) async {
-    if (_busy) return;
-    setState(() => _busy = true);
+  Future<void> _toggle(
+    String key,
+    Profile profile,
+    ProfileOverrides overrides,
+  ) async {
+    if (_busyKey != null) return;
+    setState(() => _busyKey = key);
     try {
       await globalState.safeRun(() async {
         await ref
@@ -38,7 +42,7 @@ class _ProfileBindingsCardState extends ConsumerState<ProfileBindingsCard> {
         }
       });
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) setState(() => _busyKey = null);
     }
   }
 
@@ -66,6 +70,7 @@ class _ProfileBindingsCardState extends ConsumerState<ProfileBindingsCard> {
     final metrics =
         <
           ({
+            String key,
             String title,
             Glyph glyph,
             int count,
@@ -74,6 +79,7 @@ class _ProfileBindingsCardState extends ConsumerState<ProfileBindingsCard> {
           })
         >[
           (
+            key: 'rules',
             title: labels.bindingRuleSources,
             glyph: AppGlyphs.rules,
             count: data.ruleBindings.length,
@@ -81,6 +87,7 @@ class _ProfileBindingsCardState extends ConsumerState<ProfileBindingsCard> {
             update: (value) => data.copyWith(rulesEnabled: value),
           ),
           (
+            key: 'attachments',
             title: labels.attachedSubscriptions,
             glyph: AppGlyphs.link,
             count: data.subscriptions.length,
@@ -88,6 +95,7 @@ class _ProfileBindingsCardState extends ConsumerState<ProfileBindingsCard> {
             update: (value) => data.copyWith(attachmentsEnabled: value),
           ),
           (
+            key: 'script',
             title: labels.script,
             glyph: AppGlyphs.code,
             count: profile?.scriptId == null ? 0 : 1,
@@ -95,6 +103,7 @@ class _ProfileBindingsCardState extends ConsumerState<ProfileBindingsCard> {
             update: (value) => data.copyWith(subscriptionEnabled: value),
           ),
           (
+            key: 'chains',
             title: labels.proxyChains,
             glyph: AppGlyphs.layers,
             count: data.chains.length,
@@ -158,9 +167,13 @@ class _ProfileBindingsCardState extends ConsumerState<ProfileBindingsCard> {
                   const SizedBox(width: 12),
                   Switch(
                     value: metric.enabled,
-                    onChanged: profile == null || _busy
+                    onChanged: profile == null || _busyKey == metric.key
                         ? null
-                        : (value) => _toggle(profile, metric.update(value)),
+                        : (value) => _toggle(
+                            metric.key,
+                            profile,
+                            metric.update(value),
+                          ),
                   ),
                 ],
               ),
