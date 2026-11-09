@@ -18,6 +18,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'copy.dart';
 import 'forms.dart';
+import 'status.dart';
 
 class ProfileBindingsView extends ConsumerStatefulWidget {
   const ProfileBindingsView({super.key, required this.profileId});
@@ -75,16 +76,31 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
     await BaseNavigator.push(context, page);
   }
 
+  Widget _section({required List<Widget> items}) => generateGroup(items);
+
   Widget _toggle(
     String title,
+    String subtitle,
+    Glyph glyph,
     bool value,
     Profile Function(Profile, bool) update,
   ) => ListItem.toggle(
-    title: Text(title),
+    leading: GlyphIcon(glyph, size: 22),
+    horizontalTitleGap: 12,
+    title: Text(title, style: AppTextStyle.headline.of(context)),
+    subtitle: Text(subtitle),
     value: value,
     onChanged: _busy
         ? null
         : (next) => _change((profile) => update(profile, next)),
+  );
+
+  Widget _action(String label, Glyph glyph, VoidCallback onPressed) => ListItem(
+    leading: GlyphIcon(glyph, size: 22),
+    horizontalTitleGap: 12,
+    title: Text(label),
+    trailing: const GlyphIcon(AppGlyphs.chevronForward, size: 18),
+    onTap: _busy ? null : onPressed,
   );
 
   @override
@@ -129,24 +145,36 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
           bottom: 24 + context.bottomInset,
         ),
         children: [
-          Text(
-            profile.realLabel,
-            style: AppTextStyle.title2.of(context, emphasized: true),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            ref.watch(bindingsAppliedProvider(profile.id)).value == true
-                ? labels.applied
-                : labels.bindingApplyHint,
-            style: AppTextStyle.footnote.of(context),
+          Card(
+            radius: AppCorner.xl,
+            padding: const EdgeInsets.all(20),
+            inert: true,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: 10,
+              children: [
+                Text(
+                  profile.realLabel,
+                  style: AppTextStyle.title2.of(context, emphasized: true),
+                ),
+                ProfileBindingApplyStatus(profileId: profile.id),
+                Text(
+                  labels.bindingApplyHint,
+                  style: AppTextStyle.footnote
+                      .of(context)
+                      .copyWith(color: context.colorScheme.onSurfaceVariant),
+                ),
+              ],
+            ),
           ),
           ErrorBanner(message: _error),
           const SizedBox(height: 16),
-          generateSection(
-            title: labels.attachedSubscriptions,
+          _section(
             items: [
               _toggle(
+                labels.attachedSubscriptions,
                 labels.bindingSubscriptionsEnabled,
+                AppGlyphs.link,
                 overrides.attachmentsEnabled,
                 (p, enabled) => p.copyWith(
                   overrides: p.overrides.copyWith(attachmentsEnabled: enabled),
@@ -197,11 +225,22 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
                     ),
                   ],
                   child: ListItem.toggle(
+                    leading: const SizedBox.square(dimension: 22),
+                    horizontalTitleGap: 12,
                     title: Text(binding.name),
                     subtitle: Text(
                       sources.getProfile(binding.sourceId) == null
                           ? labels.bindingSourceMissing(binding.name)
-                          : '${sources.getProfile(binding.sourceId)!.realLabel} · ${sources.getProfile(binding.sourceId)!.lastUpdateDate?.show ?? labels.none}\n${binding.attachments.map((item) => '${item.target} · ${item.mode == SubscriptionAttachMode.nodes ? labels.bindingExpandNodes : labels.bindingReferenceGroup}').join(' / ')}',
+                          : [
+                              '${sources.getProfile(binding.sourceId)!.realLabel} · ${sources.getProfile(binding.sourceId)!.lastUpdateDate?.show ?? labels.none}',
+                              if (binding.attachments.isNotEmpty)
+                                binding.attachments
+                                    .map(
+                                      (item) =>
+                                          '${item.target} · ${item.mode == SubscriptionAttachMode.nodes ? labels.bindingExpandNodes : labels.bindingReferenceGroup}',
+                                    )
+                                    .join(' / '),
+                            ].join('\n'),
                     ),
                     value: binding.enabled,
                     onChanged: _busy
@@ -220,20 +259,20 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
                           ),
                   ),
                 ),
-              MoreActionButton(
-                label: labels.add,
-                onPressed: () async {
-                  await editSubscriptionBinding(context, profile.id);
-                },
+              _action(
+                labels.add,
+                AppGlyphs.add,
+                () => editSubscriptionBinding(context, profile.id),
               ),
             ],
           ),
           const SizedBox(height: 20),
-          generateSection(
-            title: labels.bindingRuleSources,
+          _section(
             items: [
               _toggle(
+                labels.bindingRuleSources,
                 labels.rulesOverrideEnabled,
+                AppGlyphs.rules,
                 profile.rulesOverrideEnabled,
                 (p, enabled) => p.copyWith(
                   overrides: p.overrides.copyWith(rulesEnabled: enabled),
@@ -283,6 +322,8 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
                     ),
                   ],
                   child: ListItem.toggle(
+                    leading: const SizedBox.square(dimension: 22),
+                    horizontalTitleGap: 12,
                     title: Text(
                       rules
                               .where((item) => item.id == binding.sourceId)
@@ -310,47 +351,54 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
                           ),
                   ),
                 ),
-              MoreActionButton(
-                label: labels.add,
-                onPressed: () => editRuleBinding(context, profile.id),
+              _action(
+                labels.add,
+                AppGlyphs.add,
+                () => editRuleBinding(context, profile.id),
               ),
               if (profile.type != ProfileType.custom)
-                MoreActionButton(
-                  label: labels.bindingLocalRules,
-                  onPressed: () => _open(ExtendView(profileId: profile.id)),
+                _action(
+                  labels.bindingLocalRules,
+                  AppGlyphs.rules,
+                  () => _open(ExtendView(profileId: profile.id)),
                 ),
             ],
           ),
           const SizedBox(height: 20),
-          generateSection(
-            title: labels.script,
+          _section(
             items: [
               _toggle(
+                labels.script,
                 labels.subscriptionOverrideEnabled,
+                AppGlyphs.code,
                 profile.subscriptionOverrideEnabled,
                 (p, enabled) => p.copyWith(
                   overrides: p.overrides.copyWith(subscriptionEnabled: enabled),
                 ),
               ),
               ListItem<int?>.options(
+                leading: const SizedBox.square(dimension: 22),
+                horizontalTitleGap: 12,
                 title: Text(labels.script),
                 value: profile.scriptId,
                 options: [null, ...scripts.map((item) => item.id)],
                 textBuilder: (id) => scripts.get(id)?.label ?? labels.none,
                 onChanged: (id) => _change((p) => p.copyWith(scriptId: id)),
               ),
-              MoreActionButton(
-                label: labels.goToConfigureScript,
-                onPressed: () => _open(const ScriptsView()),
+              _action(
+                labels.goToConfigureScript,
+                AppGlyphs.code,
+                () => _open(const ScriptsView()),
               ),
             ],
           ),
           const SizedBox(height: 20),
-          generateSection(
-            title: labels.proxyChains,
+          _section(
             items: [
               _toggle(
+                labels.proxyChains,
                 labels.bindingChainsEnabled,
+                AppGlyphs.layers,
                 overrides.chainsEnabled,
                 (p, enabled) => p.copyWith(
                   overrides: p.overrides.copyWith(chainsEnabled: enabled),
@@ -358,15 +406,21 @@ class _ProfileBindingsViewState extends ConsumerState<ProfileBindingsView> {
               ),
               for (final chain in overrides.chains)
                 ListItem(
+                  leading: const SizedBox.square(dimension: 22),
+                  horizontalTitleGap: 12,
                   title: Text(chain.name),
                   subtitle: Text(
-                    '${chain.hops.join(' → ')}\n${chain.targets.join(' / ')}',
+                    [
+                      chain.hops.join(' → '),
+                      if (chain.targets.isNotEmpty) chain.targets.join(' / '),
+                    ].join('\n'),
                   ),
                   onTap: () => _open(ProxyChainsView(profileId: profile.id)),
                 ),
-              MoreActionButton(
-                label: labels.proxyChains,
-                onPressed: () => _open(ProxyChainsView(profileId: profile.id)),
+              _action(
+                labels.proxyChains,
+                AppGlyphs.layers,
+                () => _open(ProxyChainsView(profileId: profile.id)),
               ),
             ],
           ),

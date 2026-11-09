@@ -152,8 +152,9 @@ type ProfileOutbounds struct {
 }
 
 type ProfileOutbound struct {
-	Name string `json:"name"`
-	Type string `json:"type"`
+	Name         string `json:"name"`
+	Type         string `json:"type"`
+	ProviderName string `json:"provider-name,omitempty"`
 }
 
 type UpdateParams struct {
@@ -184,6 +185,12 @@ type tunSchema struct {
 
 type PathParams struct {
 	Path string `json:"path"`
+}
+
+type ReadConfigParams struct {
+	Path              string `json:"path"`
+	ProviderCachePath string `json:"provider-cache-path"`
+	ProviderPrefix    string `json:"provider-prefix"`
 }
 
 type NameParams struct {

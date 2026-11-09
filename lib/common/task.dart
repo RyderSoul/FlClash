@@ -425,9 +425,10 @@ Future<RealProfile> _makeRealProfileTask(MakeRealProfileState data) async {
     }
   }
   applyProxyChains(rawConfig, overrides.chains);
-  if (overrides.subscriptions.isNotEmpty ||
-      overrides.chains.isNotEmpty ||
-      overrides.ruleBindings.isNotEmpty) {
+  rawConfig.remove('x-flsmart-provider-nodes');
+  if (overrides.subscriptions.any((binding) => binding.enabled) ||
+      overrides.chains.any((chain) => chain.enabled) ||
+      overrides.ruleBindings.any((binding) => binding.enabled)) {
     validatePolicyReferences(rawConfig);
   }
   final yaml = await _encodeYaml(Map<String, dynamic>.from(rawConfig));

@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+	"crypto/md5"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -125,6 +126,120 @@ func TestHandleGetProfileOutboundsListsOnlyNamesAndTypes(t *testing.T) {
 	}
 	if !reflect.DeepEqual(outbounds, want) {
 		t.Errorf("outbounds = %+v, want %+v", outbounds, want)
+	}
+	read, err := handleReadConfig(ReadConfigParams{Path: path})
+	if err != nil {
+		t.Fatal(err)
+	}
+	encoded, err := json.Marshal(read)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var inventory ProfileOutbounds
+	if err := json.Unmarshal(encoded, &inventory); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(&inventory, want) {
+		t.Fatalf("config inventory lost YAML outbounds: %+v", inventory)
+	}
+}
+
+func TestProfileOutboundsReadsProviderCachesAndOverridesWithoutStartingThem(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "42.yaml")
+	profile := `proxy-providers:
+  remote:
+    type: http
+    url: https://unused.invalid/nodes
+    filter: ^HK
+    health-check: {enable: true, url: https://unused.invalid/health, interval: 1}
+    override:
+      additional-prefix: "Sub · "
+      override-expr: ['.name += "!"']
+  inline:
+    type: inline
+    payload: [{name: Local, type: socks5, server: 127.0.0.1, port: 1080}]
+proxy-groups: [{name: Pick, type: select, use: [remote]}]
+`
+	if err := os.WriteFile(path, []byte(profile), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cache := filepath.Join(root, "providers", "42", "proxies", fmt.Sprintf("%x", md5.Sum([]byte("remote@https://unused.invalid/nodes"))))
+	if err := os.MkdirAll(filepath.Dir(cache), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	writeCache := func(name string) {
+		t.Helper()
+		content := fmt.Sprintf("proxies: [{name: %s, type: snell}, {name: US, type: socks5}]", name)
+		if err := os.WriteFile(cache, []byte(content), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	writeCache("HK")
+	outbounds, err := handleGetProfileOutbounds(PathParams{Path: path})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []ProfileOutbound{
+		{Name: "Local", Type: "socks5", ProviderName: "inline"},
+		{Name: "Sub · HK!", Type: "snell", ProviderName: "remote"},
+	}
+	if !reflect.DeepEqual(outbounds.Proxies, want) {
+		t.Fatalf("proxies = %+v, want %+v", outbounds.Proxies, want)
+	}
+	read, err := handleReadConfig(ReadConfigParams{Path: path})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(read.ProviderNodes, want) {
+		t.Fatalf("config inventory = %+v", read.ProviderNodes)
+	}
+	writeCache("HK2")
+	fresh, err := handleGetProfileOutbounds(PathParams{Path: path})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if fresh.Proxies[1].Name != "Sub · HK2!" {
+		t.Fatalf("stale provider cache: %+v", fresh.Proxies)
+	}
+	if err := os.Remove(cache); err != nil {
+		t.Fatal(err)
+	}
+	missing, err := handleGetProfileOutbounds(PathParams{Path: path})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(missing.Proxies) != 1 {
+		t.Fatalf("missing cache invented nodes: %+v", missing.Proxies)
+	}
+	boundCache := filepath.Join(root, "providers", "77", "proxies", fmt.Sprintf("%x", md5.Sum([]byte("flsmart-binding-remote@https://unused.invalid/nodes"))))
+	if err := os.MkdirAll(filepath.Dir(boundCache), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(boundCache, []byte("proxies: [{name: HK-Bound, type: snell}]"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	bound, err := handleReadConfig(ReadConfigParams{
+		Path:              path,
+		ProviderCachePath: filepath.Join(root, "77.yaml"),
+		ProviderPrefix:    "flsmart-binding-",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if bound.ProviderNodes[1].Name != "Sub · HK-Bound!" {
+		t.Fatalf("bound provider cache was not read: %+v", bound.ProviderNodes)
+	}
+	encoded, err := json.Marshal(bound)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var response map[string]any
+	if err := json.Unmarshal(encoded, &response); err != nil {
+		t.Fatal(err)
+	}
+	if response["proxy-providers"] == nil || response["x-flsmart-provider-nodes"] == nil {
+		t.Fatalf("config metadata contract: %s", encoded)
 	}
 }
 

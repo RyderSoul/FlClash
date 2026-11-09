@@ -130,8 +130,20 @@ abstract class CoreHandlerInterface {
     );
   }
 
-  Future<Map<String, dynamic>> readConfig(String path) {
-    return _query(CoreMethod.configRead, _json, arguments: {'path': path});
+  Future<Map<String, dynamic>> readConfig(
+    String path, {
+    String? providerCachePath,
+    String? providerPrefix,
+  }) {
+    return _query(
+      CoreMethod.configRead,
+      _json,
+      arguments: {
+        'path': path,
+        'provider-cache-path': ?providerCachePath,
+        'provider-prefix': ?providerPrefix,
+      },
+    );
   }
 
   Future<ProfileBase> getProfileBase(String path) {

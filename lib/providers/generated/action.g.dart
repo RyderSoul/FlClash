@@ -519,7 +519,7 @@ final class BindingsAppliedProvider
   }
 }
 
-String _$bindingsAppliedHash() => r'7e1c59c2d52414aa95651255443a5826cc507f10';
+String _$bindingsAppliedHash() => r'cae8b567ef5af124e4b6fab506ec52620c160c96';
 
 final class BindingsAppliedFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<bool>, int> {
@@ -572,7 +572,7 @@ final class ProfileBindingsActionProvider
 }
 
 String _$profileBindingsActionHash() =>
-    r'46c04550b389d6f54aa87027d3ee120e05d6b0d6';
+    r'fb7c5ae93344dfd4cb5b95c03f9010f9253c99a2';
 
 abstract class _$ProfileBindingsAction extends $Notifier<void> {
   void build();

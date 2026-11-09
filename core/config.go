@@ -43,8 +43,21 @@ func handleSetupConfig(params *SetupParams) error {
 	return setupConfig(params)
 }
 
-func handleReadConfig(params PathParams) (*config.RawConfig, error) {
-	return readRawConfig(params.Path)
+type profileConfig struct {
+	*config.RawConfig
+	ProviderNodes []ProfileOutbound `json:"x-flsmart-provider-nodes,omitempty"`
+}
+
+func handleReadConfig(params ReadConfigParams) (*profileConfig, error) {
+	raw, err := readRawConfig(params.Path)
+	if err != nil {
+		return nil, err
+	}
+	nodes, err := profileProviderOutbounds(params.Path, raw, params)
+	if err != nil {
+		return nil, err
+	}
+	return &profileConfig{RawConfig: raw, ProviderNodes: nodes}, nil
 }
 
 func readRawConfig(path string) (*config.RawConfig, error) {

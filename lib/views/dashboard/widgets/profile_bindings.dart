@@ -5,6 +5,7 @@ import 'package:fl_clash/state.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/views/dashboard/style.dart';
 import 'package:fl_clash/views/profiles/bindings/manager.dart';
+import 'package:fl_clash/views/profiles/bindings/status.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -66,6 +67,7 @@ class _ProfileBindingsCardState extends ConsumerState<ProfileBindingsCard> {
         <
           ({
             String title,
+            Glyph glyph,
             int count,
             bool enabled,
             ProfileOverrides Function(bool) update,
@@ -73,24 +75,28 @@ class _ProfileBindingsCardState extends ConsumerState<ProfileBindingsCard> {
         >[
           (
             title: labels.bindingRuleSources,
+            glyph: AppGlyphs.rules,
             count: data.ruleBindings.length,
             enabled: profile?.rulesOverrideEnabled ?? false,
             update: (value) => data.copyWith(rulesEnabled: value),
           ),
           (
             title: labels.attachedSubscriptions,
+            glyph: AppGlyphs.link,
             count: data.subscriptions.length,
             enabled: data.attachmentsEnabled,
             update: (value) => data.copyWith(attachmentsEnabled: value),
           ),
           (
             title: labels.script,
+            glyph: AppGlyphs.code,
             count: profile?.scriptId == null ? 0 : 1,
             enabled: profile?.subscriptionOverrideEnabled ?? false,
             update: (value) => data.copyWith(subscriptionEnabled: value),
           ),
           (
             title: labels.proxyChains,
+            glyph: AppGlyphs.layers,
             count: data.chains.length,
             enabled: data.chainsEnabled,
             update: (value) => data.copyWith(chainsEnabled: value),
@@ -115,30 +121,39 @@ class _ProfileBindingsCardState extends ConsumerState<ProfileBindingsCard> {
           const SizedBox(height: 12),
           Text(
             profile?.realLabel ?? labels.nullProfileDesc,
-            style: DashboardText.label(context),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyle.headline.of(context),
           ),
-          if (profile != null)
-            Text(
-              ref.watch(bindingsAppliedProvider(profile.id)).value == true
-                  ? labels.applied
-                  : labels.bindingApplyHint,
-              style: DashboardText.label(context),
-            ),
+          if (profile != null) ...[
+            const SizedBox(height: 6),
+            ProfileBindingApplyStatus(profileId: profile.id),
+          ],
           const SizedBox(height: 12),
           for (final metric in metrics)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
+              padding: const EdgeInsets.symmetric(vertical: 6),
               child: Row(
                 children: [
+                  GlyphIcon(
+                    metric.glyph,
+                    size: 20,
+                    color: context.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       metric.title,
                       style: DashboardText.label(context),
                     ),
                   ),
-                  Text(
-                    '${metric.count}',
-                    style: AppTextStyle.headline.of(context),
+                  SizedBox(
+                    width: 32,
+                    child: Text(
+                      '${metric.count}',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyle.headline.of(context).toTabular,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Switch(
@@ -157,6 +172,7 @@ class _ProfileBindingsCardState extends ConsumerState<ProfileBindingsCard> {
                 context,
               ).copyWith(color: context.colorScheme.error),
             ),
+          const SizedBox(height: 8),
           Text(
             labels.bindingDashboardHint,
             style: DashboardText.label(context),

@@ -1095,7 +1095,7 @@
   "replaceOriginalRules": "기존 규칙 교체",
   "proxyChainTarget": "선택 그룹에 추가",
   "proxyChainHidden": "체인 그룹 숨기기",
-  "proxyChainHelp": "입구부터 출구까지 2–8개 홉을 선택하세요. 첫 홉은 그룹, 이후는 노드입니다. 길게 눌러 이동하거나 삭제하세요.",
+  "proxyChainHelp": "입구부터 출구까지 2–8개 홉을 선택하세요. 각 홉은 정책 그룹이나 노드가 될 수 있습니다. 길게 눌러 이동하거나 삭제하세요.",
   "proxyChainClient": "클라이언트",
   "proxyChainDestination": "대상",
   "proxyChainMoveUp": "앞으로 이동",
@@ -1118,6 +1118,8 @@
   "bindingSubscriptionsEnabled": "추가 구독 활성화",
   "bindingChainsEnabled": "프록시 체인 활성화",
   "bindingLocalRules": "로컬 규칙과 스크립트 편집",
+  "bindingStatusUnavailable": "상태 확인 실패",
+  "bindingPendingApply": "적용 대기 중",
   "bindingApplyHint": "변경 사항은 구성별로 저장됩니다. 적용하여 불러오고 행을 길게 눌러 편집하세요.",
   "bindingApplyFailed": "구성이 적용되지 않았습니다. 오류를 확인하세요.",
   "bindingApplyToProfiles": "다른 구성에 적용",
@@ -1132,5 +1134,11 @@
   "bindingDashboardHint": "탭하여 리소스 및 그룹 연결 관리",
   "bindingChanged": "저장하는 동안 구성이 변경되었습니다. 다시 확인하고 저장하세요.",
   "bindingCopySaved": "구성 연결을 복사했습니다.",
-  "bindingValidated": "구성을 확인했습니다. 이 프로필로 전환하면 적용됩니다."
+  "bindingValidated": "구성을 확인했습니다. 이 프로필로 전환하면 적용됩니다.",
+  "proxyChainCheck": "체인 확인",
+  "proxyChainApplyFirst": "현재 프로필을 적용하고 시작한 후 확인하세요.",
+  "proxyChainLatencyHint": "동일한 테스트 URL로 기기에서 각 홉까지의 누적 지연을 측정합니다. 인접 홉 사이의 지연이 아닙니다. 그룹은 현재 선택을 사용합니다.",
+  "proxyChainHopLabel": "{hop}번째 홉",
+  "proxyChainUnchecked": "확인 전",
+  "proxyChainTotal": "전체 체인"
 }

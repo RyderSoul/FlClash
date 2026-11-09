@@ -223,6 +223,11 @@ void main() {
         hops: ['Extra', 'exit'],
         targetGroups: ['Select'],
       ),
+      ProxyChain(
+        id: 'subscription-groups',
+        name: 'Subscription chain',
+        hops: ['Extra · Entry', 'Extra · Remote'],
+      ),
     ]);
     await File(path).writeAsString(
       jsonEncode({
@@ -233,6 +238,10 @@ void main() {
           'Extra · Exclude': ['Extra · HK'],
           'Extra': ['Extra · JP'],
           'Select': ['original', 'Extra', 'Chain'],
+          'Subscription chain · 2 · Extra · Remote': [
+            'Subscription chain · 2 · Extra · r-HK',
+          ],
+          'Subscription chain': ['Subscription chain · 2 · Extra · Remote'],
         },
       }),
     );

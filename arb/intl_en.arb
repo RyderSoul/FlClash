@@ -1095,7 +1095,7 @@
   "replaceOriginalRules": "Replace original rules",
   "proxyChainTarget": "Add to select group",
   "proxyChainHidden": "Hide chain group",
-  "proxyChainHelp": "Choose hops from entry to exit. The first hop may be a policy group; subsequent hops must be nodes. Long press a hop to move or remove it.",
+  "proxyChainHelp": "Choose 2–8 hops from entry to exit. Each hop may be a policy group or a node. Long press a hop to move or remove it.",
   "proxyChainClient": "Client",
   "proxyChainDestination": "Destination",
   "proxyChainMoveUp": "Move earlier",
@@ -1118,6 +1118,8 @@
   "bindingSubscriptionsEnabled": "Enable additional subscriptions",
   "bindingChainsEnabled": "Enable proxy chains",
   "bindingLocalRules": "Edit local rules and script",
+  "bindingStatusUnavailable": "Status unavailable",
+  "bindingPendingApply": "Pending application",
   "bindingApplyHint": "Changes are saved per configuration. Apply to load them; hold a row to edit, update or remove it.",
   "bindingApplyFailed": "Configuration was not applied. See the error details.",
   "bindingApplyToProfiles": "Apply to another configuration",
@@ -1132,5 +1134,11 @@
   "bindingDashboardHint": "Tap to manage resources and group bindings",
   "bindingChanged": "Configuration changed while saving. Please review and save again.",
   "bindingCopySaved": "Copied configuration bindings successfully.",
-  "bindingValidated": "Configuration validated. Switch to this profile to apply it."
+  "bindingValidated": "Configuration validated. Switch to this profile to apply it.",
+  "proxyChainCheck": "Check chain",
+  "proxyChainApplyFirst": "Apply and start this profile before checking.",
+  "proxyChainLatencyHint": "Cumulative latency to each hop, measured against the same test URL. These are not delays between adjacent hops. Policy groups use their current selection.",
+  "proxyChainHopLabel": "Hop {hop}",
+  "proxyChainUnchecked": "Not checked",
+  "proxyChainTotal": "Entire chain"
 }
