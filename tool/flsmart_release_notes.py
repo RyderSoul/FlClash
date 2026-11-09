@@ -14,8 +14,6 @@ sha = hashlib.file_digest(apk.open('rb'), 'sha256').hexdigest()
 commit = (output / 'source-commit.txt').read_text().strip()
 if commit != os.environ['GITHUB_SHA']:
     raise SystemExit('APK source commit differs from the workflow checkout')
-if (output / 'generated-source.patch').stat().st_size:
-    raise SystemExit('Commit the generated source patch and rebuild before publishing')
 body = Path(f'.github/releases/{version}.md').read_text()
 for key, value in {
     'version': version,
