@@ -217,6 +217,11 @@ void main() {
         scrollable: formScroll,
       );
       await tester.pumpAndSettle();
+      await Scrollable.ensureVisible(
+        tester.element(find.text('Add to policy groups')),
+        alignment: 0.5,
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Add to policy groups'));
       await tester.pumpAndSettle();
       await tester.tap(find.text(target).last);
