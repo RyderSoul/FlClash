@@ -22,6 +22,66 @@ void main() {
     await testDatabase.close();
   });
 
+  for (final withRuleBinding in [false, true]) {
+    test(
+      'a script setup disposed during its query resolves with rule binding: $withRuleBinding',
+      () async {
+        const subscription = Profile(
+          id: 2,
+          label: 'Sub',
+          type: ProfileType.url,
+          autoUpdateDuration: Duration.zero,
+        );
+        final ruleSet = ClashProvider.create(label: 'Rules');
+        final script = Script(
+          id: 5,
+          label: 'Script',
+          lastUpdateTime: DateTime(2026),
+        );
+        final profile = Profile(
+          id: 1,
+          autoUpdateDuration: Duration.zero,
+          extendType: ExtendType.script,
+          scriptId: script.id,
+          overrides: ProfileOverrides(
+            rulesEnabled: true,
+            subscriptions: const [
+              SubscriptionBinding(id: 'sub', sourceId: 2, name: 'Sub'),
+            ],
+            ruleBindings: withRuleBinding
+                ? [
+                    RuleSetBinding(
+                      id: 'rules',
+                      sourceId: ruleSet.id,
+                      target: 'DIRECT',
+                    ),
+                  ]
+                : const [],
+          ),
+        );
+        await testDatabase.scripts.put(script.toCompanion());
+        await testDatabase.clashProviders.put(ruleSet.toCompanion());
+        final container = ProviderContainer(
+          overrides: [
+            profilesProvider.overrideWith(
+              () => TestProfiles([profile, subscription]),
+            ),
+          ],
+        );
+        container.listen(clashProvidersProvider, (_, _) {});
+        await container.read(clashProvidersProvider.future);
+
+        final loading = container.read(setupStateProvider(profile.id).future);
+        container.dispose();
+        final state = await loading;
+
+        expect(state.script, script);
+        expect(state.bindingProfiles, [subscription]);
+        expect(state.clashProviders, withRuleBinding ? [ruleSet] : isEmpty);
+      },
+    );
+  }
+
   testWidgets('a custom setup disposed before its queries return resolves', (
     tester,
   ) async {

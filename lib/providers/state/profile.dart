@@ -78,6 +78,10 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
           ),
         );
   final allProfileProviders = ref.watch(profileProvidersProvider);
+  final profiles = ref.watch(profilesProvider);
+  final clashProvidersFuture = overrides.ruleBindings.isEmpty
+      ? null
+      : ref.watch(clashProvidersProvider.future);
   final mitmModules =
       mitmFeature &&
           ref.watch(
@@ -123,17 +127,16 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
     mitmModules: mitmModules == null
         ? const []
         : await mitmModuleSources(await mitmModules),
-    bindingProfiles: ref
-        .watch(profilesProvider)
+    bindingProfiles: profiles
         .where(
           (item) => overrides.subscriptions.any(
             (binding) => binding.sourceId == item.id && binding.enabled,
           ),
         )
         .toList(),
-    clashProviders: overrides.ruleBindings.isEmpty
+    clashProviders: clashProvidersFuture == null
         ? clashProviders
-        : await ref.watch(clashProvidersProvider.future),
+        : await clashProvidersFuture,
     profileProviders: profileProviders,
     appProxies: appProxies,
     proxyDialers: proxyDialers,
