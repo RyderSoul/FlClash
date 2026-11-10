@@ -572,7 +572,7 @@ final class ProfileBindingsActionProvider
 }
 
 String _$profileBindingsActionHash() =>
-    r'c21c81c6e043d51b7026b857c4a13330b9d1fd67';
+    r'ed1ed7c4d619a1117e60ae48b41f9df0123e9811';
 
 abstract class _$ProfileBindingsAction extends $Notifier<void> {
   void build();

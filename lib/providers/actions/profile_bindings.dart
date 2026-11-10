@@ -274,7 +274,9 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
             ),
           )
           .toList(),
-      clashProviders: await ref.read(clashProvidersProvider.future),
+      clashProviders:
+          ref.read(clashProvidersProvider).value ??
+          await database.clashProvidersDao.query().get(),
       script: script,
       matchTarget: candidate.matchTarget,
       rules: candidate.type == ProfileType.custom && localRules != null
