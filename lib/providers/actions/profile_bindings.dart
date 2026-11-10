@@ -164,7 +164,10 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
         if (content.isNotEmpty) raw = await handleEvaluate(content, raw);
       }
       return clashConfigTask({
-        ...raw,
+        'proxy-groups': [
+          for (final group in raw['proxy-groups'] as List? ?? const [])
+            {'name': group['name'], 'type': group['type']},
+        ],
         'proxies': [
           ...raw['proxies'] as List? ?? const [],
           ...raw['x-flsmart-provider-nodes'] as List? ?? const [],
