@@ -11,10 +11,13 @@ import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/state.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:yaml/yaml.dart';
 
 import '../helpers/app_paths.dart';
 import '../helpers/test_profiles.dart';
@@ -240,7 +243,15 @@ void main() {
             {'name': name, 'type': 'snell', 'provider-name': 'remote'},
           ],
           'proxy-groups': [
-            {'name': 'Smart', 'type': 'smart'},
+            {
+              'name': 'Smart',
+              'type': 'smart',
+              'interval': '300',
+              'timeout': '5000',
+              'max-failed-times': '5',
+              'tolerance': '50',
+              'sample-rate': '0.5',
+            },
           ],
         },
       );
@@ -306,7 +317,12 @@ void main() {
     ).thenAnswer(
       (_) async => {
         'proxies': [
-          {'name': 'node', 'type': 'socks5'},
+          {
+            'name': 'node',
+            'type': 'socks5',
+            'server': '127.0.0.1',
+            'port': 1080,
+          },
         ],
         'proxy-groups': [
           {
@@ -327,6 +343,12 @@ void main() {
             'name': '% Proxy',
             'type': 'select',
             'proxies': ['node'],
+            'interval': '300',
+            'timeout': '5000',
+            'max-failed-times': '5',
+            'tolerance': '50',
+            'sample-rate': '0.5',
+            'use-position': {'remote': '1'},
           },
         ],
       });
@@ -348,6 +370,32 @@ void main() {
     );
     expect(evaluations, 1);
 
+    globalState.packageInfo = PackageInfo(
+      appName: 'flsmart',
+      packageName: 'com.rydersoul.flclash',
+      version: '0.0.0',
+      buildNumber: '0',
+    );
+    final preview = await action.preview(target);
+    final config = loadYaml(preview.yaml) as YamlMap;
+    final group = (config['proxy-groups'] as YamlList).first as YamlMap;
+    expect(group['name'], '% Proxy');
+    expect(group['proxies'], ['node', 'One · node']);
+    expect(group['interval'], '300');
+    expect(group['timeout'], '5000');
+    expect(evaluations, 2);
+    final fixture = Platform.environment['FLSMART_INVENTORY_FIXTURE'];
+    if (fixture != null) {
+      await File(fixture).writeAsString(
+        jsonEncode({
+          'config': config,
+          'groups': {
+            '% Proxy': ['node', 'One · node'],
+          },
+        }),
+      );
+    }
+
     container
         .read(profilesProvider.notifier)
         .updateProfile(
@@ -365,7 +413,7 @@ void main() {
       disabled.proxyGroups.map((group) => group.name),
       isNot(contains('% Proxy')),
     );
-    expect(evaluations, 1);
+    expect(evaluations, 2);
   });
 
   test(
