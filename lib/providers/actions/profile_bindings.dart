@@ -140,13 +140,29 @@ class ProfileBindingsAction extends _$ProfileBindingsAction {
     final profile = ref.read(profileProvider(profileId));
     if (profile == null) throw StateError('Profile no longer exists');
     Future<ClashConfig> readInventory(int id, {String? providerPrefix}) async {
-      final raw = await ref
+      var raw = await ref
           .read(coreHandlerProvider)
           .readConfig(
             id,
             providerCacheProfileId: providerPrefix == null ? null : profileId,
             providerPrefix: providerPrefix,
           );
+      if (id == profileId &&
+          profile.subscriptionOverrideEnabled &&
+          profile.scriptId != null) {
+        final script = await database.scriptsDao
+            .get(profile.scriptId!)
+            .getSingleOrNull();
+        final content = await script?.content;
+        if (script == null || content == null) {
+          throw MessageException(
+            currentAppLocalizations.bindingSourceMissing(
+              script?.label ?? profile.scriptId.toString(),
+            ),
+          );
+        }
+        if (content.isNotEmpty) raw = await handleEvaluate(content, raw);
+      }
       return clashConfigTask({
         ...raw,
         'proxies': [
