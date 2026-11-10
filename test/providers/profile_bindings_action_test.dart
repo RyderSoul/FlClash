@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/native.dart';
@@ -268,6 +269,104 @@ void main() {
       expect(disabled.proxies.map((node) => node.name), ['Static', 'US']);
     },
   );
+
+  test('inventory uses groups produced by the profile script', () async {
+    container.read(profileBindingsActionProvider.notifier);
+    final evaluator = scriptEvaluator;
+    addTearDown(() => scriptEvaluator = evaluator);
+    final script = await Script(
+      id: 77,
+      label: 'Inventory script',
+      lastUpdateTime: DateTime(2026),
+    ).save('const main = (config) => config;');
+    await database.scripts.put(script.toCompanion());
+    target = target.copyWith(
+      extendType: ExtendType.script,
+      scriptId: script.id,
+      overrides: target.overrides.copyWith(
+        subscriptions: [
+          SubscriptionBinding(
+            id: 'one',
+            sourceId: source.id,
+            name: 'One',
+            attachments: const [GroupAttachment(target: '% Proxy')],
+          ),
+        ],
+      ),
+    );
+    container
+        .read(profilesProvider.notifier)
+        .updateProfile(target.id, (_) => target);
+    when(
+      () => core.readConfig(
+        any(),
+        providerCachePath: any(named: 'providerCachePath'),
+        providerPrefix: any(named: 'providerPrefix'),
+      ),
+    ).thenAnswer(
+      (_) async => {
+        'proxies': [
+          {'name': 'node', 'type': 'socks5'},
+        ],
+        'proxy-groups': [
+          {
+            'name': 'Original',
+            'type': 'select',
+            'proxies': ['node'],
+          },
+        ],
+      },
+    );
+    var evaluations = 0;
+    scriptEvaluator = ({required String script, required String config}) async {
+      evaluations++;
+      return jsonEncode({
+        ...jsonDecode(config) as Map<String, dynamic>,
+        'proxy-groups': [
+          {
+            'name': '% Proxy',
+            'type': 'select',
+            'proxies': ['node'],
+          },
+        ],
+      });
+    };
+
+    final inventory = await action.inventory(target.id);
+
+    expect(
+      inventory.proxyGroups.map((group) => group.name),
+      contains('% Proxy'),
+    );
+    expect(
+      inventory.proxyGroups.map((group) => group.name),
+      isNot(contains('Original')),
+    );
+    expect(
+      inventory.proxyGroups.map((group) => group.name),
+      contains('One · Original'),
+    );
+    expect(evaluations, 1);
+
+    container
+        .read(profilesProvider.notifier)
+        .updateProfile(
+          target.id,
+          (profile) => profile.copyWith(
+            overrides: profile.overrides.copyWith(subscriptionEnabled: false),
+          ),
+        );
+    final disabled = await action.inventory(target.id);
+    expect(
+      disabled.proxyGroups.map((group) => group.name),
+      contains('Original'),
+    );
+    expect(
+      disabled.proxyGroups.map((group) => group.name),
+      isNot(contains('% Proxy')),
+    );
+    expect(evaluations, 1);
+  });
 
   test(
     'independent copy clones only selected resources and reuses one clone per source',
