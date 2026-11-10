@@ -23,12 +23,16 @@ func TestCompiledProfileBindings(t *testing.T) {
 	var fixture struct {
 		Config json.RawMessage
 		Groups map[string][]string
+		Home   string
 	}
 	if err := json.Unmarshal(data, &fixture); err != nil {
 		t.Fatal(err)
 	}
 	previous := constant.Path.HomeDir()
-	constant.SetHomeDir(t.TempDir())
+	if fixture.Home == "" {
+		fixture.Home = t.TempDir()
+	}
+	constant.SetHomeDir(fixture.Home)
 	t.Cleanup(func() { constant.SetHomeDir(previous) })
 	parsed, err := config.Parse(fixture.Config)
 	if err != nil {
