@@ -156,22 +156,27 @@ func isMatchRule(rule string) bool {
 }
 
 func loadConfigWithBase(base *SetupBase, configPath string) (*config.Config, error) {
+	cfg, _, err := loadConfigWithBaseAndRaw(base, configPath)
+	return cfg, err
+}
+
+func loadConfigWithBaseAndRaw(base *SetupBase, configPath string) (*config.Config, *config.RawConfig, error) {
 	document, err := mergeProfileBase(base)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	raw := config.DefaultRawConfig()
 	if err := document.Decode(raw); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if err := writeConfigDocument(configPath, document); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	cfg, err := config.ParseRawConfig(raw)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return withPlatformLimits(cfg), nil
+	return withPlatformLimits(cfg), raw, nil
 }
 
 func mergeProfileBase(base *SetupBase) (*yaml.Node, error) {

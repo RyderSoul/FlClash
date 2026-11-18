@@ -1,5 +1,5 @@
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/common/profile_binding.dart';
+import 'package:fl_clash/common/proxy_chain.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/features/form/form.dart';
@@ -23,7 +23,7 @@ class ProxyChainsView extends ConsumerWidget {
       final profile = ref.read(profileProvider(profileId));
       if (profile == null) return;
       await ref
-          .read(profileBindingsActionProvider.notifier)
+          .read(chainActionProvider.notifier)
           .save(
             profile.copyWith(
               overrides: profile.overrides.copyWith(
@@ -179,7 +179,7 @@ class _ChainLatencyPanelState extends ConsumerState<_ChainLatencyPanel> {
         setState(() => _checking = index);
         try {
           final delay = await ref
-              .read(profileBindingsActionProvider.notifier)
+              .read(chainActionProvider.notifier)
               .testChainHop(widget.profileId, widget.chain, index);
           if (!mounted || revision != _revision) return;
           setState(() => _delays[index] = delay.value ?? 0);
@@ -208,7 +208,7 @@ class _ChainLatencyPanelState extends ConsumerState<_ChainLatencyPanel> {
     );
     ref.listen(coreStatusProvider, (_, _) => setState(_clear));
     ref.listen(realTestUrlProvider(null), (_, _) => setState(_clear));
-    ref.listen(bindingsAppliedProvider(widget.profileId), (_, next) {
+    ref.listen(profileInputsAppliedProvider(widget.profileId), (_, next) {
       if (next.value != true || next.isLoading) setState(_clear);
     });
     ref.listen(selectedMapProvider, (_, _) => setState(_clear));
@@ -218,7 +218,7 @@ class _ChainLatencyPanelState extends ConsumerState<_ChainLatencyPanel> {
         ref.watch(currentProfileIdProvider) == widget.profileId &&
         ref.watch(coreStatusProvider) == CoreStatus.connected &&
         ref.watch(runTimeProvider.select((runtime) => runtime != null)) &&
-        ref.watch(bindingsAppliedProvider(widget.profileId)).value == true;
+        ref.watch(profileInputsAppliedProvider(widget.profileId)).value == true;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Card(
@@ -338,7 +338,7 @@ class _ChainFormState extends ConsumerState<_ChainForm> {
   Future<ClashConfig?> _loadInventory() async {
     try {
       return await ref
-          .read(profileBindingsActionProvider.notifier)
+          .read(chainActionProvider.notifier)
           .inventory(widget.profileId);
     } catch (error) {
       if (mounted) setState(() => _error = error.toString());
@@ -436,7 +436,7 @@ class _ChainFormState extends ConsumerState<_ChainForm> {
       final profile = ref.read(profileProvider(widget.profileId));
       if (profile == null) throw StateError('Profile no longer exists');
       await ref
-          .read(profileBindingsActionProvider.notifier)
+          .read(chainActionProvider.notifier)
           .validate(
             profile.copyWith(
               overrides: profile.overrides.copyWith(

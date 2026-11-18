@@ -154,6 +154,158 @@ class _RecordingCoreHandler extends CoreHandlerInterface {
         'route-version': 3,
         'held': [true, false],
       },
+      CoreMethod.profileMerge => {
+        'proxies': 4,
+        'duplicates': 1,
+        'groups': 2,
+        'providers': <Object>[],
+      },
+      CoreMethod.toolboxSpeedTestStart || CoreMethod.toolboxSpeedTestProbe => {
+        'provider': 'cloudflare',
+        'protocol': 'h1',
+        'fallback': false,
+        'exit-ip': '1.2.3.4',
+        'streams': 8,
+        'duration': 10,
+        'phase': 'done',
+        'progress': 1.0,
+        'speed': 1000000.0,
+        'direct': true,
+        'latency': 12.5,
+        'jitter': 1.2,
+        'download': 50000000.0,
+        'upload': 25000000.0,
+        'download-latency': 20.0,
+        'upload-latency': 25.0,
+        'rpm': 120,
+        'bytes': 1024,
+        'error': '',
+      },
+      CoreMethod.toolboxSpeedTestServers => [
+        {
+          'host': 'speed.example.com:8080',
+          'name': 'Tokyo',
+          'cc': 'JP',
+          'sponsor': 'Example ISP',
+          'latency': 14.0,
+        },
+      ],
+      CoreMethod.toolboxSpeedTestCancel ||
+      CoreMethod.toolboxMrsCancel ||
+      CoreMethod.toolboxStunCancel ||
+      CoreMethod.toolboxPingCancel => true,
+      CoreMethod.toolboxRouteTrace => {
+        'target': 'example.com',
+        'host': 'example.com',
+        'network': 'tcp',
+        'port': 443,
+        'mode': 'rule',
+        'total': 2,
+        'checked': 1,
+        'steps': [
+          {
+            'index': 0,
+            'type': 'DomainSuffix',
+            'payload': 'example.com',
+            'adapter': 'Proxy',
+            'matched': true,
+          },
+        ],
+        'matched': {
+          'index': 0,
+          'type': 'DomainSuffix',
+          'payload': 'example.com',
+          'adapter': 'Proxy',
+          'matched': true,
+        },
+        'chains': [
+          {'name': 'Proxy', 'type': 'Selector'},
+        ],
+        'support-udp': true,
+        'match-time': 0.5,
+        'error': '',
+      },
+      CoreMethod.toolboxDnsQuery => {
+        'domain': 'example.com',
+        'type': 'A',
+        'mode': 'follow',
+        'rcode': 'NOERROR',
+        'answers': [
+          {
+            'name': 'example.com',
+            'type': 'A',
+            'ttl': 60,
+            'data': '93.184.216.34',
+          },
+        ],
+        'elapsed': 8.2,
+        'route': 'normal',
+        'error': '',
+      },
+      CoreMethod.toolboxMrsPrepare => {
+        'version': 'cached',
+        'geosite': 3,
+        'geoip': 2,
+        'extracted': false,
+        'elapsed': 4.1,
+        'error': '',
+      },
+      CoreMethod.toolboxMrsLookup => {
+        'target': 'example.com',
+        'host': 'example.com',
+        'ips': ['93.184.216.34'],
+        'matches': [
+          {
+            'kind': 'geosite',
+            'name': 'example',
+            'file': 'ruleset/example.mrs',
+            'count': 10,
+            'via': 'example.com',
+            'referenced': true,
+          },
+        ],
+        'elapsed': 2.0,
+        'error': '',
+      },
+      CoreMethod.toolboxMrsDump => '+.example.com\n',
+      CoreMethod.toolboxStunStart => {
+        'phase': 'done',
+        'progress': 1.0,
+        'server': 'stun.cloudflare.com:3478',
+        'nat-type': 'full-cone',
+        'mapping': 'independent',
+        'filtering': 'independent',
+        'rfc5780': true,
+        'external-ip': '198.51.100.2',
+        'external-port': 51820,
+        'local-ip': '192.168.1.2',
+        'local-port': 51820,
+        'port-preserved': 1,
+        'latency': 22.0,
+        'jitter': 1.5,
+        'packet-loss': 0.0,
+        'error': '',
+      },
+      CoreMethod.toolboxPingStart => {
+        'session': 1,
+        'phase': 'done',
+        'target': '1.1.1.1',
+        'address': '1.1.1.1',
+        'protocol': 'icmp',
+        'count': 2,
+        'interval': 1000,
+        'sent': 2,
+        'elapsed': 1.0,
+        'replies': [
+          {'seq': 1, 'status': 'ok', 'rtt': 10.5, 'ttl': 57, 'bytes': 32},
+        ],
+        'error': '',
+      },
+      CoreMethod.toolboxAgeKeygen => {
+        'public-key': 'age1public',
+        'secret-key': 'AGE-SECRET-KEY-1SECRET',
+      },
+      CoreMethod.toolboxAgeCrypt => {'data': 'cipher', 'error': ''},
       _ => null,
     };
   }
@@ -711,4 +863,140 @@ void main() {
     expect(spilled.file, '/home/responses/1234.json');
     expect(spilled.toJson(), containsPair('file', '/home/responses/1234.json'));
   });
+
+  test('profileMerge and all toolbox RPCs send structured arguments', () async {
+    final handler = _RecordingCoreHandler();
+
+    final report = await handler.mergeProfiles(
+      const MergeProfilesParams(
+        output: '/tmp/out.yaml',
+        members: [
+          MergeMemberParams(prefix: 'A', path: '/tmp/a.yaml'),
+          MergeMemberParams(prefix: 'B', path: '/tmp/b.yaml'),
+        ],
+      ),
+    );
+    expect(report.proxies, 4);
+    expect(report.duplicates, 1);
+
+    final speed = await handler.startSpeedTest(const SpeedTestParams());
+    expect(speed.download, 50000000.0);
+    await handler.probeSpeedTest(const SpeedTestParams());
+    final servers = await handler.getSpeedTestServers(
+      const SpeedTestServersParams(search: 'Tokyo'),
+    );
+    expect(servers.single.name, 'Tokyo');
+    expect(await handler.cancelSpeedTest(), isTrue);
+
+    final trace = await handler.routeTrace(
+      const RouteTraceParams(target: 'example.com'),
+    );
+    expect(trace.matched?.adapter, 'Proxy');
+
+    final dnsRes = await handler.queryDns(
+      const DnsQueryParams(domain: 'example.com'),
+    );
+    expect(dnsRes.answers.single.data, '93.184.216.34');
+
+    final prep = await handler.prepareMrs();
+    expect(prep.geosite, 3);
+    final lookup = await handler.lookupMrs(
+      const MrsLookupParams(target: 'example.com'),
+    );
+    expect(lookup.matches.single.referenced, isTrue);
+    expect(await handler.dumpMrs('ruleset/example.mrs'), '+.example.com\n');
+    expect(await handler.cancelMrsLookup(), isTrue);
+
+    final stun = await handler.startStunTest(const StunTestParams());
+    expect(stun.natType, 'full-cone');
+    expect(stun.rfc5780, isTrue);
+    expect(await handler.cancelStunTest(), isTrue);
+
+    final ping = await handler.startLocalPing(
+      const LocalPingParams(target: '1.1.1.1'),
+    );
+    expect(ping.replies.single.status, 'ok');
+    expect(await handler.cancelLocalPing(), isTrue);
+
+    final pair = await handler.generateAgeKeyPair(hybrid: true);
+    expect(pair.publicKey, 'age1public');
+    expect(handler.calls[CoreMethod.toolboxAgeKeygen], {'hybrid': true});
+
+    final crypt = await handler.cryptAge(
+      const AgeCryptParams(
+        mode: 'encrypt',
+        data: 'hello',
+        keys: ['age1public'],
+      ),
+    );
+    expect(crypt.data, 'cipher');
+
+    for (final method in CoreMethod.values) {
+      if (handler.calls[method] case final Object arguments) {
+        expect(arguments, isA<Map>(), reason: method.wireName);
+      }
+    }
+  });
+
+  test('dispatches speedTest, stunTest and localPing core events', () async {
+    SpeedTestState? gotSpeed;
+    StunTestState? gotStun;
+    LocalPingState? gotPing;
+    final listener = _ToolboxEventListener(
+      onSpeed: (value) => gotSpeed = value,
+      onStun: (value) => gotStun = value,
+      onPing: (value) => gotPing = value,
+    );
+    coreEventManager.addListener(listener);
+    addTearDown(() => coreEventManager.removeListener(listener));
+
+    coreEventManager.sendEvent(
+      const CoreEvent(
+        type: CoreEventType.speedTest,
+        data: {'phase': 'download', 'download': 1234.0},
+      ),
+    );
+    coreEventManager.sendEvent(
+      const CoreEvent(
+        type: CoreEventType.stunTest,
+        data: {'phase': 'done', 'nat-type': 'open', 'rfc5780': true},
+      ),
+    );
+    coreEventManager.sendEvent(
+      const CoreEvent(
+        type: CoreEventType.localPing,
+        data: {
+          'phase': 'running',
+          'reply': {'seq': 1, 'status': 'ok', 'rtt': 5.0},
+        },
+      ),
+    );
+    await Future<void>.delayed(Duration.zero);
+
+    expect(gotSpeed?.phase, 'download');
+    expect(gotStun?.natType, 'open');
+    expect(gotStun?.rfc5780, isTrue);
+    expect(gotPing?.reply?.seq, 1);
+  });
+}
+
+class _ToolboxEventListener with CoreEventListener {
+  _ToolboxEventListener({
+    required this.onSpeed,
+    required this.onStun,
+    required this.onPing,
+  });
+
+  final void Function(SpeedTestState) onSpeed;
+  final void Function(StunTestState) onStun;
+  final void Function(LocalPingState) onPing;
+
+  @override
+  void onSpeedTest(SpeedTestState state) => onSpeed(state);
+
+  @override
+  void onStunTest(StunTestState state) => onStun(state);
+
+  @override
+  void onLocalPing(LocalPingState state) => onPing(state);
 }

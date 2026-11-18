@@ -483,3 +483,28 @@ abstract class ProxiesData with _$ProxiesData {
   factory ProxiesData.fromJson(Map<String, Object?> json) =>
       _$ProxiesDataFromJson(json);
 }
+
+@freezed
+abstract class MergeMemberParams with _$MergeMemberParams {
+  const factory MergeMemberParams({
+    required String path,
+    @JsonKey(name: 'providers-dir') @Default('') String providersDir,
+    @JsonKey(name: 'age-secret-key') @Default('') String ageSecretKey,
+    @Default('') String prefix,
+    @Default(false) bool refresh,
+  }) = _MergeMemberParams;
+
+  factory MergeMemberParams.fromJson(Map<String, Object?> json) =>
+      _$MergeMemberParamsFromJson(json);
+}
+
+@freezed
+abstract class MergeProfilesParams with _$MergeProfilesParams {
+  const factory MergeProfilesParams({
+    required String output,
+    required List<MergeMemberParams> members,
+  }) = _MergeProfilesParams;
+
+  factory MergeProfilesParams.fromJson(Map<String, Object?> json) =>
+      _$MergeProfilesParamsFromJson(json);
+}

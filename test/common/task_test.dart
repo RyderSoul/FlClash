@@ -248,26 +248,6 @@ void main() {
         ),
       ],
     ),
-    'subscription': ProfileOverrides(
-      subscriptions: [
-        SubscriptionBinding(
-          id: 'sub',
-          sourceId: 2,
-          name: 'Extra',
-          enabled: false,
-        ),
-      ],
-    ),
-    'rules': ProfileOverrides(
-      ruleBindings: [
-        RuleSetBinding(
-          id: 'rules',
-          sourceId: 3,
-          target: 'DIRECT',
-          enabled: false,
-        ),
-      ],
-    ),
   }.entries) {
     test(
       'disabled ${entry.key} preserves references in a Core base overlay',

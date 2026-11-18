@@ -92,5 +92,6 @@ const _$ProfileTypeEnumMap = {
 
 const _$ExtendTypeEnumMap = {
   ExtendType.standard: 'standard',
+  ExtendType.managed: 'managed',
   ExtendType.script: 'script',
 };

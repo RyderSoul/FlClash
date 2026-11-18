@@ -31,6 +31,7 @@ const (
 	profileBaseMethod        CoreMethod = "profile.base"
 	profileOutboundsMethod   CoreMethod = "profile.outbounds"
 	profileBuildMethod       CoreMethod = "profile.build"
+	profileMergeMethod       CoreMethod = "profile.merge"
 	profileClearEffectMethod CoreMethod = "profile.clearEffect"
 
 	proxyListMethod       CoreMethod = "proxy.list"
@@ -82,6 +83,23 @@ const (
 	mitmExchangeMethod            CoreMethod = "mitm.exchange"
 	mitmBodyMethod                CoreMethod = "mitm.body"
 
+	toolboxSpeedTestStartMethod   CoreMethod = "toolbox.speedTest.start"
+	toolboxSpeedTestProbeMethod   CoreMethod = "toolbox.speedTest.probe"
+	toolboxSpeedTestServersMethod CoreMethod = "toolbox.speedTest.servers"
+	toolboxSpeedTestCancelMethod  CoreMethod = "toolbox.speedTest.cancel"
+	toolboxRouteTraceMethod       CoreMethod = "toolbox.routeTrace"
+	toolboxDnsQueryMethod         CoreMethod = "toolbox.dnsQuery"
+	toolboxMrsPrepareMethod       CoreMethod = "toolbox.mrsPrepare"
+	toolboxMrsLookupMethod        CoreMethod = "toolbox.mrsLookup"
+	toolboxMrsDumpMethod          CoreMethod = "toolbox.mrsDump"
+	toolboxMrsCancelMethod        CoreMethod = "toolbox.mrsLookup.cancel"
+	toolboxStunStartMethod        CoreMethod = "toolbox.stun.start"
+	toolboxStunCancelMethod       CoreMethod = "toolbox.stun.cancel"
+	toolboxPingStartMethod        CoreMethod = "toolbox.ping.start"
+	toolboxPingCancelMethod       CoreMethod = "toolbox.ping.cancel"
+	toolboxAgeKeygenMethod        CoreMethod = "toolbox.age.keygen"
+	toolboxAgeCryptMethod         CoreMethod = "toolbox.age.crypt"
+
 	// The envelope of a batch of events, which the Core sends and never receives.
 	messageMethod CoreMethod = "message"
 )
@@ -99,6 +117,9 @@ const (
 	RouteChangedMessage   MessageType = "routeChanged"
 	DialerLoopMessage     MessageType = "dialerLoop"
 	RequestTrafficMessage MessageType = "requestTraffic"
+	SpeedTestMessage      MessageType = "speedTest"
+	StunTestMessage       MessageType = "stunTest"
+	LocalPingMessage      MessageType = "localPing"
 )
 
 type Message struct {
@@ -315,4 +336,23 @@ type GeoUpdateStatus struct {
 	Updating bool   `json:"updating"`
 	Skipped  bool   `json:"skipped,omitempty"`
 	Error    string `json:"error,omitempty"`
+}
+
+type MergeMemberParams struct {
+	Path         string `json:"path"`
+	ProvidersDir string `json:"providers-dir,omitempty"`
+	AgeSecretKey string `json:"age-secret-key,omitempty"`
+	Prefix       string `json:"prefix,omitempty"`
+	Refresh      bool   `json:"refresh,omitempty"`
+}
+
+type MergeProfilesParams struct {
+	Output  string              `json:"output"`
+	Members []MergeMemberParams `json:"members"`
+}
+
+type MergeReport struct {
+	Proxies    int `json:"proxies"`
+	Duplicates int `json:"duplicates"`
+	Groups     int `json:"groups"`
 }

@@ -5438,9 +5438,864 @@ as List<int>,
 
 
 /// @nodoc
+mixin _$BundleMember {
+
+ int get profileId; String get prefix; bool get enabled;
+/// Create a copy of BundleMember
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$BundleMemberCopyWith<BundleMember> get copyWith => _$BundleMemberCopyWithImpl<BundleMember>(this as BundleMember, _$identity);
+
+  /// Serializes this BundleMember to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as BundleMember;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BundleMember&&(identical(other.profileId, _this.profileId) || other.profileId == _this.profileId)&&(identical(other.prefix, _this.prefix) || other.prefix == _this.prefix)&&(identical(other.enabled, _this.enabled) || other.enabled == _this.enabled));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as BundleMember;
+  return Object.hash(runtimeType,_this.profileId,_this.prefix,_this.enabled);
+}
+
+@override
+String toString() {
+  final _this = this as BundleMember;
+  return 'BundleMember(profileId: ${_this.profileId}, prefix: ${_this.prefix}, enabled: ${_this.enabled})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $BundleMemberCopyWith<$Res>  {
+  factory $BundleMemberCopyWith(BundleMember value, $Res Function(BundleMember) _then) = _$BundleMemberCopyWithImpl;
+@useResult
+$Res call({
+ int profileId, String prefix, bool enabled
+});
+
+
+
+
+}
+/// @nodoc
+class _$BundleMemberCopyWithImpl<$Res>
+    implements $BundleMemberCopyWith<$Res> {
+  _$BundleMemberCopyWithImpl(this._self, this._then);
+
+  final BundleMember _self;
+  final $Res Function(BundleMember) _then;
+
+/// Create a copy of BundleMember
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? profileId = null,Object? prefix = null,Object? enabled = null,}) {
+  return _then(BundleMember(
+profileId: null == profileId ? _self.profileId : profileId // ignore: cast_nullable_to_non_nullable
+as int,prefix: null == prefix ? _self.prefix : prefix // ignore: cast_nullable_to_non_nullable
+as String,enabled: null == enabled ? _self.enabled : enabled // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [BundleMember].
+extension BundleMemberPatterns on BundleMember {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _BundleMember value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _BundleMember() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _BundleMember value)  $default,){
+final _that = this;
+switch (_that) {
+case _BundleMember():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _BundleMember value)?  $default,){
+final _that = this;
+switch (_that) {
+case _BundleMember() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int profileId,  String prefix,  bool enabled)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _BundleMember() when $default != null:
+return $default(_that.profileId,_that.prefix,_that.enabled);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int profileId,  String prefix,  bool enabled)  $default,) {final _that = this;
+switch (_that) {
+case _BundleMember():
+return $default(_that.profileId,_that.prefix,_that.enabled);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int profileId,  String prefix,  bool enabled)?  $default,) {final _that = this;
+switch (_that) {
+case _BundleMember() when $default != null:
+return $default(_that.profileId,_that.prefix,_that.enabled);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _BundleMember implements BundleMember {
+  const _BundleMember({required this.profileId, this.prefix = '', this.enabled = true});
+  factory _BundleMember.fromJson(Map<String, dynamic> json) => _$BundleMemberFromJson(json);
+
+@override final  int profileId;
+@override@JsonKey() final  String prefix;
+@override@JsonKey() final  bool enabled;
+
+/// Create a copy of BundleMember
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$BundleMemberCopyWith<_BundleMember> get copyWith => __$BundleMemberCopyWithImpl<_BundleMember>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$BundleMemberToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BundleMember&&(identical(other.profileId, profileId) || other.profileId == profileId)&&(identical(other.prefix, prefix) || other.prefix == prefix)&&(identical(other.enabled, enabled) || other.enabled == enabled));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,profileId,prefix,enabled);
+}
+
+@override
+String toString() {
+    return 'BundleMember(profileId: $profileId, prefix: $prefix, enabled: $enabled)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$BundleMemberCopyWith<$Res> implements $BundleMemberCopyWith<$Res> {
+  factory _$BundleMemberCopyWith(_BundleMember value, $Res Function(_BundleMember) _then) = __$BundleMemberCopyWithImpl;
+@override @useResult
+$Res call({
+ int profileId, String prefix, bool enabled
+});
+
+
+
+
+}
+/// @nodoc
+class __$BundleMemberCopyWithImpl<$Res>
+    implements _$BundleMemberCopyWith<$Res> {
+  __$BundleMemberCopyWithImpl(this._self, this._then);
+
+  final _BundleMember _self;
+  final $Res Function(_BundleMember) _then;
+
+/// Create a copy of BundleMember
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? profileId = null,Object? prefix = null,Object? enabled = null,}) {
+  return _then(_BundleMember(
+profileId: null == profileId ? _self.profileId : profileId // ignore: cast_nullable_to_non_nullable
+as int,prefix: null == prefix ? _self.prefix : prefix // ignore: cast_nullable_to_non_nullable
+as String,enabled: null == enabled ? _self.enabled : enabled // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$MergeReport {
+
+ int get proxies; int get duplicates; int get groups;
+/// Create a copy of MergeReport
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$MergeReportCopyWith<MergeReport> get copyWith => _$MergeReportCopyWithImpl<MergeReport>(this as MergeReport, _$identity);
+
+  /// Serializes this MergeReport to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as MergeReport;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MergeReport&&(identical(other.proxies, _this.proxies) || other.proxies == _this.proxies)&&(identical(other.duplicates, _this.duplicates) || other.duplicates == _this.duplicates)&&(identical(other.groups, _this.groups) || other.groups == _this.groups));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as MergeReport;
+  return Object.hash(runtimeType,_this.proxies,_this.duplicates,_this.groups);
+}
+
+@override
+String toString() {
+  final _this = this as MergeReport;
+  return 'MergeReport(proxies: ${_this.proxies}, duplicates: ${_this.duplicates}, groups: ${_this.groups})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $MergeReportCopyWith<$Res>  {
+  factory $MergeReportCopyWith(MergeReport value, $Res Function(MergeReport) _then) = _$MergeReportCopyWithImpl;
+@useResult
+$Res call({
+ int proxies, int duplicates, int groups
+});
+
+
+
+
+}
+/// @nodoc
+class _$MergeReportCopyWithImpl<$Res>
+    implements $MergeReportCopyWith<$Res> {
+  _$MergeReportCopyWithImpl(this._self, this._then);
+
+  final MergeReport _self;
+  final $Res Function(MergeReport) _then;
+
+/// Create a copy of MergeReport
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? proxies = null,Object? duplicates = null,Object? groups = null,}) {
+  return _then(MergeReport(
+proxies: null == proxies ? _self.proxies : proxies // ignore: cast_nullable_to_non_nullable
+as int,duplicates: null == duplicates ? _self.duplicates : duplicates // ignore: cast_nullable_to_non_nullable
+as int,groups: null == groups ? _self.groups : groups // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [MergeReport].
+extension MergeReportPatterns on MergeReport {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _MergeReport value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _MergeReport() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _MergeReport value)  $default,){
+final _that = this;
+switch (_that) {
+case _MergeReport():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _MergeReport value)?  $default,){
+final _that = this;
+switch (_that) {
+case _MergeReport() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int proxies,  int duplicates,  int groups)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _MergeReport() when $default != null:
+return $default(_that.proxies,_that.duplicates,_that.groups);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int proxies,  int duplicates,  int groups)  $default,) {final _that = this;
+switch (_that) {
+case _MergeReport():
+return $default(_that.proxies,_that.duplicates,_that.groups);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int proxies,  int duplicates,  int groups)?  $default,) {final _that = this;
+switch (_that) {
+case _MergeReport() when $default != null:
+return $default(_that.proxies,_that.duplicates,_that.groups);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _MergeReport implements MergeReport {
+  const _MergeReport({this.proxies = 0, this.duplicates = 0, this.groups = 0});
+  factory _MergeReport.fromJson(Map<String, dynamic> json) => _$MergeReportFromJson(json);
+
+@override@JsonKey() final  int proxies;
+@override@JsonKey() final  int duplicates;
+@override@JsonKey() final  int groups;
+
+/// Create a copy of MergeReport
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$MergeReportCopyWith<_MergeReport> get copyWith => __$MergeReportCopyWithImpl<_MergeReport>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$MergeReportToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MergeReport&&(identical(other.proxies, proxies) || other.proxies == proxies)&&(identical(other.duplicates, duplicates) || other.duplicates == duplicates)&&(identical(other.groups, groups) || other.groups == groups));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,proxies,duplicates,groups);
+}
+
+@override
+String toString() {
+    return 'MergeReport(proxies: $proxies, duplicates: $duplicates, groups: $groups)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$MergeReportCopyWith<$Res> implements $MergeReportCopyWith<$Res> {
+  factory _$MergeReportCopyWith(_MergeReport value, $Res Function(_MergeReport) _then) = __$MergeReportCopyWithImpl;
+@override @useResult
+$Res call({
+ int proxies, int duplicates, int groups
+});
+
+
+
+
+}
+/// @nodoc
+class __$MergeReportCopyWithImpl<$Res>
+    implements _$MergeReportCopyWith<$Res> {
+  __$MergeReportCopyWithImpl(this._self, this._then);
+
+  final _MergeReport _self;
+  final $Res Function(_MergeReport) _then;
+
+/// Create a copy of MergeReport
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? proxies = null,Object? duplicates = null,Object? groups = null,}) {
+  return _then(_MergeReport(
+proxies: null == proxies ? _self.proxies : proxies // ignore: cast_nullable_to_non_nullable
+as int,duplicates: null == duplicates ? _self.duplicates : duplicates // ignore: cast_nullable_to_non_nullable
+as int,groups: null == groups ? _self.groups : groups // ignore: cast_nullable_to_non_nullable
+as int,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$BundleConfig {
+
+ List<BundleMember> get members; MergeReport? get report;
+/// Create a copy of BundleConfig
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$BundleConfigCopyWith<BundleConfig> get copyWith => _$BundleConfigCopyWithImpl<BundleConfig>(this as BundleConfig, _$identity);
+
+  /// Serializes this BundleConfig to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as BundleConfig;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BundleConfig&&const DeepCollectionEquality().equals(other.members, _this.members)&&(identical(other.report, _this.report) || other.report == _this.report));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as BundleConfig;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.members),_this.report);
+}
+
+@override
+String toString() {
+  final _this = this as BundleConfig;
+  return 'BundleConfig(members: ${_this.members}, report: ${_this.report})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $BundleConfigCopyWith<$Res>  {
+  factory $BundleConfigCopyWith(BundleConfig value, $Res Function(BundleConfig) _then) = _$BundleConfigCopyWithImpl;
+@useResult
+$Res call({
+ List<BundleMember> members, MergeReport? report
+});
+
+
+$MergeReportCopyWith<$Res>? get report;
+
+}
+/// @nodoc
+class _$BundleConfigCopyWithImpl<$Res>
+    implements $BundleConfigCopyWith<$Res> {
+  _$BundleConfigCopyWithImpl(this._self, this._then);
+
+  final BundleConfig _self;
+  final $Res Function(BundleConfig) _then;
+
+/// Create a copy of BundleConfig
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? members = null,Object? report = freezed,}) {
+  return _then(BundleConfig(
+members: null == members ? _self.members : members // ignore: cast_nullable_to_non_nullable
+as List<BundleMember>,report: freezed == report ? _self.report : report // ignore: cast_nullable_to_non_nullable
+as MergeReport?,
+  ));
+}
+/// Create a copy of BundleConfig
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$MergeReportCopyWith<$Res>? get report {
+    if (_self.report == null) {
+    return null;
+  }
+
+  return $MergeReportCopyWith<$Res>(_self.report!, (value) {
+    return _then(_self.copyWith(report: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [BundleConfig].
+extension BundleConfigPatterns on BundleConfig {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _BundleConfig value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _BundleConfig() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _BundleConfig value)  $default,){
+final _that = this;
+switch (_that) {
+case _BundleConfig():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _BundleConfig value)?  $default,){
+final _that = this;
+switch (_that) {
+case _BundleConfig() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<BundleMember> members,  MergeReport? report)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _BundleConfig() when $default != null:
+return $default(_that.members,_that.report);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<BundleMember> members,  MergeReport? report)  $default,) {final _that = this;
+switch (_that) {
+case _BundleConfig():
+return $default(_that.members,_that.report);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<BundleMember> members,  MergeReport? report)?  $default,) {final _that = this;
+switch (_that) {
+case _BundleConfig() when $default != null:
+return $default(_that.members,_that.report);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _BundleConfig implements BundleConfig {
+  const _BundleConfig({required  List<BundleMember> members, this.report}): _members = members;
+  factory _BundleConfig.fromJson(Map<String, dynamic> json) => _$BundleConfigFromJson(json);
+
+ final  List<BundleMember> _members;
+@override List<BundleMember> get members {
+  if (_members is EqualUnmodifiableListView) return _members;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_members);
+}
+
+@override final  MergeReport? report;
+
+/// Create a copy of BundleConfig
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$BundleConfigCopyWith<_BundleConfig> get copyWith => __$BundleConfigCopyWithImpl<_BundleConfig>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$BundleConfigToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BundleConfig&&const DeepCollectionEquality().equals(other.members, _members)&&(identical(other.report, report) || other.report == report));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_members),report);
+}
+
+@override
+String toString() {
+    return 'BundleConfig(members: $members, report: $report)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$BundleConfigCopyWith<$Res> implements $BundleConfigCopyWith<$Res> {
+  factory _$BundleConfigCopyWith(_BundleConfig value, $Res Function(_BundleConfig) _then) = __$BundleConfigCopyWithImpl;
+@override @useResult
+$Res call({
+ List<BundleMember> members, MergeReport? report
+});
+
+
+@override $MergeReportCopyWith<$Res>? get report;
+
+}
+/// @nodoc
+class __$BundleConfigCopyWithImpl<$Res>
+    implements _$BundleConfigCopyWith<$Res> {
+  __$BundleConfigCopyWithImpl(this._self, this._then);
+
+  final _BundleConfig _self;
+  final $Res Function(_BundleConfig) _then;
+
+/// Create a copy of BundleConfig
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? members = null,Object? report = freezed,}) {
+  return _then(_BundleConfig(
+members: null == members ? _self._members : members // ignore: cast_nullable_to_non_nullable
+as List<BundleMember>,report: freezed == report ? _self.report : report // ignore: cast_nullable_to_non_nullable
+as MergeReport?,
+  ));
+}
+
+/// Create a copy of BundleConfig
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$MergeReportCopyWith<$Res>? get report {
+    if (_self.report == null) {
+    return null;
+  }
+
+  return $MergeReportCopyWith<$Res>(_self.report!, (value) {
+    return _then(_self.copyWith(report: value));
+  });
+}
+}
+
+
+/// @nodoc
 mixin _$ProfileOverrides {
 
- bool? get rulesEnabled; bool get replaceRules; bool? get subscriptionEnabled; bool get attachmentsEnabled; bool get chainsEnabled; List<SubscriptionBinding> get subscriptions; List<RuleSetBinding> get ruleBindings; List<ProxyChain> get chains;@JsonKey(fromJson: Dns.safeDnsFromJson) Dns get dns;@JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson) Set<DnsOverrideKey> get dnsOverrideKeys;@JsonKey(fromJson: Ntp.safeNtpFromJson) Ntp get ntp;@JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson) Set<NtpOverrideKey> get ntpOverrideKeys;@JsonKey(fromJson: Sniffer.safeSnifferFromJson) Sniffer get sniffer;@JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson) Set<SnifferOverrideKey> get snifferOverrideKeys;@JsonKey(fromJson: ProfileTun.safeFromJson) ProfileTun get tun;@JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson) Set<TunOverrideKey> get tunOverrideKeys;@JsonKey(name: 'proxy-providers') Map<String, ProxyProviderOptions> get proxyProviders;
+ bool? get rulesEnabled; bool get replaceRules; bool? get subscriptionEnabled; bool get chainsEnabled; List<ProxyChain> get chains; BundleConfig? get bundle; Map<String, bool> get scriptOptions;@JsonKey(fromJson: Dns.safeDnsFromJson) Dns get dns;@JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson) Set<DnsOverrideKey> get dnsOverrideKeys;@JsonKey(fromJson: Ntp.safeNtpFromJson) Ntp get ntp;@JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson) Set<NtpOverrideKey> get ntpOverrideKeys;@JsonKey(fromJson: Sniffer.safeSnifferFromJson) Sniffer get sniffer;@JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson) Set<SnifferOverrideKey> get snifferOverrideKeys;@JsonKey(fromJson: ProfileTun.safeFromJson) ProfileTun get tun;@JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson) Set<TunOverrideKey> get tunOverrideKeys;@JsonKey(name: 'proxy-providers') Map<String, ProxyProviderOptions> get proxyProviders;
 /// Create a copy of ProfileOverrides
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -5454,20 +6309,20 @@ $ProfileOverridesCopyWith<ProfileOverrides> get copyWith => _$ProfileOverridesCo
 @override
 bool operator ==(Object other) {
   final _this = this as ProfileOverrides;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProfileOverrides&&(identical(other.rulesEnabled, _this.rulesEnabled) || other.rulesEnabled == _this.rulesEnabled)&&(identical(other.replaceRules, _this.replaceRules) || other.replaceRules == _this.replaceRules)&&(identical(other.subscriptionEnabled, _this.subscriptionEnabled) || other.subscriptionEnabled == _this.subscriptionEnabled)&&(identical(other.attachmentsEnabled, _this.attachmentsEnabled) || other.attachmentsEnabled == _this.attachmentsEnabled)&&(identical(other.chainsEnabled, _this.chainsEnabled) || other.chainsEnabled == _this.chainsEnabled)&&const DeepCollectionEquality().equals(other.subscriptions, _this.subscriptions)&&const DeepCollectionEquality().equals(other.ruleBindings, _this.ruleBindings)&&const DeepCollectionEquality().equals(other.chains, _this.chains)&&(identical(other.dns, _this.dns) || other.dns == _this.dns)&&const DeepCollectionEquality().equals(other.dnsOverrideKeys, _this.dnsOverrideKeys)&&(identical(other.ntp, _this.ntp) || other.ntp == _this.ntp)&&const DeepCollectionEquality().equals(other.ntpOverrideKeys, _this.ntpOverrideKeys)&&(identical(other.sniffer, _this.sniffer) || other.sniffer == _this.sniffer)&&const DeepCollectionEquality().equals(other.snifferOverrideKeys, _this.snifferOverrideKeys)&&(identical(other.tun, _this.tun) || other.tun == _this.tun)&&const DeepCollectionEquality().equals(other.tunOverrideKeys, _this.tunOverrideKeys)&&const DeepCollectionEquality().equals(other.proxyProviders, _this.proxyProviders));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProfileOverrides&&(identical(other.rulesEnabled, _this.rulesEnabled) || other.rulesEnabled == _this.rulesEnabled)&&(identical(other.replaceRules, _this.replaceRules) || other.replaceRules == _this.replaceRules)&&(identical(other.subscriptionEnabled, _this.subscriptionEnabled) || other.subscriptionEnabled == _this.subscriptionEnabled)&&(identical(other.chainsEnabled, _this.chainsEnabled) || other.chainsEnabled == _this.chainsEnabled)&&const DeepCollectionEquality().equals(other.chains, _this.chains)&&(identical(other.bundle, _this.bundle) || other.bundle == _this.bundle)&&const DeepCollectionEquality().equals(other.scriptOptions, _this.scriptOptions)&&(identical(other.dns, _this.dns) || other.dns == _this.dns)&&const DeepCollectionEquality().equals(other.dnsOverrideKeys, _this.dnsOverrideKeys)&&(identical(other.ntp, _this.ntp) || other.ntp == _this.ntp)&&const DeepCollectionEquality().equals(other.ntpOverrideKeys, _this.ntpOverrideKeys)&&(identical(other.sniffer, _this.sniffer) || other.sniffer == _this.sniffer)&&const DeepCollectionEquality().equals(other.snifferOverrideKeys, _this.snifferOverrideKeys)&&(identical(other.tun, _this.tun) || other.tun == _this.tun)&&const DeepCollectionEquality().equals(other.tunOverrideKeys, _this.tunOverrideKeys)&&const DeepCollectionEquality().equals(other.proxyProviders, _this.proxyProviders));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as ProfileOverrides;
-  return Object.hash(runtimeType,_this.rulesEnabled,_this.replaceRules,_this.subscriptionEnabled,_this.attachmentsEnabled,_this.chainsEnabled,const DeepCollectionEquality().hash(_this.subscriptions),const DeepCollectionEquality().hash(_this.ruleBindings),const DeepCollectionEquality().hash(_this.chains),_this.dns,const DeepCollectionEquality().hash(_this.dnsOverrideKeys),_this.ntp,const DeepCollectionEquality().hash(_this.ntpOverrideKeys),_this.sniffer,const DeepCollectionEquality().hash(_this.snifferOverrideKeys),_this.tun,const DeepCollectionEquality().hash(_this.tunOverrideKeys),const DeepCollectionEquality().hash(_this.proxyProviders));
+  return Object.hash(runtimeType,_this.rulesEnabled,_this.replaceRules,_this.subscriptionEnabled,_this.chainsEnabled,const DeepCollectionEquality().hash(_this.chains),_this.bundle,const DeepCollectionEquality().hash(_this.scriptOptions),_this.dns,const DeepCollectionEquality().hash(_this.dnsOverrideKeys),_this.ntp,const DeepCollectionEquality().hash(_this.ntpOverrideKeys),_this.sniffer,const DeepCollectionEquality().hash(_this.snifferOverrideKeys),_this.tun,const DeepCollectionEquality().hash(_this.tunOverrideKeys),const DeepCollectionEquality().hash(_this.proxyProviders));
 }
 
 @override
 String toString() {
   final _this = this as ProfileOverrides;
-  return 'ProfileOverrides(rulesEnabled: ${_this.rulesEnabled}, replaceRules: ${_this.replaceRules}, subscriptionEnabled: ${_this.subscriptionEnabled}, attachmentsEnabled: ${_this.attachmentsEnabled}, chainsEnabled: ${_this.chainsEnabled}, subscriptions: ${_this.subscriptions}, ruleBindings: ${_this.ruleBindings}, chains: ${_this.chains}, dns: ${_this.dns}, dnsOverrideKeys: ${_this.dnsOverrideKeys}, ntp: ${_this.ntp}, ntpOverrideKeys: ${_this.ntpOverrideKeys}, sniffer: ${_this.sniffer}, snifferOverrideKeys: ${_this.snifferOverrideKeys}, tun: ${_this.tun}, tunOverrideKeys: ${_this.tunOverrideKeys}, proxyProviders: ${_this.proxyProviders})';
+  return 'ProfileOverrides(rulesEnabled: ${_this.rulesEnabled}, replaceRules: ${_this.replaceRules}, subscriptionEnabled: ${_this.subscriptionEnabled}, chainsEnabled: ${_this.chainsEnabled}, chains: ${_this.chains}, bundle: ${_this.bundle}, scriptOptions: ${_this.scriptOptions}, dns: ${_this.dns}, dnsOverrideKeys: ${_this.dnsOverrideKeys}, ntp: ${_this.ntp}, ntpOverrideKeys: ${_this.ntpOverrideKeys}, sniffer: ${_this.sniffer}, snifferOverrideKeys: ${_this.snifferOverrideKeys}, tun: ${_this.tun}, tunOverrideKeys: ${_this.tunOverrideKeys}, proxyProviders: ${_this.proxyProviders})';
 }
 
 
@@ -5478,11 +6333,11 @@ abstract mixin class $ProfileOverridesCopyWith<$Res>  {
   factory $ProfileOverridesCopyWith(ProfileOverrides value, $Res Function(ProfileOverrides) _then) = _$ProfileOverridesCopyWithImpl;
 @useResult
 $Res call({
- bool? rulesEnabled, bool replaceRules, bool? subscriptionEnabled, bool attachmentsEnabled, bool chainsEnabled, List<SubscriptionBinding> subscriptions, List<RuleSetBinding> ruleBindings, List<ProxyChain> chains,@JsonKey(fromJson: Dns.safeDnsFromJson) Dns dns,@JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson) Set<DnsOverrideKey> dnsOverrideKeys,@JsonKey(fromJson: Ntp.safeNtpFromJson) Ntp ntp,@JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson) Set<NtpOverrideKey> ntpOverrideKeys,@JsonKey(fromJson: Sniffer.safeSnifferFromJson) Sniffer sniffer,@JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson) Set<SnifferOverrideKey> snifferOverrideKeys,@JsonKey(fromJson: ProfileTun.safeFromJson) ProfileTun tun,@JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson) Set<TunOverrideKey> tunOverrideKeys,@JsonKey(name: 'proxy-providers') Map<String, ProxyProviderOptions> proxyProviders
+ bool? rulesEnabled, bool replaceRules, bool? subscriptionEnabled, bool chainsEnabled, List<ProxyChain> chains, BundleConfig? bundle, Map<String, bool> scriptOptions,@JsonKey(fromJson: Dns.safeDnsFromJson) Dns dns,@JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson) Set<DnsOverrideKey> dnsOverrideKeys,@JsonKey(fromJson: Ntp.safeNtpFromJson) Ntp ntp,@JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson) Set<NtpOverrideKey> ntpOverrideKeys,@JsonKey(fromJson: Sniffer.safeSnifferFromJson) Sniffer sniffer,@JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson) Set<SnifferOverrideKey> snifferOverrideKeys,@JsonKey(fromJson: ProfileTun.safeFromJson) ProfileTun tun,@JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson) Set<TunOverrideKey> tunOverrideKeys,@JsonKey(name: 'proxy-providers') Map<String, ProxyProviderOptions> proxyProviders
 });
 
 
-$DnsCopyWith<$Res> get dns;$NtpCopyWith<$Res> get ntp;$SnifferCopyWith<$Res> get sniffer;$ProfileTunCopyWith<$Res> get tun;
+$BundleConfigCopyWith<$Res>? get bundle;$DnsCopyWith<$Res> get dns;$NtpCopyWith<$Res> get ntp;$SnifferCopyWith<$Res> get sniffer;$ProfileTunCopyWith<$Res> get tun;
 
 }
 /// @nodoc
@@ -5495,17 +6350,16 @@ class _$ProfileOverridesCopyWithImpl<$Res>
 
 /// Create a copy of ProfileOverrides
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? rulesEnabled = freezed,Object? replaceRules = null,Object? subscriptionEnabled = freezed,Object? attachmentsEnabled = null,Object? chainsEnabled = null,Object? subscriptions = null,Object? ruleBindings = null,Object? chains = null,Object? dns = null,Object? dnsOverrideKeys = null,Object? ntp = null,Object? ntpOverrideKeys = null,Object? sniffer = null,Object? snifferOverrideKeys = null,Object? tun = null,Object? tunOverrideKeys = null,Object? proxyProviders = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? rulesEnabled = freezed,Object? replaceRules = null,Object? subscriptionEnabled = freezed,Object? chainsEnabled = null,Object? chains = null,Object? bundle = freezed,Object? scriptOptions = null,Object? dns = null,Object? dnsOverrideKeys = null,Object? ntp = null,Object? ntpOverrideKeys = null,Object? sniffer = null,Object? snifferOverrideKeys = null,Object? tun = null,Object? tunOverrideKeys = null,Object? proxyProviders = null,}) {
   return _then(ProfileOverrides(
 rulesEnabled: freezed == rulesEnabled ? _self.rulesEnabled : rulesEnabled // ignore: cast_nullable_to_non_nullable
 as bool?,replaceRules: null == replaceRules ? _self.replaceRules : replaceRules // ignore: cast_nullable_to_non_nullable
 as bool,subscriptionEnabled: freezed == subscriptionEnabled ? _self.subscriptionEnabled : subscriptionEnabled // ignore: cast_nullable_to_non_nullable
-as bool?,attachmentsEnabled: null == attachmentsEnabled ? _self.attachmentsEnabled : attachmentsEnabled // ignore: cast_nullable_to_non_nullable
-as bool,chainsEnabled: null == chainsEnabled ? _self.chainsEnabled : chainsEnabled // ignore: cast_nullable_to_non_nullable
-as bool,subscriptions: null == subscriptions ? _self.subscriptions : subscriptions // ignore: cast_nullable_to_non_nullable
-as List<SubscriptionBinding>,ruleBindings: null == ruleBindings ? _self.ruleBindings : ruleBindings // ignore: cast_nullable_to_non_nullable
-as List<RuleSetBinding>,chains: null == chains ? _self.chains : chains // ignore: cast_nullable_to_non_nullable
-as List<ProxyChain>,dns: null == dns ? _self.dns : dns // ignore: cast_nullable_to_non_nullable
+as bool?,chainsEnabled: null == chainsEnabled ? _self.chainsEnabled : chainsEnabled // ignore: cast_nullable_to_non_nullable
+as bool,chains: null == chains ? _self.chains : chains // ignore: cast_nullable_to_non_nullable
+as List<ProxyChain>,bundle: freezed == bundle ? _self.bundle : bundle // ignore: cast_nullable_to_non_nullable
+as BundleConfig?,scriptOptions: null == scriptOptions ? _self.scriptOptions : scriptOptions // ignore: cast_nullable_to_non_nullable
+as Map<String, bool>,dns: null == dns ? _self.dns : dns // ignore: cast_nullable_to_non_nullable
 as Dns,dnsOverrideKeys: null == dnsOverrideKeys ? _self.dnsOverrideKeys : dnsOverrideKeys // ignore: cast_nullable_to_non_nullable
 as Set<DnsOverrideKey>,ntp: null == ntp ? _self.ntp : ntp // ignore: cast_nullable_to_non_nullable
 as Ntp,ntpOverrideKeys: null == ntpOverrideKeys ? _self.ntpOverrideKeys : ntpOverrideKeys // ignore: cast_nullable_to_non_nullable
@@ -5518,6 +6372,18 @@ as Map<String, ProxyProviderOptions>,
   ));
 }
 /// Create a copy of ProfileOverrides
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$BundleConfigCopyWith<$Res>? get bundle {
+    if (_self.bundle == null) {
+    return null;
+  }
+
+  return $BundleConfigCopyWith<$Res>(_self.bundle!, (value) {
+    return _then(_self.copyWith(bundle: value));
+  });
+}/// Create a copy of ProfileOverrides
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -5635,10 +6501,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool? rulesEnabled,  bool replaceRules,  bool? subscriptionEnabled,  bool attachmentsEnabled,  bool chainsEnabled,  List<SubscriptionBinding> subscriptions,  List<RuleSetBinding> ruleBindings,  List<ProxyChain> chains, @JsonKey(fromJson: Dns.safeDnsFromJson)  Dns dns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys, @JsonKey(fromJson: Ntp.safeNtpFromJson)  Ntp ntp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys, @JsonKey(fromJson: Sniffer.safeSnifferFromJson)  Sniffer sniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys, @JsonKey(fromJson: ProfileTun.safeFromJson)  ProfileTun tun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool? rulesEnabled,  bool replaceRules,  bool? subscriptionEnabled,  bool chainsEnabled,  List<ProxyChain> chains,  BundleConfig? bundle,  Map<String, bool> scriptOptions, @JsonKey(fromJson: Dns.safeDnsFromJson)  Dns dns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys, @JsonKey(fromJson: Ntp.safeNtpFromJson)  Ntp ntp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys, @JsonKey(fromJson: Sniffer.safeSnifferFromJson)  Sniffer sniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys, @JsonKey(fromJson: ProfileTun.safeFromJson)  ProfileTun tun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProfileOverrides() when $default != null:
-return $default(_that.rulesEnabled,_that.replaceRules,_that.subscriptionEnabled,_that.attachmentsEnabled,_that.chainsEnabled,_that.subscriptions,_that.ruleBindings,_that.chains,_that.dns,_that.dnsOverrideKeys,_that.ntp,_that.ntpOverrideKeys,_that.sniffer,_that.snifferOverrideKeys,_that.tun,_that.tunOverrideKeys,_that.proxyProviders);case _:
+return $default(_that.rulesEnabled,_that.replaceRules,_that.subscriptionEnabled,_that.chainsEnabled,_that.chains,_that.bundle,_that.scriptOptions,_that.dns,_that.dnsOverrideKeys,_that.ntp,_that.ntpOverrideKeys,_that.sniffer,_that.snifferOverrideKeys,_that.tun,_that.tunOverrideKeys,_that.proxyProviders);case _:
   return orElse();
 
 }
@@ -5656,10 +6522,10 @@ return $default(_that.rulesEnabled,_that.replaceRules,_that.subscriptionEnabled,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool? rulesEnabled,  bool replaceRules,  bool? subscriptionEnabled,  bool attachmentsEnabled,  bool chainsEnabled,  List<SubscriptionBinding> subscriptions,  List<RuleSetBinding> ruleBindings,  List<ProxyChain> chains, @JsonKey(fromJson: Dns.safeDnsFromJson)  Dns dns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys, @JsonKey(fromJson: Ntp.safeNtpFromJson)  Ntp ntp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys, @JsonKey(fromJson: Sniffer.safeSnifferFromJson)  Sniffer sniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys, @JsonKey(fromJson: ProfileTun.safeFromJson)  ProfileTun tun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool? rulesEnabled,  bool replaceRules,  bool? subscriptionEnabled,  bool chainsEnabled,  List<ProxyChain> chains,  BundleConfig? bundle,  Map<String, bool> scriptOptions, @JsonKey(fromJson: Dns.safeDnsFromJson)  Dns dns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys, @JsonKey(fromJson: Ntp.safeNtpFromJson)  Ntp ntp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys, @JsonKey(fromJson: Sniffer.safeSnifferFromJson)  Sniffer sniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys, @JsonKey(fromJson: ProfileTun.safeFromJson)  ProfileTun tun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders)  $default,) {final _that = this;
 switch (_that) {
 case _ProfileOverrides():
-return $default(_that.rulesEnabled,_that.replaceRules,_that.subscriptionEnabled,_that.attachmentsEnabled,_that.chainsEnabled,_that.subscriptions,_that.ruleBindings,_that.chains,_that.dns,_that.dnsOverrideKeys,_that.ntp,_that.ntpOverrideKeys,_that.sniffer,_that.snifferOverrideKeys,_that.tun,_that.tunOverrideKeys,_that.proxyProviders);case _:
+return $default(_that.rulesEnabled,_that.replaceRules,_that.subscriptionEnabled,_that.chainsEnabled,_that.chains,_that.bundle,_that.scriptOptions,_that.dns,_that.dnsOverrideKeys,_that.ntp,_that.ntpOverrideKeys,_that.sniffer,_that.snifferOverrideKeys,_that.tun,_that.tunOverrideKeys,_that.proxyProviders);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -5676,10 +6542,10 @@ return $default(_that.rulesEnabled,_that.replaceRules,_that.subscriptionEnabled,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool? rulesEnabled,  bool replaceRules,  bool? subscriptionEnabled,  bool attachmentsEnabled,  bool chainsEnabled,  List<SubscriptionBinding> subscriptions,  List<RuleSetBinding> ruleBindings,  List<ProxyChain> chains, @JsonKey(fromJson: Dns.safeDnsFromJson)  Dns dns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys, @JsonKey(fromJson: Ntp.safeNtpFromJson)  Ntp ntp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys, @JsonKey(fromJson: Sniffer.safeSnifferFromJson)  Sniffer sniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys, @JsonKey(fromJson: ProfileTun.safeFromJson)  ProfileTun tun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool? rulesEnabled,  bool replaceRules,  bool? subscriptionEnabled,  bool chainsEnabled,  List<ProxyChain> chains,  BundleConfig? bundle,  Map<String, bool> scriptOptions, @JsonKey(fromJson: Dns.safeDnsFromJson)  Dns dns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys, @JsonKey(fromJson: Ntp.safeNtpFromJson)  Ntp ntp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys, @JsonKey(fromJson: Sniffer.safeSnifferFromJson)  Sniffer sniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys, @JsonKey(fromJson: ProfileTun.safeFromJson)  ProfileTun tun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders)?  $default,) {final _that = this;
 switch (_that) {
 case _ProfileOverrides() when $default != null:
-return $default(_that.rulesEnabled,_that.replaceRules,_that.subscriptionEnabled,_that.attachmentsEnabled,_that.chainsEnabled,_that.subscriptions,_that.ruleBindings,_that.chains,_that.dns,_that.dnsOverrideKeys,_that.ntp,_that.ntpOverrideKeys,_that.sniffer,_that.snifferOverrideKeys,_that.tun,_that.tunOverrideKeys,_that.proxyProviders);case _:
+return $default(_that.rulesEnabled,_that.replaceRules,_that.subscriptionEnabled,_that.chainsEnabled,_that.chains,_that.bundle,_that.scriptOptions,_that.dns,_that.dnsOverrideKeys,_that.ntp,_that.ntpOverrideKeys,_that.sniffer,_that.snifferOverrideKeys,_that.tun,_that.tunOverrideKeys,_that.proxyProviders);case _:
   return null;
 
 }
@@ -5691,33 +6557,26 @@ return $default(_that.rulesEnabled,_that.replaceRules,_that.subscriptionEnabled,
 @JsonSerializable()
 
 class _ProfileOverrides implements ProfileOverrides {
-  const _ProfileOverrides({this.rulesEnabled, this.replaceRules = false, this.subscriptionEnabled, this.attachmentsEnabled = true, this.chainsEnabled = true,  List<SubscriptionBinding> subscriptions = const [],  List<RuleSetBinding> ruleBindings = const [],  List<ProxyChain> chains = const [], @JsonKey(fromJson: Dns.safeDnsFromJson) this.dns = defaultDns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys = const {}, @JsonKey(fromJson: Ntp.safeNtpFromJson) this.ntp = defaultNtp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys = const {}, @JsonKey(fromJson: Sniffer.safeSnifferFromJson) this.sniffer = defaultSniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys = const {}, @JsonKey(fromJson: ProfileTun.safeFromJson) this.tun = defaultProfileTun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys = const {}, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders = const {}}): _subscriptions = subscriptions,_ruleBindings = ruleBindings,_chains = chains,_dnsOverrideKeys = dnsOverrideKeys,_ntpOverrideKeys = ntpOverrideKeys,_snifferOverrideKeys = snifferOverrideKeys,_tunOverrideKeys = tunOverrideKeys,_proxyProviders = proxyProviders;
+  const _ProfileOverrides({this.rulesEnabled, this.replaceRules = false, this.subscriptionEnabled, this.chainsEnabled = true,  List<ProxyChain> chains = const [], this.bundle,  Map<String, bool> scriptOptions = const {}, @JsonKey(fromJson: Dns.safeDnsFromJson) this.dns = defaultDns, @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)  Set<DnsOverrideKey> dnsOverrideKeys = const {}, @JsonKey(fromJson: Ntp.safeNtpFromJson) this.ntp = defaultNtp, @JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson)  Set<NtpOverrideKey> ntpOverrideKeys = const {}, @JsonKey(fromJson: Sniffer.safeSnifferFromJson) this.sniffer = defaultSniffer, @JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson)  Set<SnifferOverrideKey> snifferOverrideKeys = const {}, @JsonKey(fromJson: ProfileTun.safeFromJson) this.tun = defaultProfileTun, @JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson)  Set<TunOverrideKey> tunOverrideKeys = const {}, @JsonKey(name: 'proxy-providers')  Map<String, ProxyProviderOptions> proxyProviders = const {}}): _chains = chains,_scriptOptions = scriptOptions,_dnsOverrideKeys = dnsOverrideKeys,_ntpOverrideKeys = ntpOverrideKeys,_snifferOverrideKeys = snifferOverrideKeys,_tunOverrideKeys = tunOverrideKeys,_proxyProviders = proxyProviders;
   factory _ProfileOverrides.fromJson(Map<String, dynamic> json) => _$ProfileOverridesFromJson(json);
 
 @override final  bool? rulesEnabled;
 @override@JsonKey() final  bool replaceRules;
 @override final  bool? subscriptionEnabled;
-@override@JsonKey() final  bool attachmentsEnabled;
 @override@JsonKey() final  bool chainsEnabled;
- final  List<SubscriptionBinding> _subscriptions;
-@override@JsonKey() List<SubscriptionBinding> get subscriptions {
-  if (_subscriptions is EqualUnmodifiableListView) return _subscriptions;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_subscriptions);
-}
-
- final  List<RuleSetBinding> _ruleBindings;
-@override@JsonKey() List<RuleSetBinding> get ruleBindings {
-  if (_ruleBindings is EqualUnmodifiableListView) return _ruleBindings;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_ruleBindings);
-}
-
  final  List<ProxyChain> _chains;
 @override@JsonKey() List<ProxyChain> get chains {
   if (_chains is EqualUnmodifiableListView) return _chains;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_chains);
+}
+
+@override final  BundleConfig? bundle;
+ final  Map<String, bool> _scriptOptions;
+@override@JsonKey() Map<String, bool> get scriptOptions {
+  if (_scriptOptions is EqualUnmodifiableMapView) return _scriptOptions;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableMapView(_scriptOptions);
 }
 
 @override@JsonKey(fromJson: Dns.safeDnsFromJson) final  Dns dns;
@@ -5773,18 +6632,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProfileOverrides&&(identical(other.rulesEnabled, rulesEnabled) || other.rulesEnabled == rulesEnabled)&&(identical(other.replaceRules, replaceRules) || other.replaceRules == replaceRules)&&(identical(other.subscriptionEnabled, subscriptionEnabled) || other.subscriptionEnabled == subscriptionEnabled)&&(identical(other.attachmentsEnabled, attachmentsEnabled) || other.attachmentsEnabled == attachmentsEnabled)&&(identical(other.chainsEnabled, chainsEnabled) || other.chainsEnabled == chainsEnabled)&&const DeepCollectionEquality().equals(other.subscriptions, _subscriptions)&&const DeepCollectionEquality().equals(other.ruleBindings, _ruleBindings)&&const DeepCollectionEquality().equals(other.chains, _chains)&&(identical(other.dns, dns) || other.dns == dns)&&const DeepCollectionEquality().equals(other.dnsOverrideKeys, _dnsOverrideKeys)&&(identical(other.ntp, ntp) || other.ntp == ntp)&&const DeepCollectionEquality().equals(other.ntpOverrideKeys, _ntpOverrideKeys)&&(identical(other.sniffer, sniffer) || other.sniffer == sniffer)&&const DeepCollectionEquality().equals(other.snifferOverrideKeys, _snifferOverrideKeys)&&(identical(other.tun, tun) || other.tun == tun)&&const DeepCollectionEquality().equals(other.tunOverrideKeys, _tunOverrideKeys)&&const DeepCollectionEquality().equals(other.proxyProviders, _proxyProviders));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProfileOverrides&&(identical(other.rulesEnabled, rulesEnabled) || other.rulesEnabled == rulesEnabled)&&(identical(other.replaceRules, replaceRules) || other.replaceRules == replaceRules)&&(identical(other.subscriptionEnabled, subscriptionEnabled) || other.subscriptionEnabled == subscriptionEnabled)&&(identical(other.chainsEnabled, chainsEnabled) || other.chainsEnabled == chainsEnabled)&&const DeepCollectionEquality().equals(other.chains, _chains)&&(identical(other.bundle, bundle) || other.bundle == bundle)&&const DeepCollectionEquality().equals(other.scriptOptions, _scriptOptions)&&(identical(other.dns, dns) || other.dns == dns)&&const DeepCollectionEquality().equals(other.dnsOverrideKeys, _dnsOverrideKeys)&&(identical(other.ntp, ntp) || other.ntp == ntp)&&const DeepCollectionEquality().equals(other.ntpOverrideKeys, _ntpOverrideKeys)&&(identical(other.sniffer, sniffer) || other.sniffer == sniffer)&&const DeepCollectionEquality().equals(other.snifferOverrideKeys, _snifferOverrideKeys)&&(identical(other.tun, tun) || other.tun == tun)&&const DeepCollectionEquality().equals(other.tunOverrideKeys, _tunOverrideKeys)&&const DeepCollectionEquality().equals(other.proxyProviders, _proxyProviders));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,rulesEnabled,replaceRules,subscriptionEnabled,attachmentsEnabled,chainsEnabled,const DeepCollectionEquality().hash(_subscriptions),const DeepCollectionEquality().hash(_ruleBindings),const DeepCollectionEquality().hash(_chains),dns,const DeepCollectionEquality().hash(_dnsOverrideKeys),ntp,const DeepCollectionEquality().hash(_ntpOverrideKeys),sniffer,const DeepCollectionEquality().hash(_snifferOverrideKeys),tun,const DeepCollectionEquality().hash(_tunOverrideKeys),const DeepCollectionEquality().hash(_proxyProviders));
+    return Object.hash(runtimeType,rulesEnabled,replaceRules,subscriptionEnabled,chainsEnabled,const DeepCollectionEquality().hash(_chains),bundle,const DeepCollectionEquality().hash(_scriptOptions),dns,const DeepCollectionEquality().hash(_dnsOverrideKeys),ntp,const DeepCollectionEquality().hash(_ntpOverrideKeys),sniffer,const DeepCollectionEquality().hash(_snifferOverrideKeys),tun,const DeepCollectionEquality().hash(_tunOverrideKeys),const DeepCollectionEquality().hash(_proxyProviders));
 }
 
 @override
 String toString() {
-    return 'ProfileOverrides(rulesEnabled: $rulesEnabled, replaceRules: $replaceRules, subscriptionEnabled: $subscriptionEnabled, attachmentsEnabled: $attachmentsEnabled, chainsEnabled: $chainsEnabled, subscriptions: $subscriptions, ruleBindings: $ruleBindings, chains: $chains, dns: $dns, dnsOverrideKeys: $dnsOverrideKeys, ntp: $ntp, ntpOverrideKeys: $ntpOverrideKeys, sniffer: $sniffer, snifferOverrideKeys: $snifferOverrideKeys, tun: $tun, tunOverrideKeys: $tunOverrideKeys, proxyProviders: $proxyProviders)';
+    return 'ProfileOverrides(rulesEnabled: $rulesEnabled, replaceRules: $replaceRules, subscriptionEnabled: $subscriptionEnabled, chainsEnabled: $chainsEnabled, chains: $chains, bundle: $bundle, scriptOptions: $scriptOptions, dns: $dns, dnsOverrideKeys: $dnsOverrideKeys, ntp: $ntp, ntpOverrideKeys: $ntpOverrideKeys, sniffer: $sniffer, snifferOverrideKeys: $snifferOverrideKeys, tun: $tun, tunOverrideKeys: $tunOverrideKeys, proxyProviders: $proxyProviders)';
 }
 
 
@@ -5795,11 +6654,11 @@ abstract mixin class _$ProfileOverridesCopyWith<$Res> implements $ProfileOverrid
   factory _$ProfileOverridesCopyWith(_ProfileOverrides value, $Res Function(_ProfileOverrides) _then) = __$ProfileOverridesCopyWithImpl;
 @override @useResult
 $Res call({
- bool? rulesEnabled, bool replaceRules, bool? subscriptionEnabled, bool attachmentsEnabled, bool chainsEnabled, List<SubscriptionBinding> subscriptions, List<RuleSetBinding> ruleBindings, List<ProxyChain> chains,@JsonKey(fromJson: Dns.safeDnsFromJson) Dns dns,@JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson) Set<DnsOverrideKey> dnsOverrideKeys,@JsonKey(fromJson: Ntp.safeNtpFromJson) Ntp ntp,@JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson) Set<NtpOverrideKey> ntpOverrideKeys,@JsonKey(fromJson: Sniffer.safeSnifferFromJson) Sniffer sniffer,@JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson) Set<SnifferOverrideKey> snifferOverrideKeys,@JsonKey(fromJson: ProfileTun.safeFromJson) ProfileTun tun,@JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson) Set<TunOverrideKey> tunOverrideKeys,@JsonKey(name: 'proxy-providers') Map<String, ProxyProviderOptions> proxyProviders
+ bool? rulesEnabled, bool replaceRules, bool? subscriptionEnabled, bool chainsEnabled, List<ProxyChain> chains, BundleConfig? bundle, Map<String, bool> scriptOptions,@JsonKey(fromJson: Dns.safeDnsFromJson) Dns dns,@JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson) Set<DnsOverrideKey> dnsOverrideKeys,@JsonKey(fromJson: Ntp.safeNtpFromJson) Ntp ntp,@JsonKey(name: _ntpOverrideKeysJsonKey, fromJson: _ntpOverrideKeysFromJson) Set<NtpOverrideKey> ntpOverrideKeys,@JsonKey(fromJson: Sniffer.safeSnifferFromJson) Sniffer sniffer,@JsonKey(name: _snifferOverrideKeysJsonKey, fromJson: _snifferOverrideKeysFromJson) Set<SnifferOverrideKey> snifferOverrideKeys,@JsonKey(fromJson: ProfileTun.safeFromJson) ProfileTun tun,@JsonKey(name: _tunOverrideKeysJsonKey, fromJson: _tunOverrideKeysFromJson) Set<TunOverrideKey> tunOverrideKeys,@JsonKey(name: 'proxy-providers') Map<String, ProxyProviderOptions> proxyProviders
 });
 
 
-@override $DnsCopyWith<$Res> get dns;@override $NtpCopyWith<$Res> get ntp;@override $SnifferCopyWith<$Res> get sniffer;@override $ProfileTunCopyWith<$Res> get tun;
+@override $BundleConfigCopyWith<$Res>? get bundle;@override $DnsCopyWith<$Res> get dns;@override $NtpCopyWith<$Res> get ntp;@override $SnifferCopyWith<$Res> get sniffer;@override $ProfileTunCopyWith<$Res> get tun;
 
 }
 /// @nodoc
@@ -5812,17 +6671,16 @@ class __$ProfileOverridesCopyWithImpl<$Res>
 
 /// Create a copy of ProfileOverrides
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? rulesEnabled = freezed,Object? replaceRules = null,Object? subscriptionEnabled = freezed,Object? attachmentsEnabled = null,Object? chainsEnabled = null,Object? subscriptions = null,Object? ruleBindings = null,Object? chains = null,Object? dns = null,Object? dnsOverrideKeys = null,Object? ntp = null,Object? ntpOverrideKeys = null,Object? sniffer = null,Object? snifferOverrideKeys = null,Object? tun = null,Object? tunOverrideKeys = null,Object? proxyProviders = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? rulesEnabled = freezed,Object? replaceRules = null,Object? subscriptionEnabled = freezed,Object? chainsEnabled = null,Object? chains = null,Object? bundle = freezed,Object? scriptOptions = null,Object? dns = null,Object? dnsOverrideKeys = null,Object? ntp = null,Object? ntpOverrideKeys = null,Object? sniffer = null,Object? snifferOverrideKeys = null,Object? tun = null,Object? tunOverrideKeys = null,Object? proxyProviders = null,}) {
   return _then(_ProfileOverrides(
 rulesEnabled: freezed == rulesEnabled ? _self.rulesEnabled : rulesEnabled // ignore: cast_nullable_to_non_nullable
 as bool?,replaceRules: null == replaceRules ? _self.replaceRules : replaceRules // ignore: cast_nullable_to_non_nullable
 as bool,subscriptionEnabled: freezed == subscriptionEnabled ? _self.subscriptionEnabled : subscriptionEnabled // ignore: cast_nullable_to_non_nullable
-as bool?,attachmentsEnabled: null == attachmentsEnabled ? _self.attachmentsEnabled : attachmentsEnabled // ignore: cast_nullable_to_non_nullable
-as bool,chainsEnabled: null == chainsEnabled ? _self.chainsEnabled : chainsEnabled // ignore: cast_nullable_to_non_nullable
-as bool,subscriptions: null == subscriptions ? _self._subscriptions : subscriptions // ignore: cast_nullable_to_non_nullable
-as List<SubscriptionBinding>,ruleBindings: null == ruleBindings ? _self._ruleBindings : ruleBindings // ignore: cast_nullable_to_non_nullable
-as List<RuleSetBinding>,chains: null == chains ? _self._chains : chains // ignore: cast_nullable_to_non_nullable
-as List<ProxyChain>,dns: null == dns ? _self.dns : dns // ignore: cast_nullable_to_non_nullable
+as bool?,chainsEnabled: null == chainsEnabled ? _self.chainsEnabled : chainsEnabled // ignore: cast_nullable_to_non_nullable
+as bool,chains: null == chains ? _self._chains : chains // ignore: cast_nullable_to_non_nullable
+as List<ProxyChain>,bundle: freezed == bundle ? _self.bundle : bundle // ignore: cast_nullable_to_non_nullable
+as BundleConfig?,scriptOptions: null == scriptOptions ? _self._scriptOptions : scriptOptions // ignore: cast_nullable_to_non_nullable
+as Map<String, bool>,dns: null == dns ? _self.dns : dns // ignore: cast_nullable_to_non_nullable
 as Dns,dnsOverrideKeys: null == dnsOverrideKeys ? _self._dnsOverrideKeys : dnsOverrideKeys // ignore: cast_nullable_to_non_nullable
 as Set<DnsOverrideKey>,ntp: null == ntp ? _self.ntp : ntp // ignore: cast_nullable_to_non_nullable
 as Ntp,ntpOverrideKeys: null == ntpOverrideKeys ? _self._ntpOverrideKeys : ntpOverrideKeys // ignore: cast_nullable_to_non_nullable
@@ -5836,6 +6694,18 @@ as Map<String, ProxyProviderOptions>,
 }
 
 /// Create a copy of ProfileOverrides
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$BundleConfigCopyWith<$Res>? get bundle {
+    if (_self.bundle == null) {
+    return null;
+  }
+
+  return $BundleConfigCopyWith<$Res>(_self.bundle!, (value) {
+    return _then(_self.copyWith(bundle: value));
+  });
+}/// Create a copy of ProfileOverrides
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')

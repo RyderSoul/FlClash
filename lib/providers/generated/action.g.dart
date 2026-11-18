@@ -91,7 +91,7 @@ final class SetupActionProvider extends $NotifierProvider<SetupAction, void> {
   }
 }
 
-String _$setupActionHash() => r'9a9dc77b9c7d0056eb53f09e9d97bab196fbd0df';
+String _$setupActionHash() => r'735562f2580c0b79425569abc1196aa25cfc6509';
 
 abstract class _$SetupAction extends $Notifier<void> {
   void build();
@@ -450,7 +450,7 @@ final class ProfilesActionProvider
   }
 }
 
-String _$profilesActionHash() => r'd8a34d545b8191c46b1cff11a00ee5f33a7c2f8c';
+String _$profilesActionHash() => r'09d8fa294ea7655fd82dd165ee3b52793887737e';
 
 abstract class _$ProfilesAction extends $Notifier<void> {
   void build();
@@ -470,29 +470,29 @@ abstract class _$ProfilesAction extends $Notifier<void> {
   }
 }
 
-@ProviderFor(bindingsApplied)
-final bindingsAppliedProvider = BindingsAppliedFamily._();
+@ProviderFor(profileInputsApplied)
+final profileInputsAppliedProvider = ProfileInputsAppliedFamily._();
 
-final class BindingsAppliedProvider
+final class ProfileInputsAppliedProvider
     extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
     with $FutureModifier<bool>, $FutureProvider<bool> {
-  BindingsAppliedProvider._({
-    required BindingsAppliedFamily super.from,
+  ProfileInputsAppliedProvider._({
+    required ProfileInputsAppliedFamily super.from,
     required int super.argument,
   }) : super(
          retry: null,
-         name: r'bindingsAppliedProvider',
+         name: r'profileInputsAppliedProvider',
          isAutoDispose: true,
          dependencies: null,
          $allTransitiveDependencies: null,
        );
 
   @override
-  String debugGetCreateSourceHash() => _$bindingsAppliedHash();
+  String debugGetCreateSourceHash() => _$profileInputsAppliedHash();
 
   @override
   String toString() {
-    return r'bindingsAppliedProvider'
+    return r'profileInputsAppliedProvider'
         ''
         '($argument)';
   }
@@ -505,12 +505,12 @@ final class BindingsAppliedProvider
   @override
   FutureOr<bool> create(Ref ref) {
     final argument = this.argument as int;
-    return bindingsApplied(ref, argument);
+    return profileInputsApplied(ref, argument);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is BindingsAppliedProvider && other.argument == argument;
+    return other is ProfileInputsAppliedProvider && other.argument == argument;
   }
 
   @override
@@ -519,48 +519,48 @@ final class BindingsAppliedProvider
   }
 }
 
-String _$bindingsAppliedHash() => r'cae8b567ef5af124e4b6fab506ec52620c160c96';
+String _$profileInputsAppliedHash() =>
+    r'57bd54db6f5ebbcc13f4dae4c4bfe41eb7e68d15';
 
-final class BindingsAppliedFamily extends $Family
+final class ProfileInputsAppliedFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<bool>, int> {
-  BindingsAppliedFamily._()
+  ProfileInputsAppliedFamily._()
     : super(
         retry: null,
-        name: r'bindingsAppliedProvider',
+        name: r'profileInputsAppliedProvider',
         dependencies: null,
         $allTransitiveDependencies: null,
         isAutoDispose: true,
       );
 
-  BindingsAppliedProvider call(int profileId) =>
-      BindingsAppliedProvider._(argument: profileId, from: this);
+  ProfileInputsAppliedProvider call(int profileId) =>
+      ProfileInputsAppliedProvider._(argument: profileId, from: this);
 
   @override
-  String toString() => r'bindingsAppliedProvider';
+  String toString() => r'profileInputsAppliedProvider';
 }
 
-@ProviderFor(ProfileBindingsAction)
-final profileBindingsActionProvider = ProfileBindingsActionProvider._();
+@ProviderFor(ChainAction)
+final chainActionProvider = ChainActionProvider._();
 
-final class ProfileBindingsActionProvider
-    extends $NotifierProvider<ProfileBindingsAction, void> {
-  ProfileBindingsActionProvider._()
+final class ChainActionProvider extends $NotifierProvider<ChainAction, void> {
+  ChainActionProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'profileBindingsActionProvider',
+        name: r'chainActionProvider',
         isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$profileBindingsActionHash();
+  String debugGetCreateSourceHash() => _$chainActionHash();
 
   @$internal
   @override
-  ProfileBindingsAction create() => ProfileBindingsAction();
+  ChainAction create() => ChainAction();
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(void value) {
@@ -571,10 +571,9 @@ final class ProfileBindingsActionProvider
   }
 }
 
-String _$profileBindingsActionHash() =>
-    r'ed1ed7c4d619a1117e60ae48b41f9df0123e9811';
+String _$chainActionHash() => r'7a933fc9a01befcace4d04127e611be690afd666';
 
-abstract class _$ProfileBindingsAction extends $Notifier<void> {
+abstract class _$ChainAction extends $Notifier<void> {
   void build();
   @$mustCallSuper
   @override
@@ -729,7 +728,7 @@ final class ClashProvidersActionProvider
 }
 
 String _$clashProvidersActionHash() =>
-    r'e1cdf4540dd1c780179441eaf78c49184447ea85';
+    r'075534c22c76cc773a1b95fc8447208d98a1f173';
 
 abstract class _$ClashProvidersAction extends $Notifier<void> {
   void build();

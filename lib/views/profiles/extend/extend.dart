@@ -11,10 +11,12 @@ import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:fl_clash/views/profiles/managed_options.dart';
+import 'package:fl_clash/views/profiles/script_options.dart';
+
 import 'script.dart';
 import 'chains.dart';
 import 'standard.dart';
-import '../bindings/manager.dart';
 
 /// Long enough that a quick apply still reads as one, not as a flicker.
 const _minApplyingDuration = Duration(milliseconds: 600);
@@ -120,16 +122,6 @@ class _ExtendViewState extends ConsumerState<ExtendView> {
         child: Scaffold(
           title: appLocalizations.extend,
           isLoading: _applying,
-          iconActions: [
-            IconButtonData(
-              glyph: AppGlyphs.puzzle,
-              tooltip: appLocalizations.profileManagement,
-              onPressed: () => BaseNavigator.push(
-                context,
-                ProfileBindingsView(profileId: widget.profileId),
-              ),
-            ),
-          ],
           actions: [
             if (hasChanges || _applying)
               FilledButton(
@@ -186,11 +178,14 @@ class _ModeSection extends ConsumerWidget {
                 ),
                 title: Text(switch (type) {
                   ExtendType.standard => context.appLocalizations.standard,
+                  ExtendType.managed => context.appLocalizations.managedMode,
                   ExtendType.script => context.appLocalizations.script,
                 }),
                 subtitle: Text(switch (type) {
                   ExtendType.standard =>
                     context.appLocalizations.standardModeDesc,
+                  ExtendType.managed =>
+                    context.appLocalizations.managedModeDesc,
                   ExtendType.script => context.appLocalizations.scriptModeDesc,
                 }),
                 trailing:
@@ -257,8 +252,13 @@ class _Content extends ConsumerWidget {
     final profile = ref.watch(profileProvider(profileId));
     return SliverMainAxisGroup(
       slivers: [
-        if (profile?.extendType != ExtendType.script) const StandardContent(),
+        if (profile?.extendType == ExtendType.standard) const StandardContent(),
+        if (profile?.extendType == ExtendType.managed)
+          _ManagedContent(profile: profile!),
         if (profile?.extendType == ExtendType.script) const ScriptContent(),
+        if (profile?.extendType != ExtendType.standard &&
+            profile?.rulesOverrideEnabled == true)
+          const StandardContent(),
         SliverToBoxAdapter(
           child: MoreActionButton(
             label: context.appLocalizations.proxyChains,
@@ -269,6 +269,67 @@ class _Content extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ManagedContent extends ConsumerWidget {
+  const _ManagedContent({required this.profile});
+
+  final Profile profile;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appLocalizations = context.appLocalizations;
+    final managed = ref.watch(managedSettingProvider);
+    final version = ManagedScript.version(managed);
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      sliver: SliverToBoxAdapter(
+        child: generateSection(
+          title: appLocalizations.managedMode,
+          items: [
+            DecorationListItem(
+              title: Text(appLocalizations.managedOptions),
+              subtitle: version.isEmpty ? null : Text(version),
+              trailing: const GlyphIcon(AppGlyphs.chevronForward),
+              onPressed: () =>
+                  BaseNavigator.push(context, const ManagedOptionsView()),
+            ),
+            DecorationListItem(
+              title: Text(appLocalizations.scriptOptions),
+              subtitle: Text(
+                appLocalizations.managedOptionsCount(
+                  profile.overrides.scriptOptions.length,
+                ),
+              ),
+              trailing: const GlyphIcon(AppGlyphs.chevronForward),
+              onPressed: () => BaseNavigator.push(
+                context,
+                ScriptOptionsView(
+                  title: appLocalizations.scriptOptions,
+                  loadScript: () =>
+                      ManagedScript.read(ref.read(managedSettingProvider)),
+                  initialValues: profile.overrides.scriptOptions,
+                  defaultsLabel: managed.options,
+                  onChanged: (next) {
+                    ref
+                        .read(profilesProvider.notifier)
+                        .updateProfile(
+                          profile.id,
+                          (state) => state.copyWith(
+                            overrides: state.overrides.copyWith(
+                              scriptOptions: next,
+                            ),
+                          ),
+                        );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

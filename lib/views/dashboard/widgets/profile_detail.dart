@@ -244,6 +244,7 @@ class _ProfileDetailSheetState extends ConsumerState<ProfileDetailSheet>
 String _extendLabel(BuildContext context, ExtendType type) {
   return switch (type) {
     ExtendType.standard => context.appLocalizations.standard,
+    ExtendType.managed => context.appLocalizations.managedMode,
     ExtendType.script => context.appLocalizations.script,
   };
 }

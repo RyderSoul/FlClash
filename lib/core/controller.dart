@@ -214,6 +214,64 @@ extension type CoreController._(CoreHandlerInterface _interface)
     return readSpilledText(await _interface.buildProfile(base));
   }
 
+  Future<MergeReport> mergeProfiles(MergeProfilesParams params) {
+    return _interface.mergeProfiles(params);
+  }
+
+  Future<SpeedTestState> startSpeedTest(SpeedTestParams params) {
+    return _interface.startSpeedTest(params);
+  }
+
+  Future<SpeedTestState> probeSpeedTest(SpeedTestParams params) {
+    return _interface.probeSpeedTest(params);
+  }
+
+  Future<List<SpeedtestNetServer>> getSpeedTestServers(
+    SpeedTestServersParams params,
+  ) {
+    return _interface.getSpeedTestServers(params);
+  }
+
+  Future<bool> cancelSpeedTest() => _interface.cancelSpeedTest();
+
+  Future<RouteTraceResult> routeTrace(RouteTraceParams params) {
+    return _interface.routeTrace(params);
+  }
+
+  Future<DnsQueryResult> queryDns(DnsQueryParams params) {
+    return _interface.queryDns(params);
+  }
+
+  Future<MrsPrepareResult> prepareMrs() => _interface.prepareMrs();
+
+  Future<MrsLookupResult> lookupMrs(MrsLookupParams params) {
+    return _interface.lookupMrs(params);
+  }
+
+  Future<String> dumpMrs(String file) => _interface.dumpMrs(file);
+
+  Future<bool> cancelMrsLookup() => _interface.cancelMrsLookup();
+
+  Future<StunTestState> startStunTest(StunTestParams params) {
+    return _interface.startStunTest(params);
+  }
+
+  Future<bool> cancelStunTest() => _interface.cancelStunTest();
+
+  Future<LocalPingState> startLocalPing(LocalPingParams params) {
+    return _interface.startLocalPing(params);
+  }
+
+  Future<bool> cancelLocalPing() => _interface.cancelLocalPing();
+
+  Future<AgeKeyPair> generateAgeKeyPair({bool hybrid = false}) {
+    return _interface.generateAgeKeyPair(hybrid: hybrid);
+  }
+
+  Future<AgeCryptResult> cryptAge(AgeCryptParams params) {
+    return _interface.cryptAge(params);
+  }
+
   Future<({ProfileBase base, String path})> getProfileBase(int id) async {
     final path = await appPath.getProfilePath(id.toString());
     final base = await _interface.getProfileBase(path);

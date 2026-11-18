@@ -46,6 +46,12 @@ abstract mixin class CoreEventListener {
   void onRouteChanged(RouteSnapshot snapshot) {}
 
   void onDialerLoop(String proxyName) {}
+
+  void onSpeedTest(SpeedTestState state) {}
+
+  void onStunTest(StunTestState state) {}
+
+  void onLocalPing(LocalPingState state) {}
 }
 
 class CoreEventManager {
@@ -99,6 +105,21 @@ class CoreEventManager {
               break;
             case CoreEventType.dialerLoop:
               listener.onDialerLoop(event.data as String);
+              break;
+            case CoreEventType.speedTest:
+              listener.onSpeedTest(
+                SpeedTestState.fromJson(Map<String, Object?>.from(event.data)),
+              );
+              break;
+            case CoreEventType.stunTest:
+              listener.onStunTest(
+                StunTestState.fromJson(Map<String, Object?>.from(event.data)),
+              );
+              break;
+            case CoreEventType.localPing:
+              listener.onLocalPing(
+                LocalPingState.fromJson(Map<String, Object?>.from(event.data)),
+              );
               break;
           }
         } catch (error) {

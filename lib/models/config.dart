@@ -120,7 +120,7 @@ const List<DashboardWidget> defaultDashboardWidgets = [
   DashboardWidget.intranetIp,
   DashboardWidget.serviceStatus,
   DashboardWidget.profiles,
-  DashboardWidget.profileBindings,
+  DashboardWidget.toolbox,
   DashboardWidget.proxyGroups,
   DashboardWidget.connectionStats,
 ];
@@ -134,7 +134,7 @@ final List<DashboardWidget> platformDefaultDashboardWidgets = system.isAndroid
         DashboardWidget.nodeTraffic,
         DashboardWidget.outboundMode,
         DashboardWidget.profiles,
-        DashboardWidget.profileBindings,
+        DashboardWidget.toolbox,
         DashboardWidget.proxyGroups,
       ]
     : defaultDashboardWidgets;
@@ -160,6 +160,7 @@ const _legacyDashboardWidgets = {
   'requests': DashboardWidget.connectionStats,
   'dnsQueries': DashboardWidget.connectionStats,
   'trafficUsage': DashboardWidget.networkSpeed,
+  'profileBindings': DashboardWidget.toolbox,
 };
 
 const _retiredDashboardWidgets = {
@@ -507,6 +508,47 @@ abstract class ThemeProps with _$ThemeProps {
 }
 
 @freezed
+abstract class CustomRoute with _$CustomRoute {
+  const factory CustomRoute({
+    required String id,
+    required String name,
+    String? icon,
+    @Default([]) List<String> sets,
+    String? target,
+    @Default(true) bool enabled,
+  }) = _CustomRoute;
+
+  factory CustomRoute.fromJson(Map<String, Object?> json) =>
+      _$CustomRouteFromJson(json);
+}
+
+@freezed
+abstract class CustomRegion with _$CustomRegion {
+  const factory CustomRegion({required String name, required String regex}) =
+      _CustomRegion;
+
+  factory CustomRegion.fromJson(Map<String, Object?> json) =>
+      _$CustomRegionFromJson(json);
+}
+
+@freezed
+abstract class ManagedProps with _$ManagedProps {
+  const factory ManagedProps({
+    @Default({}) Map<String, bool> options,
+    String? syncedVersion,
+    @Default([]) List<CustomRoute> routes,
+    @Default([]) List<String> order,
+    @Default([]) List<String> removed,
+    List<String>? regions,
+    @Default([]) List<CustomRegion> customRegions,
+    @Default(false) bool smartAutoGroups,
+  }) = _ManagedProps;
+
+  factory ManagedProps.fromJson(Map<String, Object?> json) =>
+      _$ManagedPropsFromJson(json);
+}
+
+@freezed
 abstract class Config with _$Config {
   const factory Config({
     int? currentProfileId,
@@ -525,6 +567,8 @@ abstract class Config with _$Config {
     WindowProps windowProps,
     @Default(defaultClashConfig) PatchClashConfig patchClashConfig,
     @Default([]) List<String> excludeSSIDs,
+    @Default(ManagedProps()) ManagedProps managedProps,
+    @Default({}) Map<String, Map<String, bool>> scriptCustomOptions,
   }) = _Config;
 
   factory Config.fromJson(Map<String, Object?> json) =>

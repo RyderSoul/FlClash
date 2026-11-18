@@ -65,9 +65,8 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
               replaceRules: profile?.overrides.replaceRules ?? false,
               chains: profile?.overrides.chains ?? const [],
               chainsEnabled: profile?.overrides.chainsEnabled ?? true,
-              attachmentsEnabled: profile?.overrides.attachmentsEnabled ?? true,
-              subscriptions: profile?.overrides.subscriptions ?? const [],
-              ruleBindings: profile?.overrides.ruleBindings ?? const [],
+              bundle: profile?.overrides.bundle,
+              scriptOptions: profile?.overrides.scriptOptions ?? const {},
               dns: state.dns,
               dnsOverrideKeys: state.dnsOverrideKeys.intersection(
                 DnsOverrideKey.normalProfileKeys,
@@ -78,10 +77,23 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
           ),
         );
   final allProfileProviders = ref.watch(profileProvidersProvider);
-  final profiles = ref.watch(profilesProvider);
-  final clashProvidersFuture = overrides.ruleBindings.isEmpty
-      ? null
-      : ref.watch(clashProvidersProvider.future);
+  final watchedManagedProps =
+      profileType != ProfileType.custom &&
+          profile?.subscriptionOverrideEnabled == true &&
+          extendType == ExtendType.managed
+      ? ref.watch(managedSettingProvider)
+      : null;
+  final watchedScriptOptions =
+      profileType != ProfileType.custom &&
+          profile?.subscriptionOverrideEnabled == true &&
+          extendType == ExtendType.script &&
+          scriptId != null
+      ? ref.watch(
+          scriptCustomOptionsProvider.select(
+            (map) => map[scriptId.toString()] ?? const <String, bool>{},
+          ),
+        )
+      : const <String, bool>{};
   final mitmModules =
       mitmFeature &&
           ref.watch(
@@ -97,6 +109,8 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
   List<CustomProxy> appProxies = [];
   Map<int, String> proxyDialers = const {};
   Script? script;
+  ManagedProps? managedProps;
+  Map<String, bool> scriptCustomOptions = const {};
   if (profileId != null) {
     if (profileType == ProfileType.custom) {
       rules = await database.rulesDao.queryProfileRules(profileId).get();
@@ -113,30 +127,26 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
       if (profile?.rulesOverrideEnabled == true) {
         addedRules = await database.rulesDao.queryAddedRules(profileId).get();
       }
-    }
-  }
-  if (profile?.subscriptionOverrideEnabled == true && scriptId != null) {
-    script = await database.scriptsDao.get(scriptId).getSingleOrNull();
-    if (script == null) {
-      throw MessageException(
-        currentAppLocalizations.bindingSourceMissing(scriptId.toString()),
-      );
+      if (profile?.subscriptionOverrideEnabled == true) {
+        if (extendType == ExtendType.managed) {
+          managedProps = watchedManagedProps;
+        } else if (extendType == ExtendType.script && scriptId != null) {
+          scriptCustomOptions = watchedScriptOptions;
+          script = await database.scriptsDao.get(scriptId).getSingleOrNull();
+          if (script == null) {
+            throw MessageException(
+              currentAppLocalizations.bindingSourceMissing(scriptId.toString()),
+            );
+          }
+        }
+      }
     }
   }
   return SetupState(
     mitmModules: mitmModules == null
         ? const []
         : await mitmModuleSources(await mitmModules),
-    bindingProfiles: profiles
-        .where(
-          (item) => overrides.subscriptions.any(
-            (binding) => binding.sourceId == item.id && binding.enabled,
-          ),
-        )
-        .toList(),
-    clashProviders: clashProvidersFuture == null
-        ? clashProviders
-        : await clashProvidersFuture,
+    clashProviders: clashProviders,
     profileProviders: profileProviders,
     appProxies: appProxies,
     proxyDialers: proxyDialers,
@@ -148,14 +158,10 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
     extendType: extendType,
     addedRules: addedRules,
     script: script,
+    managedProps: managedProps,
+    scriptCustomOptions: scriptCustomOptions,
     overrides: overrides.copyWith(
       chains: overrides.chainsEnabled ? overrides.chains : const [],
-      ruleBindings: profile?.rulesOverrideEnabled == true
-          ? overrides.ruleBindings
-          : const [],
-      subscriptions: overrides.attachmentsEnabled
-          ? overrides.subscriptions
-          : const [],
       replaceRules:
           profileType != ProfileType.custom &&
           profile?.rulesOverrideEnabled == true &&

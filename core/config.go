@@ -27,8 +27,10 @@ import (
 )
 
 var (
-	configMu      sync.Mutex
-	currentConfig *config.Config
+	configMu         sync.Mutex
+	ageMu            sync.Mutex
+	currentConfig    *config.Config
+	currentRawConfig *config.RawConfig
 
 	errConfigNotApplied = errors.New("config is not applied")
 	errNotInitialized   = errors.New("not initialized")
@@ -106,7 +108,9 @@ func handleDecryptConfig(params DecryptConfigParams) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	ageMu.Lock()
 	buf, err = age.DecryptBytes(buf, params.AgeSecretKey)
+	ageMu.Unlock()
 	if err != nil {
 		return "", err
 	}
@@ -118,15 +122,24 @@ func handleDecryptConfig(params DecryptConfigParams) (string, error) {
 var systemTimeWritable = runtime.GOOS != "android"
 
 func loadConfig(path string) (*config.Config, error) {
+	cfg, _, err := loadConfigAndRaw(path)
+	return cfg, err
+}
+
+func loadConfigAndRaw(path string) (*config.Config, *config.RawConfig, error) {
 	buf, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	cfg, err := executor.ParseWithBytes(buf)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return withPlatformLimits(cfg), nil
+	raw, rawErr := unmarshalRawConfig(buf)
+	if rawErr != nil {
+		raw = nil
+	}
+	return withPlatformLimits(cfg), raw, nil
 }
 
 func withPlatformLimits(cfg *config.Config) *config.Config {
@@ -142,11 +155,16 @@ func runningConfigPath() string {
 }
 
 func loadSetupConfig(params *SetupParams) (*config.Config, error) {
+	cfg, _, err := loadSetupConfigWithRaw(params)
+	return cfg, err
+}
+
+func loadSetupConfigWithRaw(params *SetupParams) (*config.Config, *config.RawConfig, error) {
 	path := runningConfigPath()
 	if params.Base != nil {
-		return loadConfigWithBase(params.Base, path)
+		return loadConfigWithBaseAndRaw(params.Base, path)
 	}
-	return loadConfig(path)
+	return loadConfigAndRaw(path)
 }
 
 func applyConfig(params *SetupParams) error {
@@ -155,7 +173,7 @@ func applyConfig(params *SetupParams) error {
 	defer configMu.Unlock()
 
 	applyOptions(params.Options)
-	cfg, err := loadSetupConfig(params)
+	cfg, raw, err := loadSetupConfigWithRaw(params)
 	if err != nil {
 		// The fallback is what keeps the listeners serving while the host
 		// reports the error, but it applies a config with no proxies in it.
@@ -166,14 +184,17 @@ func applyConfig(params *SetupParams) error {
 			"config apply failed, falling back to the built-in default - no proxies will be available: %v",
 			err,
 		)
-		fallback, fallbackErr := config.ParseRawConfig(config.DefaultRawConfig())
+		defaultRaw := config.DefaultRawConfig()
+		fallback, fallbackErr := config.ParseRawConfig(defaultRaw)
 		if fallbackErr != nil {
 			return err
 		}
 		cfg = fallback
+		raw = defaultRaw
 	}
 
 	currentConfig = cfg
+	currentRawConfig = raw
 	hub.ApplyConfig(cfg)
 	patchSelectGroup(params.SelectedMap)
 	bumpRouteEpoch()

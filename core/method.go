@@ -1,6 +1,7 @@
 package core
 
 import (
+	"core/toolbox"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -196,6 +197,7 @@ var methodHandlers = map[CoreMethod]methodHandler{
 	profileBaseMethod:        withFallible(handleGetProfileBase),
 	profileOutboundsMethod:   withFallible(handleGetProfileOutbounds),
 	profileBuildMethod:       withFallible(handleBuildProfile),
+	profileMergeMethod:       withFallible(handleMergeProfiles),
 	profileClearEffectMethod: command(handleClearEffect),
 
 	proxyListMethod:       withoutArguments(handleGetProxies),
@@ -237,6 +239,23 @@ var methodHandlers = map[CoreMethod]methodHandler{
 
 	probeOutboundIPMethod: withArguments(handleOutboundIp),
 	probeServicesMethod:   withArguments(handleServiceCheck),
+
+	toolboxSpeedTestStartMethod:   withArguments(toolbox.StartSpeedTest),
+	toolboxSpeedTestProbeMethod:   withArguments(toolbox.ProbeSpeedTest),
+	toolboxSpeedTestServersMethod: withArguments(toolbox.ListSpeedTestServers),
+	toolboxSpeedTestCancelMethod:  withoutArguments(toolbox.CancelSpeedTest),
+	toolboxRouteTraceMethod:       withArguments(toolbox.RunRouteTrace),
+	toolboxDnsQueryMethod:         withArguments(toolbox.RunDnsQuery),
+	toolboxMrsPrepareMethod:       withoutArguments(toolbox.PrepareMrs),
+	toolboxMrsLookupMethod:        withArguments(toolbox.LookupMrs),
+	toolboxMrsDumpMethod:          withFallible(handleToolboxMrsDump),
+	toolboxMrsCancelMethod:        withoutArguments(toolbox.CancelMrsLookup),
+	toolboxStunStartMethod:        withArguments(toolbox.StartStunTest),
+	toolboxStunCancelMethod:       withoutArguments(toolbox.CancelStunTest),
+	toolboxPingStartMethod:        withArguments(toolbox.StartLocalPing),
+	toolboxPingCancelMethod:       withoutArguments(toolbox.CancelLocalPing),
+	toolboxAgeKeygenMethod:        withFallible(toolbox.GenerateAgeKeyPair),
+	toolboxAgeCryptMethod:         withArguments(toolbox.CryptAge),
 }
 
 func watchRouteHandler(call *MethodCall) (any, error) {

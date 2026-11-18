@@ -5,6 +5,7 @@ import 'package:prism_ui/color.dart';
 import 'app.dart';
 import 'clash_config.dart';
 import 'common.dart';
+import 'config.dart';
 import 'core.dart';
 import 'profile.dart';
 
@@ -212,8 +213,6 @@ abstract class MakeRealProfileState with _$MakeRealProfileState {
     @Default([]) List<String> authentication,
     @Default({}) Map<String, dynamic> injectedProxyProviders,
     @Default({}) Map<String, dynamic> injectedRuleProviders,
-    @Default({}) Map<int, Map<String, dynamic>> subscriptionConfigs,
-    @Default({}) Map<int, Map<String, dynamic>> ruleDefinitions,
     String? matchTarget,
     @Default(false) bool safeMode,
     @Default([]) List<MitmModuleSource> mitmModules,
@@ -259,11 +258,12 @@ abstract class SetupState with _$SetupState {
     required Script? script,
     required ProfileOverrides overrides,
     @Default([]) List<ClashProvider> clashProviders,
-    @Default([]) List<Profile> bindingProfiles,
     @Default({}) Map<String, int> profileProviders,
     @Default([]) List<CustomProxy> appProxies,
     @Default({}) Map<int, String> proxyDialers,
     String? matchTarget,
     @Default([]) List<MitmModuleSource> mitmModules,
+    ManagedProps? managedProps,
+    @Default({}) Map<String, bool> scriptCustomOptions,
   }) = _SetupState;
 }

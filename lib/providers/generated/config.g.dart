@@ -581,6 +581,123 @@ abstract class _$ExcludeSSIDs extends $Notifier<List<String>> {
   }
 }
 
+@ProviderFor(ManagedSetting)
+final managedSettingProvider = ManagedSettingProvider._();
+
+final class ManagedSettingProvider
+    extends $NotifierProvider<ManagedSetting, ManagedProps> {
+  ManagedSettingProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'managedSettingProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$managedSettingHash();
+
+  @$internal
+  @override
+  ManagedSetting create() => ManagedSetting();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ManagedProps value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ManagedProps>(value),
+    );
+  }
+}
+
+String _$managedSettingHash() => r'0e90d5d2209212b82072020e047bfd36d2fb246f';
+
+abstract class _$ManagedSetting extends $Notifier<ManagedProps> {
+  ManagedProps build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<ManagedProps, ManagedProps>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<ManagedProps, ManagedProps>,
+              ManagedProps,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}
+
+@ProviderFor(ScriptCustomOptions)
+final scriptCustomOptionsProvider = ScriptCustomOptionsProvider._();
+
+final class ScriptCustomOptionsProvider
+    extends
+        $NotifierProvider<ScriptCustomOptions, Map<String, Map<String, bool>>> {
+  ScriptCustomOptionsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'scriptCustomOptionsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$scriptCustomOptionsHash();
+
+  @$internal
+  @override
+  ScriptCustomOptions create() => ScriptCustomOptions();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Map<String, Map<String, bool>> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Map<String, Map<String, bool>>>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$scriptCustomOptionsHash() =>
+    r'12622ba647b512adf8a6d603d8fe6ab8b6301418';
+
+abstract class _$ScriptCustomOptions
+    extends $Notifier<Map<String, Map<String, bool>>> {
+  Map<String, Map<String, bool>> build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref =
+        this.ref
+            as $Ref<
+              Map<String, Map<String, bool>>,
+              Map<String, Map<String, bool>>
+            >;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<
+                Map<String, Map<String, bool>>,
+                Map<String, Map<String, bool>>
+              >,
+              Map<String, Map<String, bool>>,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(_config)
 final configProvider = _ConfigProvider._();
 
@@ -619,4 +736,4 @@ final class _ConfigProvider extends $FunctionalProvider<Config, Config, Config>
   }
 }
 
-String _$_configHash() => r'a9e717216fc1ca6b3526907bd578c4982bb6961a';
+String _$_configHash() => r'8e3c95034b4e840d37a017d9e07d3471f9a33c51';

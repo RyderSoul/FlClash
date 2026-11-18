@@ -141,7 +141,9 @@ extension ProfileExtension on Profile {
       overrides.rulesEnabled ?? extendType == ExtendType.standard;
 
   bool get subscriptionOverrideEnabled =>
-      overrides.subscriptionEnabled ?? extendType == ExtendType.script;
+      overrides.subscriptionEnabled ?? extendType != ExtendType.standard;
+
+  bool get isBundle => overrides.bundle != null;
 
   bool get realAutoUpdate => type == ProfileType.url && autoUpdate;
 

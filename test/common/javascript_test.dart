@@ -69,4 +69,46 @@ void main() {
       throwsA(isA<MessageException>()),
     );
   });
+
+  test('injects customOptions only when non-empty', () async {
+    answerWith(json.encode({'mode': 'rule'}));
+
+    await handleEvaluate('const ruleOptionsEnable = {};', {});
+    expect(calls.single.script, 'const ruleOptionsEnable = {};');
+
+    calls.clear();
+    await handleEvaluate(
+      'const ruleOptionsEnable = {};',
+      {},
+      customOptions: {'OpenAI': false},
+    );
+    expect(
+      calls.single.script,
+      contains('Object.assign(ruleOptionsEnable, {"OpenAI":false})'),
+    );
+  });
+
+  test('extractScriptOptions inspects Bettbox compatible scripts', () async {
+    answerWith(
+      json.encode({
+        'compatible': true,
+        'options': {'OpenAI': true, 'AdBlock': false},
+        'icons': {'OpenAI': 'OpenAI.svg'},
+        'policyGroupOptions': ['OpenAI'],
+      }),
+    );
+
+    final extracted = await extractScriptOptions(
+      'const Compatible_With_Bettbox = { policyGroupOptions: ["OpenAI"] };',
+    );
+
+    expect(extracted.compatible, isTrue);
+    expect(extracted.options, {'OpenAI': true, 'AdBlock': false});
+    expect(extracted.icons, {'OpenAI': 'OpenAI.svg'});
+    expect(extracted.policyGroupOptions, {'OpenAI'});
+
+    final empty = await extractScriptOptions('   ');
+    expect(empty.compatible, isFalse);
+    expect(empty.options, isEmpty);
+  });
 }

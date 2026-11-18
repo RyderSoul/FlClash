@@ -28,13 +28,13 @@ import '../helpers/test_profiles.dart';
 
 class _Core extends Mock implements CoreHandlerInterface {}
 
-class _ChainBindings extends ProfileBindingsAction {
+class _ChainBindings extends ChainAction {
   @override
   Future<ClashConfig> inventory(int profileId) =>
       ref.read(clashConfigProvider(profileId).future);
 
   @override
-  Future<void> validate(Profile candidate, {List<Rule>? localRules}) async {
+  Future<void> validate(Profile candidate) async {
     final config = await ref.read(coreHandlerProvider).readConfig(candidate.id);
     applyProxyChains(config, candidate.overrides.chains);
   }
@@ -93,8 +93,8 @@ void main() {
           currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
           coreStatusProvider.overrideWithBuild((_, _) => CoreStatus.connected),
           runTimeProvider.overrideWithBuild((_, _) => 1),
-          bindingsAppliedProvider.overrideWith((_, _) async => true),
-          profileBindingsActionProvider.overrideWith(() => action),
+          profileInputsAppliedProvider.overrideWith((_, _) async => true),
+          chainActionProvider.overrideWith(() => action),
         ],
       );
       globalState.container = container;
@@ -259,7 +259,7 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         profilesProvider.overrideWith(() => TestProfiles([profile])),
-        profileBindingsActionProvider.overrideWith(_ChainBindings.new),
+        chainActionProvider.overrideWith(_ChainBindings.new),
         coreHandlerProvider.overrideWithValue(CoreController.scoped(core)),
         clashConfigProvider(profile.id).overrideWith(
           (_) async => const ClashConfig(

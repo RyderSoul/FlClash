@@ -99,7 +99,7 @@ class Migration {
     3: _followSystemColors,
     4: _turnOffSidebarBlur,
     5: _addNodeTrafficCard,
-    6: _addProfileBindingsCard,
+    6: _addToolboxCard,
   };
 
   Future<Config> run() async {
@@ -253,10 +253,10 @@ Config _addNodeTrafficCard(Config config) {
   );
 }
 
-Config _addProfileBindingsCard(Config config) {
+Config _addToolboxCard(Config config) {
   final cards = {
     ...config.appSettingProps.dashboardWidgets,
-    DashboardWidget.profileBindings,
+    DashboardWidget.toolbox,
   }.toList();
   return config.copyWith(
     appSettingProps: config.appSettingProps.copyWith(dashboardWidgets: cards),

@@ -105,9 +105,9 @@ jobs:
           CGO_ENABLED: 0
         run: |
           go mod tidy -diff
-          go test -count=1 .
-          go vet . ./cmd/...
-          GOOS=android GOARCH=arm64 go vet -tags=with_gvisor . ./mobile ./tun ./platform
+          go test -count=1 . ./toolbox
+          go vet . ./toolbox ./cmd/...
+          GOOS=android GOARCH=arm64 go vet -tags=with_gvisor . ./toolbox ./mobile ./tun ./platform
 
       - name: Test Smart core integration
         working-directory: core/.smart-mihomo
@@ -144,7 +144,6 @@ jobs:
       - name: Analyze and test Flutter
         env:
           NODE_TRAFFIC_PREVIEW_DIR: /tmp/flsmart-preview
-          FLSMART_BINDING_FIXTURE: /tmp/flsmart-bindings.json
           FLSMART_PREVIEW_FONT: /usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc
         run: |
           dart format --output=none --set-exit-if-changed lib test tool plugins setup.dart
@@ -152,24 +151,20 @@ jobs:
           flutter test test/enum/enum_test.dart test/models/config_test.dart \
             test/common/app_update_test.dart test/common/migration_test.dart \
             test/common/compute_test.dart test/common/task_test.dart \
-            test/common/proxy_chain_test.dart test/common/profile_binding_test.dart test/common/smart_usage_test.dart \
+            test/common/proxy_chain_test.dart test/common/javascript_test.dart \
+            test/common/managed_script_test.dart test/common/smart_usage_test.dart \
             test/providers/custom_import_test.dart test/providers/proxies_action_test.dart \
-            test/providers/profile_bindings_action_test.dart test/providers/clash_providers_action_test.dart \
-            test/providers/state_derived_test.dart test/providers/config_test.dart \
-            test/l10n test/lint \
+            test/providers/chains_action_test.dart test/providers/clash_providers_action_test.dart \
+            test/providers/setup_state_test.dart test/providers/state_derived_test.dart \
+            test/providers/config_test.dart test/l10n test/lint \
             test/core/protocol_contract_test.dart test/views/proxies_list_test.dart \
             test/widgets/proxies_tab_test.dart test/widgets/proxies_list_test.dart \
-            test/views/dashboard test/views/smart_features_test.dart test/views/profile_bindings_test.dart \
+            test/views/dashboard test/views/smart_features_test.dart \
+            test/views/merge_profile_test.dart test/views/managed_script_views_test.dart \
+            test/views/toolbox_test.dart \
             test/providers/setup_action_test.dart test/features/profile_views_test.dart \
             test/database/generated_contract_test.dart
           dart run tool/test.dart test/widgets -- --reporter expanded
-
-      - name: Validate compiled bindings with Smart core
-        working-directory: core
-        env:
-          CGO_ENABLED: 0
-          FLSMART_BINDING_FIXTURE: /tmp/flsmart-bindings.json
-        run: go test -count=1 -run '^TestCompiledProfileBindings$' .
 
       - name: Upload panel previews
         if: always()

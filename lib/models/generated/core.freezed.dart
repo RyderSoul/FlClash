@@ -8727,4 +8727,565 @@ as List<String>,
 
 }
 
+
+/// @nodoc
+mixin _$MergeMemberParams {
+
+ String get path;@JsonKey(name: 'providers-dir') String get providersDir;@JsonKey(name: 'age-secret-key') String get ageSecretKey; String get prefix; bool get refresh;
+/// Create a copy of MergeMemberParams
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$MergeMemberParamsCopyWith<MergeMemberParams> get copyWith => _$MergeMemberParamsCopyWithImpl<MergeMemberParams>(this as MergeMemberParams, _$identity);
+
+  /// Serializes this MergeMemberParams to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as MergeMemberParams;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MergeMemberParams&&(identical(other.path, _this.path) || other.path == _this.path)&&(identical(other.providersDir, _this.providersDir) || other.providersDir == _this.providersDir)&&(identical(other.ageSecretKey, _this.ageSecretKey) || other.ageSecretKey == _this.ageSecretKey)&&(identical(other.prefix, _this.prefix) || other.prefix == _this.prefix)&&(identical(other.refresh, _this.refresh) || other.refresh == _this.refresh));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as MergeMemberParams;
+  return Object.hash(runtimeType,_this.path,_this.providersDir,_this.ageSecretKey,_this.prefix,_this.refresh);
+}
+
+@override
+String toString() {
+  final _this = this as MergeMemberParams;
+  return 'MergeMemberParams(path: ${_this.path}, providersDir: ${_this.providersDir}, ageSecretKey: ${_this.ageSecretKey}, prefix: ${_this.prefix}, refresh: ${_this.refresh})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $MergeMemberParamsCopyWith<$Res>  {
+  factory $MergeMemberParamsCopyWith(MergeMemberParams value, $Res Function(MergeMemberParams) _then) = _$MergeMemberParamsCopyWithImpl;
+@useResult
+$Res call({
+ String path,@JsonKey(name: 'providers-dir') String providersDir,@JsonKey(name: 'age-secret-key') String ageSecretKey, String prefix, bool refresh
+});
+
+
+
+
+}
+/// @nodoc
+class _$MergeMemberParamsCopyWithImpl<$Res>
+    implements $MergeMemberParamsCopyWith<$Res> {
+  _$MergeMemberParamsCopyWithImpl(this._self, this._then);
+
+  final MergeMemberParams _self;
+  final $Res Function(MergeMemberParams) _then;
+
+/// Create a copy of MergeMemberParams
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? path = null,Object? providersDir = null,Object? ageSecretKey = null,Object? prefix = null,Object? refresh = null,}) {
+  return _then(MergeMemberParams(
+path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
+as String,providersDir: null == providersDir ? _self.providersDir : providersDir // ignore: cast_nullable_to_non_nullable
+as String,ageSecretKey: null == ageSecretKey ? _self.ageSecretKey : ageSecretKey // ignore: cast_nullable_to_non_nullable
+as String,prefix: null == prefix ? _self.prefix : prefix // ignore: cast_nullable_to_non_nullable
+as String,refresh: null == refresh ? _self.refresh : refresh // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [MergeMemberParams].
+extension MergeMemberParamsPatterns on MergeMemberParams {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _MergeMemberParams value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _MergeMemberParams() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _MergeMemberParams value)  $default,){
+final _that = this;
+switch (_that) {
+case _MergeMemberParams():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _MergeMemberParams value)?  $default,){
+final _that = this;
+switch (_that) {
+case _MergeMemberParams() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String path, @JsonKey(name: 'providers-dir')  String providersDir, @JsonKey(name: 'age-secret-key')  String ageSecretKey,  String prefix,  bool refresh)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _MergeMemberParams() when $default != null:
+return $default(_that.path,_that.providersDir,_that.ageSecretKey,_that.prefix,_that.refresh);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String path, @JsonKey(name: 'providers-dir')  String providersDir, @JsonKey(name: 'age-secret-key')  String ageSecretKey,  String prefix,  bool refresh)  $default,) {final _that = this;
+switch (_that) {
+case _MergeMemberParams():
+return $default(_that.path,_that.providersDir,_that.ageSecretKey,_that.prefix,_that.refresh);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String path, @JsonKey(name: 'providers-dir')  String providersDir, @JsonKey(name: 'age-secret-key')  String ageSecretKey,  String prefix,  bool refresh)?  $default,) {final _that = this;
+switch (_that) {
+case _MergeMemberParams() when $default != null:
+return $default(_that.path,_that.providersDir,_that.ageSecretKey,_that.prefix,_that.refresh);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _MergeMemberParams implements MergeMemberParams {
+  const _MergeMemberParams({required this.path, @JsonKey(name: 'providers-dir') this.providersDir = '', @JsonKey(name: 'age-secret-key') this.ageSecretKey = '', this.prefix = '', this.refresh = false});
+  factory _MergeMemberParams.fromJson(Map<String, dynamic> json) => _$MergeMemberParamsFromJson(json);
+
+@override final  String path;
+@override@JsonKey(name: 'providers-dir') final  String providersDir;
+@override@JsonKey(name: 'age-secret-key') final  String ageSecretKey;
+@override@JsonKey() final  String prefix;
+@override@JsonKey() final  bool refresh;
+
+/// Create a copy of MergeMemberParams
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$MergeMemberParamsCopyWith<_MergeMemberParams> get copyWith => __$MergeMemberParamsCopyWithImpl<_MergeMemberParams>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$MergeMemberParamsToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MergeMemberParams&&(identical(other.path, path) || other.path == path)&&(identical(other.providersDir, providersDir) || other.providersDir == providersDir)&&(identical(other.ageSecretKey, ageSecretKey) || other.ageSecretKey == ageSecretKey)&&(identical(other.prefix, prefix) || other.prefix == prefix)&&(identical(other.refresh, refresh) || other.refresh == refresh));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,path,providersDir,ageSecretKey,prefix,refresh);
+}
+
+@override
+String toString() {
+    return 'MergeMemberParams(path: $path, providersDir: $providersDir, ageSecretKey: $ageSecretKey, prefix: $prefix, refresh: $refresh)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$MergeMemberParamsCopyWith<$Res> implements $MergeMemberParamsCopyWith<$Res> {
+  factory _$MergeMemberParamsCopyWith(_MergeMemberParams value, $Res Function(_MergeMemberParams) _then) = __$MergeMemberParamsCopyWithImpl;
+@override @useResult
+$Res call({
+ String path,@JsonKey(name: 'providers-dir') String providersDir,@JsonKey(name: 'age-secret-key') String ageSecretKey, String prefix, bool refresh
+});
+
+
+
+
+}
+/// @nodoc
+class __$MergeMemberParamsCopyWithImpl<$Res>
+    implements _$MergeMemberParamsCopyWith<$Res> {
+  __$MergeMemberParamsCopyWithImpl(this._self, this._then);
+
+  final _MergeMemberParams _self;
+  final $Res Function(_MergeMemberParams) _then;
+
+/// Create a copy of MergeMemberParams
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? path = null,Object? providersDir = null,Object? ageSecretKey = null,Object? prefix = null,Object? refresh = null,}) {
+  return _then(_MergeMemberParams(
+path: null == path ? _self.path : path // ignore: cast_nullable_to_non_nullable
+as String,providersDir: null == providersDir ? _self.providersDir : providersDir // ignore: cast_nullable_to_non_nullable
+as String,ageSecretKey: null == ageSecretKey ? _self.ageSecretKey : ageSecretKey // ignore: cast_nullable_to_non_nullable
+as String,prefix: null == prefix ? _self.prefix : prefix // ignore: cast_nullable_to_non_nullable
+as String,refresh: null == refresh ? _self.refresh : refresh // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$MergeProfilesParams {
+
+ String get output; List<MergeMemberParams> get members;
+/// Create a copy of MergeProfilesParams
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$MergeProfilesParamsCopyWith<MergeProfilesParams> get copyWith => _$MergeProfilesParamsCopyWithImpl<MergeProfilesParams>(this as MergeProfilesParams, _$identity);
+
+  /// Serializes this MergeProfilesParams to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  final _this = this as MergeProfilesParams;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MergeProfilesParams&&(identical(other.output, _this.output) || other.output == _this.output)&&const DeepCollectionEquality().equals(other.members, _this.members));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+  final _this = this as MergeProfilesParams;
+  return Object.hash(runtimeType,_this.output,const DeepCollectionEquality().hash(_this.members));
+}
+
+@override
+String toString() {
+  final _this = this as MergeProfilesParams;
+  return 'MergeProfilesParams(output: ${_this.output}, members: ${_this.members})';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $MergeProfilesParamsCopyWith<$Res>  {
+  factory $MergeProfilesParamsCopyWith(MergeProfilesParams value, $Res Function(MergeProfilesParams) _then) = _$MergeProfilesParamsCopyWithImpl;
+@useResult
+$Res call({
+ String output, List<MergeMemberParams> members
+});
+
+
+
+
+}
+/// @nodoc
+class _$MergeProfilesParamsCopyWithImpl<$Res>
+    implements $MergeProfilesParamsCopyWith<$Res> {
+  _$MergeProfilesParamsCopyWithImpl(this._self, this._then);
+
+  final MergeProfilesParams _self;
+  final $Res Function(MergeProfilesParams) _then;
+
+/// Create a copy of MergeProfilesParams
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? output = null,Object? members = null,}) {
+  return _then(MergeProfilesParams(
+output: null == output ? _self.output : output // ignore: cast_nullable_to_non_nullable
+as String,members: null == members ? _self.members : members // ignore: cast_nullable_to_non_nullable
+as List<MergeMemberParams>,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [MergeProfilesParams].
+extension MergeProfilesParamsPatterns on MergeProfilesParams {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _MergeProfilesParams value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _MergeProfilesParams() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _MergeProfilesParams value)  $default,){
+final _that = this;
+switch (_that) {
+case _MergeProfilesParams():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _MergeProfilesParams value)?  $default,){
+final _that = this;
+switch (_that) {
+case _MergeProfilesParams() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String output,  List<MergeMemberParams> members)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _MergeProfilesParams() when $default != null:
+return $default(_that.output,_that.members);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String output,  List<MergeMemberParams> members)  $default,) {final _that = this;
+switch (_that) {
+case _MergeProfilesParams():
+return $default(_that.output,_that.members);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String output,  List<MergeMemberParams> members)?  $default,) {final _that = this;
+switch (_that) {
+case _MergeProfilesParams() when $default != null:
+return $default(_that.output,_that.members);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _MergeProfilesParams implements MergeProfilesParams {
+  const _MergeProfilesParams({required this.output, required  List<MergeMemberParams> members}): _members = members;
+  factory _MergeProfilesParams.fromJson(Map<String, dynamic> json) => _$MergeProfilesParamsFromJson(json);
+
+@override final  String output;
+ final  List<MergeMemberParams> _members;
+@override List<MergeMemberParams> get members {
+  if (_members is EqualUnmodifiableListView) return _members;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_members);
+}
+
+
+/// Create a copy of MergeProfilesParams
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$MergeProfilesParamsCopyWith<_MergeProfilesParams> get copyWith => __$MergeProfilesParamsCopyWithImpl<_MergeProfilesParams>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$MergeProfilesParamsToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MergeProfilesParams&&(identical(other.output, output) || other.output == output)&&const DeepCollectionEquality().equals(other.members, _members));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode {
+    return Object.hash(runtimeType,output,const DeepCollectionEquality().hash(_members));
+}
+
+@override
+String toString() {
+    return 'MergeProfilesParams(output: $output, members: $members)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$MergeProfilesParamsCopyWith<$Res> implements $MergeProfilesParamsCopyWith<$Res> {
+  factory _$MergeProfilesParamsCopyWith(_MergeProfilesParams value, $Res Function(_MergeProfilesParams) _then) = __$MergeProfilesParamsCopyWithImpl;
+@override @useResult
+$Res call({
+ String output, List<MergeMemberParams> members
+});
+
+
+
+
+}
+/// @nodoc
+class __$MergeProfilesParamsCopyWithImpl<$Res>
+    implements _$MergeProfilesParamsCopyWith<$Res> {
+  __$MergeProfilesParamsCopyWithImpl(this._self, this._then);
+
+  final _MergeProfilesParams _self;
+  final $Res Function(_MergeProfilesParams) _then;
+
+/// Create a copy of MergeProfilesParams
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? output = null,Object? members = null,}) {
+  return _then(_MergeProfilesParams(
+output: null == output ? _self.output : output // ignore: cast_nullable_to_non_nullable
+as String,members: null == members ? _self._members : members // ignore: cast_nullable_to_non_nullable
+as List<MergeMemberParams>,
+  ));
+}
+
+
+}
+
 // dart format on

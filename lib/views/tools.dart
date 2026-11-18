@@ -17,6 +17,7 @@ import 'config/advanced.dart';
 import 'developer.dart';
 import 'disclaimer.dart';
 import 'theme.dart';
+import 'toolbox/toolbox.dart';
 
 class ToolsView extends ConsumerStatefulWidget {
   const ToolsView({super.key});
@@ -55,6 +56,7 @@ class _ToolViewState extends ConsumerState<ToolsView> {
         if (system.isDesktop) const _HotkeyItem(),
         if (system.isAndroid) const _AccessItem(),
         const _BackupItem(),
+        const _ToolboxItem(),
         const _AdvancedConfigItem(),
         const _GeneralItem(),
       ],
@@ -190,6 +192,20 @@ class _GeneralItem extends StatelessWidget {
       leading: const GlyphIcon(AppGlyphs.settings),
       title: Text(context.appLocalizations.general),
       widget: const GeneralView(),
+    );
+  }
+}
+
+class _ToolboxItem extends StatelessWidget {
+  const _ToolboxItem();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListItem.open(
+      leading: const GlyphIcon(AppGlyphs.tools),
+      title: Text(context.appLocalizations.toolbox),
+      subtitle: Text(context.appLocalizations.toolboxDesc),
+      widget: const ToolboxView(),
     );
   }
 }

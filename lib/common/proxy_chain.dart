@@ -2,7 +2,81 @@ import 'dart:convert';
 
 import 'package:fl_clash/models/proxy_chain.dart';
 
-import 'profile_binding.dart';
+List<Map<String, dynamic>> _mappings(Object? value) => [
+  for (final item in value as List? ?? const [])
+    Map<String, dynamic>.from(item as Map),
+];
+
+Map<String, Map<String, dynamic>> _providers(Object? value) => {
+  for (final entry in (value as Map? ?? const {}).entries)
+    entry.key as String: Map<String, dynamic>.from(entry.value as Map),
+};
+
+final _prefixStart = RegExp(r'[\p{L}\p{N}]', unicode: true);
+final _prefixPattern = RegExp(
+  r'^(?:\p{Script=Han}{1,2}|(?:(?!\p{Script=Han})[\p{L}\p{N}])+)',
+  unicode: true,
+);
+
+String bundlePrefixOf(String label) {
+  final text = label.trim();
+  final start = text.indexOf(_prefixStart);
+  if (start < 0) return text;
+  return _prefixPattern.firstMatch(text.substring(start))?.group(0) ?? text;
+}
+
+const attachableGroupTypes = {
+  'select',
+  'url-test',
+  'fallback',
+  'load-balance',
+  'smart',
+};
+
+RegExp subscriptionNodeFilter(String pattern) {
+  final flags = RegExp(r'^\(\?([ims]+)\)').firstMatch(pattern);
+  final options = flags?.group(1) ?? '';
+  return RegExp(
+    flags == null ? pattern : pattern.substring(flags.end),
+    caseSensitive: !options.contains('i'),
+    multiLine: options.contains('m'),
+    dotAll: options.contains('s'),
+  );
+}
+
+String namespacedProxyFilter(
+  String pattern,
+  String prefix, {
+  bool exclude = false,
+}) {
+  final escaped = RegExp.escape(prefix).replaceAll('`', r'\x60');
+  return pattern
+      .split('`')
+      .map((part) {
+        final value = StringBuffer();
+        var inClass = false;
+        for (var index = 0; index < part.length; index++) {
+          final char = part[index];
+          if (char == r'\' && index + 1 < part.length) {
+            final next = part[++index];
+            value.write(
+              !inClass && next == 'A' ? '(?<=\\A$escaped)' : '\\$next',
+            );
+          } else if (char == '^' && !inClass) {
+            value.write('(?:^|(?<=\\A$escaped))');
+          } else {
+            if (char == '[') inClass = true;
+            if (char == ']') inClass = false;
+            value.write(char);
+          }
+        }
+        final prefixed = '\\A$escaped[\\s\\S]*?(?:$value)';
+        return exclude
+            ? '(?:$prefixed)|(?:\\A(?!$escaped)[\\s\\S]*?(?:$part))'
+            : prefixed;
+      })
+      .join('`');
+}
 
 String proxyChainHopPrefix(ProxyChain chain, int index) =>
     '${chain.name} · 第${index + 1}跳 · ';
@@ -311,4 +385,84 @@ void applyProxyChains(Map<String, dynamic> config, List<ProxyChain> chains) {
   working['proxy-providers'] = providers;
   validatePolicyReferences(working);
   config.addAll(working);
+}
+
+void validatePolicyReferences(
+  Map<String, dynamic> config, {
+  Set<String> allowedPolicies = const {},
+}) {
+  final proxies = _mappings(config['proxies']);
+  final groups = _mappings(config['proxy-groups']);
+  final providers = _providers(config['proxy-providers']);
+  final names = {
+    'DIRECT',
+    'REJECT',
+    'REJECT-DROP',
+    'PASS',
+    'COMPATIBLE',
+    'GLOBAL',
+    ...allowedPolicies,
+    ...proxies.map((p) => p['name'] as String),
+    ...groups.map((g) => g['name'] as String),
+  };
+  final providerKeys = {
+    for (final name in providers.keys) name: '@provider:$name',
+  };
+  List<String> providerDialers(Map<String, dynamic> provider) {
+    final override = (provider['override'] as Map?)?['dialer-proxy'];
+    if (override is String) {
+      return [if (override.isNotEmpty) override];
+    }
+    final dialer = provider['dialer-proxy'];
+    if (dialer is String && dialer.isNotEmpty) return [dialer];
+    return [
+      for (final node in _mappings(provider['payload']))
+        if (node['dialer-proxy'] case final String value when value.isNotEmpty)
+          value,
+    ];
+  }
+
+  names.addAll(providerKeys.values);
+  final graph = <String, List<String>>{
+    for (final node in proxies)
+      node['name'] as String: [
+        if (node['dialer-proxy'] case final String value when value.isNotEmpty)
+          value,
+      ],
+    for (final group in groups)
+      group['name'] as String: [
+        ...List<String>.from(group['proxies'] as List? ?? const []),
+        for (final name in group['use'] as List? ?? const [])
+          ?providerKeys[name],
+      ],
+    for (final entry in providers.entries)
+      providerKeys[entry.key]!: providerDialers(entry.value),
+  };
+  final visiting = <String>{};
+  final visited = <String>{};
+  void visit(String name) {
+    if (visited.contains(name)) return;
+    if (!visiting.add(name)) {
+      throw FormatException('Policy reference cycle: $name');
+    }
+    for (final next in graph[name] ?? const <String>[]) {
+      if (!names.contains(next)) {
+        throw FormatException('Policy reference missing: $next');
+      }
+      visit(next);
+    }
+    visiting.remove(name);
+    visited.add(name);
+  }
+
+  for (final group in groups) {
+    for (final name in group['use'] as List? ?? const []) {
+      if (!providers.containsKey(name)) {
+        throw FormatException('Proxy provider missing: $name');
+      }
+    }
+  }
+  for (final name in graph.keys) {
+    visit(name);
+  }
 }

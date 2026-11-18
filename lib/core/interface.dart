@@ -170,6 +170,17 @@ abstract class CoreHandlerInterface {
     );
   }
 
+  Future<MergeReport> mergeProfiles(MergeProfilesParams params) {
+    return _query(
+      CoreMethod.profileMerge,
+      _model(MergeReport.fromJson),
+      arguments: {
+        'output': params.output,
+        'members': [for (final member in params.members) member.toJson()],
+      },
+    );
+  }
+
   Future<void> clearEffect(int profileId) {
     return _command(
       CoreMethod.profileClearEffect,
@@ -448,6 +459,131 @@ abstract class CoreHandlerInterface {
       _model(MitmScriptOutput.fromJson),
       arguments: {'name': name},
       timeout: const Duration(hours: 1, minutes: 1),
+    );
+  }
+
+  Future<SpeedTestState> startSpeedTest(SpeedTestParams params) {
+    return _query(
+      CoreMethod.toolboxSpeedTestStart,
+      _model(SpeedTestState.fromJson),
+      arguments: params.toJson(),
+      timeout: Duration(seconds: (params.duration * 2) + 45),
+    );
+  }
+
+  Future<SpeedTestState> probeSpeedTest(SpeedTestParams params) {
+    return _query(
+      CoreMethod.toolboxSpeedTestProbe,
+      _model(SpeedTestState.fromJson),
+      arguments: params.toJson(),
+      timeout: const Duration(seconds: 30),
+    );
+  }
+
+  Future<List<SpeedtestNetServer>> getSpeedTestServers(
+    SpeedTestServersParams params,
+  ) {
+    return _query(
+      CoreMethod.toolboxSpeedTestServers,
+      _models(SpeedtestNetServer.fromJson),
+      arguments: params.toJson(),
+      timeout: const Duration(seconds: 30),
+    );
+  }
+
+  Future<bool> cancelSpeedTest() {
+    return _query(CoreMethod.toolboxSpeedTestCancel, _cast<bool>);
+  }
+
+  Future<RouteTraceResult> routeTrace(RouteTraceParams params) {
+    return _query(
+      CoreMethod.toolboxRouteTrace,
+      _model(RouteTraceResult.fromJson),
+      arguments: params.toJson(),
+      timeout: const Duration(seconds: 30),
+    );
+  }
+
+  Future<DnsQueryResult> queryDns(DnsQueryParams params) {
+    return _query(
+      CoreMethod.toolboxDnsQuery,
+      _model(DnsQueryResult.fromJson),
+      arguments: params.toJson(),
+      timeout: const Duration(seconds: 20),
+    );
+  }
+
+  Future<MrsPrepareResult> prepareMrs() {
+    return _query(
+      CoreMethod.toolboxMrsPrepare,
+      _model(MrsPrepareResult.fromJson),
+      timeout: const Duration(seconds: 60),
+    );
+  }
+
+  Future<MrsLookupResult> lookupMrs(MrsLookupParams params) {
+    return _query(
+      CoreMethod.toolboxMrsLookup,
+      _model(MrsLookupResult.fromJson),
+      arguments: params.toJson(),
+      timeout: const Duration(seconds: 60),
+    );
+  }
+
+  Future<String> dumpMrs(String file) {
+    return _query(
+      CoreMethod.toolboxMrsDump,
+      _cast<String>,
+      arguments: {'file': file},
+      timeout: const Duration(seconds: 30),
+    );
+  }
+
+  Future<bool> cancelMrsLookup() {
+    return _query(CoreMethod.toolboxMrsCancel, _cast<bool>);
+  }
+
+  Future<StunTestState> startStunTest(StunTestParams params) {
+    return _query(
+      CoreMethod.toolboxStunStart,
+      _model(StunTestState.fromJson),
+      arguments: params.toJson(),
+      timeout: const Duration(seconds: 45),
+    );
+  }
+
+  Future<bool> cancelStunTest() {
+    return _query(CoreMethod.toolboxStunCancel, _cast<bool>);
+  }
+
+  Future<LocalPingState> startLocalPing(LocalPingParams params) {
+    return _query(
+      CoreMethod.toolboxPingStart,
+      _model(LocalPingState.fromJson),
+      arguments: params.toJson(),
+      timeout:
+          Duration(milliseconds: params.count * params.interval) +
+          const Duration(seconds: 30),
+    );
+  }
+
+  Future<bool> cancelLocalPing() {
+    return _query(CoreMethod.toolboxPingCancel, _cast<bool>);
+  }
+
+  Future<AgeKeyPair> generateAgeKeyPair({bool hybrid = false}) {
+    return _query(
+      CoreMethod.toolboxAgeKeygen,
+      _model(AgeKeyPair.fromJson),
+      arguments: {'hybrid': hybrid},
+    );
+  }
+
+  Future<AgeCryptResult> cryptAge(AgeCryptParams params) {
+    return _query(
+      CoreMethod.toolboxAgeCrypt,
+      _model(AgeCryptResult.fromJson),
+      arguments: params.toJson(),
     );
   }
 }

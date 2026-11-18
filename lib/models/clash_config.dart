@@ -3,7 +3,6 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/core.dart';
 import 'package:fl_clash/models/proxy_chain.dart';
-import 'package:fl_clash/models/profile_binding.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:yaml/yaml.dart';
 
@@ -1661,16 +1660,50 @@ Map<String, Object?> _withLegacyTunOverride(Map<String, Object?> json) {
 }
 
 @freezed
+abstract class BundleMember with _$BundleMember {
+  const factory BundleMember({
+    required int profileId,
+    @Default('') String prefix,
+    @Default(true) bool enabled,
+  }) = _BundleMember;
+
+  factory BundleMember.fromJson(Map<String, Object?> json) =>
+      _$BundleMemberFromJson(json);
+}
+
+@freezed
+abstract class MergeReport with _$MergeReport {
+  const factory MergeReport({
+    @Default(0) int proxies,
+    @Default(0) int duplicates,
+    @Default(0) int groups,
+  }) = _MergeReport;
+
+  factory MergeReport.fromJson(Map<String, Object?> json) =>
+      _$MergeReportFromJson(json);
+}
+
+@freezed
+abstract class BundleConfig with _$BundleConfig {
+  const factory BundleConfig({
+    required List<BundleMember> members,
+    MergeReport? report,
+  }) = _BundleConfig;
+
+  factory BundleConfig.fromJson(Map<String, Object?> json) =>
+      _$BundleConfigFromJson(json);
+}
+
+@freezed
 abstract class ProfileOverrides with _$ProfileOverrides {
   const factory ProfileOverrides({
     bool? rulesEnabled,
     @Default(false) bool replaceRules,
     bool? subscriptionEnabled,
-    @Default(true) bool attachmentsEnabled,
     @Default(true) bool chainsEnabled,
-    @Default([]) List<SubscriptionBinding> subscriptions,
-    @Default([]) List<RuleSetBinding> ruleBindings,
     @Default([]) List<ProxyChain> chains,
+    BundleConfig? bundle,
+    @Default({}) Map<String, bool> scriptOptions,
     @Default(defaultDns) @JsonKey(fromJson: Dns.safeDnsFromJson) Dns dns,
     @Default({})
     @JsonKey(name: _dnsOverrideKeysJsonKey, fromJson: _dnsOverrideKeysFromJson)

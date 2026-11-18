@@ -324,4 +324,73 @@ void main() {
       true,
     );
   });
+
+  test(
+    'subscriptionNodeFilter and namespacedProxyFilter respect regex flags',
+    () {
+      expect(subscriptionNodeFilter('(?i)hk').hasMatch('HongKong HK'), true);
+      final prefixed = namespacedProxyFilter('^HK`SG', 'Sub · ');
+      expect(prefixed, contains(r'\ASub · '));
+      final excluded = namespacedProxyFilter(
+        '(?i)test',
+        'Sub · ',
+        exclude: true,
+      );
+      expect(excluded, contains(r'\A(?!Sub · )'));
+    },
+  );
+
+  test(
+    'validatePolicyReferences validates provider dialers and missing groups',
+    () {
+      Map<String, dynamic> base() => {
+        'proxies': [
+          {'name': 'original', 'type': 'socks5'},
+        ],
+        'proxy-groups': [
+          {
+            'name': 'Smart',
+            'type': 'smart',
+            'proxies': ['original'],
+          },
+        ],
+      };
+
+      final missingRef = base()
+        ..['proxy-providers'] = {
+          'unrelated': {'type': 'inline', 'payload': []},
+        };
+      (missingRef['proxy-groups'] as List).first['proxies'] = ['gone'];
+      expect(() => validatePolicyReferences(missingRef), throwsFormatException);
+
+      for (final provider in [
+        {'dialer-proxy': 'gone'},
+        {
+          'override': {'dialer-proxy': 'gone'},
+        },
+        {
+          'payload': [
+            {'name': 'remote', 'dialer-proxy': 'gone'},
+          ],
+        },
+      ]) {
+        final bad = base()..['proxy-providers'] = {'remote': provider};
+        expect(() => validatePolicyReferences(bad), throwsFormatException);
+      }
+
+      for (final override in ['', 'DIRECT']) {
+        final ok = base()
+          ..['proxy-providers'] = {
+            'remote': {
+              'dialer-proxy': 'gone',
+              'override': {'dialer-proxy': override},
+              'payload': [
+                {'name': 'remote', 'dialer-proxy': 'also gone'},
+              ],
+            },
+          };
+        expect(() => validatePolicyReferences(ok), returnsNormally);
+      }
+    },
+  );
 }

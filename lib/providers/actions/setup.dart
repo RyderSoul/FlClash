@@ -461,7 +461,7 @@ class SetupAction extends _$SetupAction {
       );
     });
     if (result != _SetupTaskResult.handoffToCoreRestart) {
-      if (ref.mounted) ref.invalidate(bindingsAppliedProvider);
+      if (ref.mounted) ref.invalidate(profileInputsAppliedProvider);
       return result;
     }
     // Release the current serial task before restartCore reapplies the profile.
@@ -500,23 +500,33 @@ class SetupAction extends _$SetupAction {
     );
     final appendSystemDns = networkSetting.appendSystemDns;
     final isCustom = setupState.profileType == ProfileType.custom;
-    final scriptContent = await setupState.script?.content;
-    if (setupState.script != null && scriptContent == null) {
+    final useManaged =
+        !isCustom &&
+        setupState.extendType == ExtendType.managed &&
+        (setupState.overrides.subscriptionEnabled ?? true) &&
+        setupState.managedProps != null;
+    final scriptContent = useManaged ? null : await setupState.script?.content;
+    if (!useManaged && setupState.script != null && scriptContent == null) {
       throw MessageException(
         currentAppLocalizations.bindingSourceMissing(setupState.script!.label),
       );
     }
-    final hasScript = scriptContent?.isNotEmpty == true;
-    final hasBindings =
-        setupState.overrides.subscriptions.any((item) => item.enabled) ||
-        setupState.overrides.ruleBindings.any((item) => item.enabled);
-    final changesOutbounds =
-        hasBindings ||
-        setupState.overrides.chains.any((chain) => chain.enabled);
+    final hasScript = useManaged || scriptContent?.isNotEmpty == true;
+    final changesOutbounds = setupState.overrides.chains.any(
+      (chain) => chain.enabled,
+    );
     final replacesRules =
         setupState.overrides.replaceRules &&
         (setupState.overrides.rulesEnabled ??
             setupState.extendType == ExtendType.standard);
+    if (!isCustom) {
+      final profile = ref.read(profileProvider(profileId));
+      if (profile != null) {
+        await ref
+            .read(profilesActionProvider.notifier)
+            .rebuildBundleIfMissing(profile);
+      }
+    }
     final profileBase =
         !isCustom && !hasScript && !changesOutbounds && !replacesRules
         ? await _core.getProfileBase(profileId)
@@ -536,8 +546,31 @@ class SetupAction extends _$SetupAction {
         : profileBase?.base.config ?? await _core.readConfig(profileId);
     final proxyGroups = isCustom ? setupState.proxyGroups : <ProxyGroup>[];
     final rules = isCustom ? setupState.rules : <Rule>[];
-    if (hasScript) {
-      rawConfig = await handleEvaluate(scriptContent!, rawConfig);
+    if (useManaged) {
+      final managed = setupState.managedProps!;
+      final prepared = await ManagedScript.prepare(managed);
+      final options = {
+        ...prepared.customOptions,
+        ...setupState.overrides.scriptOptions,
+      };
+      rawConfig = await handleEvaluate(
+        prepared.content,
+        rawConfig,
+        customOptions: options,
+      );
+      if (managed.smartAutoGroups) {
+        rawConfig = ManagedScript.applySmartAutoGroups(rawConfig);
+      }
+    } else if (scriptContent?.isNotEmpty == true) {
+      final options = {
+        ...setupState.scriptCustomOptions,
+        ...setupState.overrides.scriptOptions,
+      };
+      rawConfig = await handleEvaluate(
+        scriptContent!,
+        rawConfig,
+        customOptions: options,
+      );
     }
     final directory = await appPath.profilesPath;
     final injected = await _resolveInjectedProviders(
@@ -545,17 +578,12 @@ class SetupAction extends _$SetupAction {
       proxyGroups: proxyGroups,
       rules: rules,
     );
-    final bindings = await ref
-        .read(profileBindingsActionProvider.notifier)
-        .prepare(setupState);
     final res = await makeRealProfileTask(
       MakeRealProfileState(
         rules: hasScript ? const [] : rules,
         proxyGroups: hasScript ? const [] : proxyGroups,
         injectedProxyProviders: injected.proxies,
         injectedRuleProviders: injected.rules,
-        subscriptionConfigs: bindings.subscriptions,
-        ruleDefinitions: bindings.rules,
         profilesPath: directory,
         profileId: profileId,
         rawConfig: rawConfig,
@@ -774,10 +802,9 @@ class SetupAction extends _$SetupAction {
     final profileFailed = realProfile == null;
     final preserveOnFailure =
         profile != null &&
-        (profile.overrides.subscriptions.isNotEmpty ||
-            profile.overrides.ruleBindings.isNotEmpty ||
+        (profile.isBundle ||
             profile.overrides.chains.isNotEmpty ||
-            (profile.subscriptionOverrideEnabled && profile.scriptId != null) ||
+            profile.subscriptionOverrideEnabled ||
             profile.overrides.rulesEnabled == true);
     if (preserveOnFailure) {
       if (profileFailed) return _SetupTaskResult.failed;

@@ -72,10 +72,20 @@ class ProfilesAction extends _$ProfilesAction {
     final users = await ref
         .read(clashProvidersActionProvider.notifier)
         .profilesReferencing(ProviderKind.proxy, profile.realLabel);
-    return [
+    final result = <Profile>[
       for (final user in users)
         if (user.id != profile.id) user,
     ];
+    final seen = {for (final user in result) user.id};
+    for (final other in ref.read(profilesProvider)) {
+      if (other.id == profile.id || !seen.add(other.id)) continue;
+      final bundle = other.overrides.bundle;
+      if (bundle != null &&
+          bundle.members.any((member) => member.profileId == profile.id)) {
+        result.add(other);
+      }
+    }
+    return result;
   }
 
   /// Where a profile's own group takes a name, the name stands for that group.
@@ -126,18 +136,24 @@ class ProfilesAction extends _$ProfilesAction {
   }
 
   Future<void> updateProfiles() async {
+    final updatedIds = <int>{};
     for (final id in [
       for (final profile in ref.read(profilesProvider)) profile.id,
     ]) {
       final profile = ref.read(profilesProvider).getProfile(id);
       if (profile == null || profile.type != ProfileType.url) continue;
-      await updateProfile(profile, showLoading: true);
+      await updateProfile(profile, showLoading: true, rebuildBundles: false);
+      updatedIds.add(profile.id);
+    }
+    if (updatedIds.isNotEmpty) {
+      await _rebuildDependentBundles(updatedIds);
     }
   }
 
   Future<void> updateProfile(
     Profile profile, {
     bool showLoading = false,
+    bool rebuildBundles = true,
   }) async {
     final operation = showLoading
         ? ref.read(updatingKeysProvider.notifier).start(profile.updatingKey)
@@ -176,6 +192,9 @@ class ProfilesAction extends _$ProfilesAction {
           ),
         );
       }
+      if (rebuildBundles) {
+        await _rebuildDependentBundles({profile.id});
+      }
     } finally {
       if (operation != null) {
         ref
@@ -183,6 +202,169 @@ class ProfilesAction extends _$ProfilesAction {
             .stop(profile.updatingKey, operation);
       }
     }
+  }
+
+  Future<Profile> saveBundleProfile({
+    int? profileId,
+    required String label,
+    required List<BundleMember> members,
+    bool refresh = false,
+  }) async {
+    final cleanLabel = label.trim();
+    final profiles = ref.read(profilesProvider);
+    final existing = profileId == null ? null : profiles.getProfile(profileId);
+    final targetProfile = existing ?? Profile.normal(label: cleanLabel);
+    final report = await _mergeBundle(targetProfile, members, refresh: refresh);
+    final saved = targetProfile.copyWith(
+      label: cleanLabel.takeFirstValid([targetProfile.realLabel]),
+      type: ProfileType.file,
+      url: '',
+      extendType: existing == null
+          ? ExtendType.managed
+          : targetProfile.extendType,
+      lastUpdateDate: DateTime.now(),
+      overrides: targetProfile.overrides.copyWith(
+        bundle: BundleConfig(members: members, report: report),
+      ),
+    );
+    putProfile(saved);
+    if (saved.id == ref.read(currentProfileIdProvider)) {
+      ref.read(setupActionProvider.notifier).applyProfileDebounce();
+    }
+    return saved;
+  }
+
+  Future<Profile?> syncBundleProfile(
+    int bundleId, {
+    bool refreshUrls = true,
+  }) async {
+    final bundle = ref.read(profilesProvider).getProfile(bundleId);
+    final bundleConfig = bundle?.overrides.bundle;
+    if (bundle == null || bundleConfig == null) return null;
+    final operation = ref
+        .read(updatingKeysProvider.notifier)
+        .start(bundle.updatingKey);
+    try {
+      if (refreshUrls) {
+        final profiles = ref.read(profilesProvider);
+        for (final member in bundleConfig.members) {
+          if (!member.enabled) continue;
+          final target = profiles.getProfile(member.profileId);
+          if (target == null || target.type != ProfileType.url) continue;
+          try {
+            await updateProfile(
+              target,
+              showLoading: true,
+              rebuildBundles: false,
+            );
+          } catch (error) {
+            commonPrint.log(
+              'bundle member ${target.realLabel} update failed: ${compactError(error)}',
+              logLevel: LogLevel.warning,
+            );
+          }
+        }
+      }
+      final latest = ref.read(profilesProvider).getProfile(bundleId);
+      final latestConfig = latest?.overrides.bundle;
+      if (latest == null || latestConfig == null) return null;
+      final report = await _mergeBundle(
+        latest,
+        latestConfig.members,
+        refresh: refreshUrls,
+      );
+      final updated = latest.copyWith(
+        lastUpdateDate: DateTime.now(),
+        overrides: latest.overrides.copyWith(
+          bundle: latestConfig.copyWith(report: report),
+        ),
+      );
+      ref.read(profilesProvider.notifier).put(updated);
+      if (updated.id == ref.read(currentProfileIdProvider)) {
+        ref
+            .read(setupActionProvider.notifier)
+            .applyProfileDebounce(silence: true);
+      }
+      return updated;
+    } finally {
+      ref
+          .read(updatingKeysProvider.notifier)
+          .stop(bundle.updatingKey, operation);
+    }
+  }
+
+  Future<void> rebuildBundleIfMissing(Profile profile) async {
+    final bundle = profile.overrides.bundle;
+    if (bundle == null) return;
+    final file = File(await appPath.getProfilePath(profile.id.toString()));
+    if (await file.exists()) return;
+    await _mergeBundle(profile, bundle.members, refresh: false);
+  }
+
+  Future<void> _rebuildDependentBundles(Set<int> memberIds) async {
+    for (final profile in ref.read(profilesProvider)) {
+      final bundle = profile.overrides.bundle;
+      if (bundle == null) continue;
+      final depends = bundle.members.any(
+        (member) => member.enabled && memberIds.contains(member.profileId),
+      );
+      if (!depends) continue;
+      try {
+        await syncBundleProfile(profile.id, refreshUrls: false);
+      } catch (error) {
+        commonPrint.log(
+          'bundle rebuild ${profile.realLabel} failed: ${compactError(error)}',
+          logLevel: LogLevel.warning,
+        );
+      }
+    }
+  }
+
+  Future<MergeReport> _mergeBundle(
+    Profile bundle,
+    List<BundleMember> members, {
+    required bool refresh,
+  }) async {
+    final profiles = ref.read(profilesProvider);
+    final active = <MergeMemberParams>[];
+    final seen = <int>{};
+    for (final member in members) {
+      if (!member.enabled || !seen.add(member.profileId)) continue;
+      final target = profiles.getProfile(member.profileId);
+      if (target == null ||
+          target.type == ProfileType.custom ||
+          target.isBundle) {
+        continue;
+      }
+      final memberPath = await appPath.getProfilePath(target.id.toString());
+      final providerDir = dirname(
+        await appPath.getProviderDirPath(
+          target.id,
+          proxiesProviderDirectoryName,
+        ),
+      );
+      final prefix = member.prefix.trim().isEmpty
+          ? bundlePrefixOf(target.realLabel)
+          : member.prefix.trim();
+      active.add(
+        MergeMemberParams(
+          path: memberPath,
+          providersDir: providerDir,
+          ageSecretKey: target.ageSecretKey,
+          prefix: prefix,
+          refresh: refresh,
+        ),
+      );
+    }
+    if (active.length < 2) {
+      throw MessageException(
+        currentAppLocalizations.emptyTip(currentAppLocalizations.profile),
+      );
+    }
+    final outputPath = await appPath.getProfilePath(bundle.id.toString());
+    return _core.mergeProfiles(
+      MergeProfilesParams(output: outputPath, members: active),
+    );
   }
 
   Future<void> addProfileFormFile() async {

@@ -95,6 +95,23 @@ class ExcludeSSIDs extends _$ExcludeSSIDs with AutoDisposeNotifierMixin {
   }
 }
 
+@riverpod
+class ManagedSetting extends _$ManagedSetting with AutoDisposeNotifierMixin {
+  @override
+  ManagedProps build() {
+    return const ManagedProps();
+  }
+}
+
+@riverpod
+class ScriptCustomOptions extends _$ScriptCustomOptions
+    with AutoDisposeNotifierMixin {
+  @override
+  Map<String, Map<String, bool>> build() {
+    return const {};
+  }
+}
+
 @Riverpod(name: 'configProvider')
 Config _config(Ref ref) {
   final appSettingProps = ref.watch(appSettingProvider);
@@ -108,6 +125,8 @@ Config _config(Ref ref) {
   final proxiesStyleProps = ref.watch(proxiesStyleSettingProvider);
   final patchClashConfig = ref.watch(patchClashConfigProvider);
   final excludeSSIDs = ref.watch(excludeSSIDsProvider);
+  final managedProps = ref.watch(managedSettingProvider);
+  final scriptCustomOptions = ref.watch(scriptCustomOptionsProvider);
   return Config(
     appSettingProps: appSettingProps,
     windowProps: windowProps,
@@ -120,6 +139,8 @@ Config _config(Ref ref) {
     proxiesStyleProps: proxiesStyleProps,
     patchClashConfig: patchClashConfig,
     excludeSSIDs: excludeSSIDs,
+    managedProps: managedProps,
+    scriptCustomOptions: scriptCustomOptions,
   );
 }
 
@@ -137,6 +158,9 @@ void writeConfig(Ref ref, Config config) {
   ref.read(patchClashConfigProvider.notifier).value = config.patchClashConfig
       .ensureControllerSecret();
   ref.read(excludeSSIDsProvider.notifier).value = config.excludeSSIDs;
+  ref.read(managedSettingProvider.notifier).value = config.managedProps;
+  ref.read(scriptCustomOptionsProvider.notifier).value =
+      config.scriptCustomOptions;
 }
 
 List<Override> buildConfigOverrides(Config config) {
@@ -158,5 +182,9 @@ List<Override> buildConfigOverrides(Config config) {
       (_, _) => config.patchClashConfig,
     ),
     excludeSSIDsProvider.overrideWithBuild((_, _) => config.excludeSSIDs),
+    managedSettingProvider.overrideWithBuild((_, _) => config.managedProps),
+    scriptCustomOptionsProvider.overrideWithBuild(
+      (_, _) => config.scriptCustomOptions,
+    ),
   ];
 }

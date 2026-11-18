@@ -99,6 +99,7 @@ func handleShutdown() {
 	updater.StopGeoUpdater()
 	executor.Shutdown()
 	currentConfig = nil
+	currentRawConfig = nil
 	isInit.Store(false)
 	configMu.Unlock()
 

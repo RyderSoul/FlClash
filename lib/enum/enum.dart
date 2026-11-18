@@ -204,6 +204,9 @@ enum CoreEventType {
   geoUpdate,
   routeChanged,
   dialerLoop,
+  speedTest,
+  stunTest,
+  localPing,
 }
 
 enum FindProcessMode { always, off }
@@ -463,7 +466,7 @@ enum DashboardWidget {
   networkTakeover(platforms: desktopPlatforms),
   serviceStatus,
   profiles,
-  profileBindings,
+  toolbox,
   proxyGroups,
   connectionStats,
   intranetIp,
@@ -790,7 +793,18 @@ extension RulePayloadErrorExt on RulePayloadError {
   }
 }
 
-enum ExtendType { standard, script }
+enum ExtendType { standard, managed, script }
+
+enum RouteCategory {
+  ai,
+  streaming,
+  social,
+  gaming,
+  developer,
+  finance,
+  tech,
+  other,
+}
 
 enum RuleTarget {
   DIRECT('DIRECT'),

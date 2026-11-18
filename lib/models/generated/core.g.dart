@@ -461,6 +461,9 @@ const _$CoreEventTypeEnumMap = {
   CoreEventType.geoUpdate: 'geoUpdate',
   CoreEventType.routeChanged: 'routeChanged',
   CoreEventType.dialerLoop: 'dialerLoop',
+  CoreEventType.speedTest: 'speedTest',
+  CoreEventType.stunTest: 'stunTest',
+  CoreEventType.localPing: 'localPing',
 };
 
 _TestDelayParams _$TestDelayParamsFromJson(Map<String, dynamic> json) =>
@@ -642,3 +645,33 @@ _ProxiesData _$ProxiesDataFromJson(Map<String, dynamic> json) => _ProxiesData(
 
 Map<String, dynamic> _$ProxiesDataToJson(_ProxiesData instance) =>
     <String, dynamic>{'proxies': instance.proxies, 'all': instance.all};
+
+_MergeMemberParams _$MergeMemberParamsFromJson(Map<String, dynamic> json) =>
+    _MergeMemberParams(
+      path: json['path'] as String,
+      providersDir: json['providers-dir'] as String? ?? '',
+      ageSecretKey: json['age-secret-key'] as String? ?? '',
+      prefix: json['prefix'] as String? ?? '',
+      refresh: json['refresh'] as bool? ?? false,
+    );
+
+Map<String, dynamic> _$MergeMemberParamsToJson(_MergeMemberParams instance) =>
+    <String, dynamic>{
+      'path': instance.path,
+      'providers-dir': instance.providersDir,
+      'age-secret-key': instance.ageSecretKey,
+      'prefix': instance.prefix,
+      'refresh': instance.refresh,
+    };
+
+_MergeProfilesParams _$MergeProfilesParamsFromJson(Map<String, dynamic> json) =>
+    _MergeProfilesParams(
+      output: json['output'] as String,
+      members: (json['members'] as List<dynamic>)
+          .map((e) => MergeMemberParams.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$MergeProfilesParamsToJson(
+  _MergeProfilesParams instance,
+) => <String, dynamic>{'output': instance.output, 'members': instance.members};

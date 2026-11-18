@@ -165,7 +165,7 @@ const _$DashboardWidgetEnumMap = {
   DashboardWidget.networkTakeover: 'networkTakeover',
   DashboardWidget.serviceStatus: 'serviceStatus',
   DashboardWidget.profiles: 'profiles',
-  DashboardWidget.profileBindings: 'profileBindings',
+  DashboardWidget.toolbox: 'toolbox',
   DashboardWidget.proxyGroups: 'proxyGroups',
   DashboardWidget.connectionStats: 'connectionStats',
   DashboardWidget.intranetIp: 'intranetIp',
@@ -427,6 +427,77 @@ const _$LiquidGlassModeEnumMap = {
   LiquidGlassMode.ultra: 'ultra',
 };
 
+_CustomRoute _$CustomRouteFromJson(Map<String, dynamic> json) => _CustomRoute(
+  id: json['id'] as String,
+  name: json['name'] as String,
+  icon: json['icon'] as String?,
+  sets:
+      (json['sets'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      const [],
+  target: json['target'] as String?,
+  enabled: json['enabled'] as bool? ?? true,
+);
+
+Map<String, dynamic> _$CustomRouteToJson(_CustomRoute instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'icon': instance.icon,
+      'sets': instance.sets,
+      'target': instance.target,
+      'enabled': instance.enabled,
+    };
+
+_CustomRegion _$CustomRegionFromJson(Map<String, dynamic> json) =>
+    _CustomRegion(name: json['name'] as String, regex: json['regex'] as String);
+
+Map<String, dynamic> _$CustomRegionToJson(_CustomRegion instance) =>
+    <String, dynamic>{'name': instance.name, 'regex': instance.regex};
+
+_ManagedProps _$ManagedPropsFromJson(Map<String, dynamic> json) =>
+    _ManagedProps(
+      options:
+          (json['options'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as bool),
+          ) ??
+          const {},
+      syncedVersion: json['syncedVersion'] as String?,
+      routes:
+          (json['routes'] as List<dynamic>?)
+              ?.map((e) => CustomRoute.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      order:
+          (json['order'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+          const [],
+      removed:
+          (json['removed'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      regions: (json['regions'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      customRegions:
+          (json['customRegions'] as List<dynamic>?)
+              ?.map((e) => CustomRegion.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      smartAutoGroups: json['smartAutoGroups'] as bool? ?? false,
+    );
+
+Map<String, dynamic> _$ManagedPropsToJson(_ManagedProps instance) =>
+    <String, dynamic>{
+      'options': instance.options,
+      'syncedVersion': instance.syncedVersion,
+      'routes': instance.routes,
+      'order': instance.order,
+      'removed': instance.removed,
+      'regions': instance.regions,
+      'customRegions': instance.customRegions,
+      'smartAutoGroups': instance.smartAutoGroups,
+    };
+
 _Config _$ConfigFromJson(Map<String, dynamic> json) => _Config(
   currentProfileId: (json['currentProfileId'] as num?)?.toInt(),
   hotKeyActions:
@@ -469,6 +540,14 @@ _Config _$ConfigFromJson(Map<String, dynamic> json) => _Config(
           ?.map((e) => e as String)
           .toList() ??
       const [],
+  managedProps: json['managedProps'] == null
+      ? const ManagedProps()
+      : ManagedProps.fromJson(json['managedProps'] as Map<String, dynamic>),
+  scriptCustomOptions:
+      (json['scriptCustomOptions'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, Map<String, bool>.from(e as Map)),
+      ) ??
+      const {},
 );
 
 Map<String, dynamic> _$ConfigToJson(_Config instance) => <String, dynamic>{
@@ -483,4 +562,6 @@ Map<String, dynamic> _$ConfigToJson(_Config instance) => <String, dynamic>{
   'windowGeometry': instance.windowProps,
   'patchClashConfig': instance.patchClashConfig,
   'excludeSSIDs': instance.excludeSSIDs,
+  'managedProps': instance.managedProps,
+  'scriptCustomOptions': instance.scriptCustomOptions,
 };

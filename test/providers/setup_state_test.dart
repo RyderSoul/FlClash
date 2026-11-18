@@ -22,114 +22,47 @@ void main() {
     await testDatabase.close();
   });
 
-  for (final withRuleBinding in [false, true]) {
-    test(
-      'a script setup disposed during its query resolves with rule binding: $withRuleBinding',
-      () async {
-        const subscription = Profile(
-          id: 2,
-          label: 'Sub',
-          type: ProfileType.url,
-          autoUpdateDuration: Duration.zero,
-        );
-        final ruleSet = ClashProvider.create(label: 'Rules');
-        final script = Script(
-          id: 5,
-          label: 'Script',
-          lastUpdateTime: DateTime(2026),
-        );
-        final profile = Profile(
-          id: 1,
-          autoUpdateDuration: Duration.zero,
-          extendType: ExtendType.script,
-          scriptId: script.id,
-          overrides: ProfileOverrides(
-            rulesEnabled: true,
-            chains: const [
-              ProxyChain(id: 'chain', name: 'Chain', hops: ['Front', 'Exit']),
-            ],
-            subscriptions: const [
-              SubscriptionBinding(id: 'sub', sourceId: 2, name: 'Sub'),
-            ],
-            ruleBindings: withRuleBinding
-                ? [
-                    RuleSetBinding(
-                      id: 'rules',
-                      sourceId: ruleSet.id,
-                      target: 'DIRECT',
-                    ),
-                  ]
-                : const [],
-          ),
-        );
-        await testDatabase.scripts.put(script.toCompanion());
-        await testDatabase.clashProviders.put(ruleSet.toCompanion());
-        final container = ProviderContainer(
-          overrides: [
-            profilesProvider.overrideWith(
-              () => TestProfiles([profile, subscription]),
-            ),
-          ],
-        );
-        container.listen(clashProvidersProvider, (_, _) {});
-        await container.read(clashProvidersProvider.future);
-
-        final loading = container.read(setupStateProvider(profile.id).future);
-        container.dispose();
-        final state = await loading;
-
-        expect(state.script, script);
-        expect(state.bindingProfiles, [subscription]);
-        expect(state.clashProviders, withRuleBinding ? [ruleSet] : isEmpty);
-        expect(state.overrides.chains, profile.overrides.chains);
-      },
+  test('a script setup disposed during its query resolves', () async {
+    final script = Script(
+      id: 5,
+      label: 'Script',
+      lastUpdateTime: DateTime(2026),
     );
-  }
-
-  test(
-    'an attached subscription setup disposed during its query resolves',
-    () async {
-      const subscription = Profile(
-        id: 2,
-        label: 'Sub',
-        type: ProfileType.url,
-        autoUpdateDuration: Duration.zero,
-      );
-      const profile = Profile(
-        id: 1,
-        autoUpdateDuration: Duration.zero,
-        overrides: ProfileOverrides(
-          subscriptions: [
-            SubscriptionBinding(id: 'sub', sourceId: 2, name: 'Sub'),
-          ],
-        ),
-      );
-      final container = ProviderContainer(
-        overrides: [
-          profilesProvider.overrideWith(
-            () => TestProfiles([profile, subscription]),
-          ),
+    const profile = Profile(
+      id: 1,
+      autoUpdateDuration: Duration.zero,
+      extendType: ExtendType.script,
+      scriptId: 5,
+      overrides: ProfileOverrides(
+        rulesEnabled: true,
+        chains: [
+          ProxyChain(id: 'chain', name: 'Chain', hops: ['Front', 'Exit']),
         ],
-      );
+      ),
+    );
+    await testDatabase.scripts.put(script.toCompanion());
+    final container = ProviderContainer(
+      overrides: [
+        profilesProvider.overrideWith(() => TestProfiles([profile])),
+      ],
+    );
 
-      final loading = container.read(setupStateProvider(profile.id).future);
-      container.dispose();
-      final state = await loading;
+    final loading = container.read(setupStateProvider(profile.id).future);
+    container.dispose();
+    final state = await loading;
 
-      expect(state.script, isNull);
-      expect(state.bindingProfiles, [subscription]);
-      expect(state.overrides.subscriptions, profile.overrides.subscriptions);
-    },
-  );
+    expect(state.script, script);
+    expect(state.clashProviders, isEmpty);
+    expect(state.overrides.chains, profile.overrides.chains);
+  });
 
-  for (final feature in ['script', 'rules', 'chain']) {
+  for (final feature in ['script', 'chain']) {
     test('a $feature-only setup disposed during its query resolves', () async {
       final script = Script(
         id: 5,
         label: 'Script',
         lastUpdateTime: DateTime(2026),
       );
-      final ruleSet = ClashProvider.create(label: 'Rules');
       final profile = Profile(
         id: 1,
         autoUpdateDuration: Duration.zero,
@@ -138,15 +71,6 @@ void main() {
             : ExtendType.standard,
         scriptId: feature == 'script' ? script.id : null,
         overrides: ProfileOverrides(
-          ruleBindings: feature == 'rules'
-              ? [
-                  RuleSetBinding(
-                    id: 'rules',
-                    sourceId: ruleSet.id,
-                    target: 'DIRECT',
-                  ),
-                ]
-              : const [],
           chains: feature == 'chain'
               ? const [
                   ProxyChain(
@@ -159,23 +83,18 @@ void main() {
         ),
       );
       await testDatabase.scripts.put(script.toCompanion());
-      await testDatabase.clashProviders.put(ruleSet.toCompanion());
       final container = ProviderContainer(
         overrides: [
           profilesProvider.overrideWith(() => TestProfiles([profile])),
         ],
       );
-      container.listen(clashProvidersProvider, (_, _) {});
-      await container.read(clashProvidersProvider.future);
 
       final loading = container.read(setupStateProvider(profile.id).future);
       container.dispose();
       final state = await loading;
 
       expect(state.script, feature == 'script' ? script : isNull);
-      expect(state.bindingProfiles, isEmpty);
-      expect(state.clashProviders, feature == 'rules' ? [ruleSet] : isEmpty);
-      expect(state.overrides.ruleBindings, profile.overrides.ruleBindings);
+      expect(state.clashProviders, isEmpty);
       expect(state.overrides.chains, profile.overrides.chains);
     });
   }

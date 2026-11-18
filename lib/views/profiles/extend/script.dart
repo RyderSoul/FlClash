@@ -1,6 +1,8 @@
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/views/config/scripts.dart';
+import 'package:fl_clash/views/profiles/script_options.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,10 +22,19 @@ class ScriptContent extends ConsumerWidget {
   Widget build(BuildContext context, ref) {
     final appLocalizations = context.appLocalizations;
     final profileId = ProfileIdProvider.of(context)!.profileId;
-    final scriptId = ref.watch(
-      profileProvider(profileId).select((state) => state?.scriptId),
-    );
+    final profile = ref.watch(profileProvider(profileId));
+    final scriptId = profile?.scriptId;
     final scripts = ref.watch(scriptsProvider).value ?? [];
+    final selectedScript = scripts
+        .where((item) => item.id == scriptId)
+        .firstOrNull;
+    final scriptDefaults = scriptId == null
+        ? const <String, bool>{}
+        : ref.watch(
+            scriptCustomOptionsProvider.select(
+              (map) => map[scriptId.toString()] ?? const <String, bool>{},
+            ),
+          );
     return SliverMainAxisGroup(
       slivers: [
         SliverToBoxAdapter(
@@ -47,6 +58,37 @@ class ScriptContent extends ConsumerWidget {
             ]),
           ),
         ),
+        if (selectedScript != null && profile != null) ...[
+          const SliverToBoxAdapter(child: SizedBox(height: 16)),
+          SliverToBoxAdapter(
+            child: MoreActionButton(
+              label: appLocalizations.scriptOptions,
+              onPressed: () {
+                BaseNavigator.push(
+                  context,
+                  ScriptOptionsView(
+                    title: selectedScript.label,
+                    loadScript: () => selectedScript.content,
+                    initialValues: profile.overrides.scriptOptions,
+                    defaultsLabel: scriptDefaults,
+                    onChanged: (next) {
+                      ref
+                          .read(profilesProvider.notifier)
+                          .updateProfile(
+                            profileId,
+                            (state) => state.copyWith(
+                              overrides: state.overrides.copyWith(
+                                scriptOptions: next,
+                              ),
+                            ),
+                          );
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
         const SliverToBoxAdapter(child: SizedBox(height: 16)),
         SliverToBoxAdapter(
           child: MoreActionButton(

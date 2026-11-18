@@ -7,8 +7,8 @@ import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/views/profiles/custom/custom.dart';
-import 'package:fl_clash/views/profiles/bindings/manager.dart';
 import 'package:fl_clash/views/profiles/extend/extend.dart';
+import 'package:fl_clash/views/profiles/merge_profile.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -40,6 +40,15 @@ class ProfilesView extends ConsumerStatefulWidget {
 
 class _ProfilesViewState extends ConsumerState<ProfilesView> {
   bool _isUpdating = false;
+  final _expandedBundles = <int>{};
+
+  void _toggleBundle(int profileId) {
+    setState(() {
+      if (!_expandedBundles.add(profileId)) {
+        _expandedBundles.remove(profileId);
+      }
+    });
+  }
 
   Future<void> _updateProfiles(List<Profile> profiles) async {
     if (_isUpdating == true) {
@@ -49,10 +58,16 @@ class _ProfilesViewState extends ConsumerState<ProfilesView> {
     final appLocalizations = context.appLocalizations;
     final profilesAction = ref.read(profilesActionProvider.notifier);
     final List<UpdatingMessage> messages = [];
+    final updatedIds = <int>{};
     final updateProfiles = profiles.map<Future>((profile) async {
       if (profile.type != ProfileType.url) return;
       try {
-        await profilesAction.updateProfile(profile, showLoading: true);
+        await profilesAction.updateProfile(
+          profile,
+          showLoading: true,
+          rebuildBundles: false,
+        );
+        updatedIds.add(profile.id);
       } catch (e) {
         messages.add(
           UpdatingMessage(
@@ -63,6 +78,29 @@ class _ProfilesViewState extends ConsumerState<ProfilesView> {
       }
     });
     await Future.wait(updateProfiles);
+    if (updatedIds.isNotEmpty) {
+      for (final profile in profiles) {
+        final bundle = profile.overrides.bundle;
+        if (bundle == null) continue;
+        final depends = bundle.members.any(
+          (member) => member.enabled && updatedIds.contains(member.profileId),
+        );
+        if (!depends) continue;
+        try {
+          await profilesAction.syncBundleProfile(
+            profile.id,
+            refreshUrls: false,
+          );
+        } catch (e) {
+          messages.add(
+            UpdatingMessage(
+              label: profile.realLabel,
+              message: userFacingErrorMessage(e, appLocalizations),
+            ),
+          );
+        }
+      }
+    }
     dialogs.showFailures(messages);
     _isUpdating = false;
   }
@@ -137,6 +175,8 @@ class _ProfilesViewState extends ConsumerState<ProfilesView> {
               currentProfileId: state.currentProfileId,
               spacing: spacing,
               revealsSelected: !picker,
+              expandedBundles: _expandedBundles,
+              onToggleBundle: _toggleBundle,
             ),
           ),
         );
@@ -145,18 +185,59 @@ class _ProfilesViewState extends ConsumerState<ProfilesView> {
   }
 }
 
+typedef _ProfileEntry = ({Profile profile, bool isBundleMember});
+
+List<_ProfileEntry> _visibleProfileEntries(
+  List<Profile> profiles,
+  int? currentProfileId,
+  Set<int> expandedBundles,
+) {
+  final nestedIds = <int>{};
+  for (final profile in profiles) {
+    final bundle = profile.overrides.bundle;
+    if (bundle == null) continue;
+    for (final member in bundle.members) {
+      if (member.enabled) nestedIds.add(member.profileId);
+    }
+  }
+  final byId = {for (final profile in profiles) profile.id: profile};
+  final entries = <_ProfileEntry>[];
+  final emittedExpanded = <int>{};
+  for (final profile in profiles) {
+    if (nestedIds.contains(profile.id) && profile.id != currentProfileId) {
+      continue;
+    }
+    entries.add((profile: profile, isBundleMember: false));
+    final bundle = profile.overrides.bundle;
+    if (bundle != null && expandedBundles.contains(profile.id)) {
+      for (final member in bundle.members) {
+        if (!member.enabled) continue;
+        final child = byId[member.profileId];
+        if (child != null && emittedExpanded.add(child.id)) {
+          entries.add((profile: child, isBundleMember: true));
+        }
+      }
+    }
+  }
+  return entries;
+}
+
 class _ProfilesGrid extends ConsumerStatefulWidget {
   const _ProfilesGrid({
     required this.profiles,
     required this.currentProfileId,
     required this.spacing,
     required this.revealsSelected,
+    required this.expandedBundles,
+    required this.onToggleBundle,
   });
 
   final List<Profile> profiles;
   final int? currentProfileId;
   final double spacing;
   final bool revealsSelected;
+  final Set<int> expandedBundles;
+  final ValueChanged<int> onToggleBundle;
 
   @override
   ConsumerState<_ProfilesGrid> createState() => _ProfilesGridState();
@@ -209,8 +290,13 @@ class _ProfilesGridState extends ConsumerState<_ProfilesGrid> {
     if (!mounted || !_controller.hasClients) {
       return;
     }
-    final index = widget.profiles.indexWhere(
-      (profile) => profile.id == widget.currentProfileId,
+    final visibleEntries = _visibleProfileEntries(
+      widget.profiles,
+      widget.currentProfileId,
+      widget.expandedBundles,
+    );
+    final index = visibleEntries.indexWhere(
+      (entry) => entry.profile.id == widget.currentProfileId,
     );
     if (index == -1) {
       return;
@@ -235,7 +321,11 @@ class _ProfilesGridState extends ConsumerState<_ProfilesGrid> {
 
   @override
   Widget build(BuildContext context) {
-    final profiles = widget.profiles;
+    final visibleEntries = _visibleProfileEntries(
+      widget.profiles,
+      widget.currentProfileId,
+      widget.expandedBundles,
+    );
     return WidthBuilder(
       builder: (_, width) {
         return GridView.builder(
@@ -248,13 +338,21 @@ class _ProfilesGridState extends ConsumerState<_ProfilesGrid> {
             crossAxisSpacing: widget.spacing,
             mainAxisExtent: _profileItemHeight,
           ),
-          itemCount: profiles.length,
+          itemCount: visibleEntries.length,
           itemBuilder: (context, index) {
-            final profile = profiles[index];
+            final entry = visibleEntries[index];
+            final profile = entry.profile;
             return ProfileItem(
-              key: ValueKey(profile.id),
+              key: ValueKey(
+                entry.isBundleMember ? 'member_${profile.id}' : profile.id,
+              ),
               profile: profile,
               groupValue: widget.currentProfileId,
+              isExpanded: widget.expandedBundles.contains(profile.id),
+              isBundleMember: entry.isBundleMember,
+              onToggleExpand: profile.isBundle
+                  ? () => widget.onToggleBundle(profile.id)
+                  : null,
               onChanged: (profileId) {
                 ref.read(currentProfileIdProvider.notifier).value = profileId;
               },
@@ -269,12 +367,18 @@ class _ProfilesGridState extends ConsumerState<_ProfilesGrid> {
 class ProfileItem extends ConsumerWidget {
   final Profile profile;
   final int? groupValue;
+  final bool isExpanded;
+  final bool isBundleMember;
+  final VoidCallback? onToggleExpand;
   final void Function(int? value) onChanged;
 
   const ProfileItem({
     super.key,
     required this.profile,
     required this.groupValue,
+    this.isExpanded = false,
+    this.isBundleMember = false,
+    this.onToggleExpand,
     required this.onChanged,
   });
 
@@ -308,6 +412,14 @@ class ProfileItem extends ConsumerWidget {
   }
 
   Future updateProfile(WidgetRef ref) async {
+    if (profile.isBundle) {
+      await globalState.loadingRun(() async {
+        await ref
+            .read(profilesActionProvider.notifier)
+            .syncBundleProfile(profile.id);
+      }, tag: LoadingTag.profiles);
+      return;
+    }
     if (profile.type != ProfileType.url) return;
     await globalState.loadingRun(() async {
       await ref
@@ -327,17 +439,23 @@ class ProfileItem extends ConsumerWidget {
       profile.type == ProfileType.url ? profile.subscriptionInfo : null;
 
   String _subtitle(BuildContext context) {
+    final appLocalizations = context.appLocalizations;
+    if (profile.overrides.bundle case final bundle?) {
+      final count = bundle.members.where((item) => item.enabled).length;
+      final proxies = bundle.report?.proxies ?? 0;
+      return appLocalizations.bundleSummary(count, proxies);
+    }
     final info = _subscriptionInfo;
     if (info != null && info.usage != null) {
       final used = info.upload + info.download;
       return '${used.traffic.show} / ${info.total.traffic.show}';
     }
-    final appLocalizations = context.appLocalizations;
-    return switch (profile.type) {
+    final source = switch (profile.type) {
       ProfileType.url => appLocalizations.remote,
       ProfileType.file => appLocalizations.local,
       ProfileType.custom => appLocalizations.custom,
     };
+    return isBundleMember ? '↳ $source' : source;
   }
 
   Widget _buildTrailing(BuildContext context, {required bool isUpdating}) {
@@ -398,6 +516,8 @@ class ProfileItem extends ConsumerWidget {
   void _handleEdit(BuildContext context) {
     if (profile.type == ProfileType.custom) {
       _handlePushCustomProfilePage(context, profile.id);
+    } else if (profile.isBundle) {
+      BaseNavigator.push(context, MergeProfileView(profileId: profile.id));
     } else {
       _handleShowEditExtendPage(context);
     }
@@ -408,14 +528,6 @@ class ProfileItem extends ConsumerWidget {
     final isUrl = profile.type == ProfileType.url;
     final isCustom = profile.type == ProfileType.custom;
     return [
-      PopupMenuItem(
-        glyph: AppGlyphs.puzzle,
-        label: appLocalizations.profileManagement,
-        onPressed: () => BaseNavigator.push(
-          context,
-          ProfileBindingsView(profileId: profile.id),
-        ),
-      ),
       PopupMenuItem(
         glyph: AppGlyphs.edit,
         label: appLocalizations.edit,
@@ -444,7 +556,7 @@ class ProfileItem extends ConsumerWidget {
             _handlePushGenProfilePage(context, profile.id);
           },
         ),
-      if (isUrl)
+      if (isUrl || profile.isBundle)
         PopupMenuItem(
           glyph: AppGlyphs.sync,
           label: appLocalizations.sync,
@@ -526,6 +638,16 @@ class ProfileItem extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             spacing: 8,
             children: [
+              if (onToggleExpand case final toggle?)
+                IconButton(
+                  tooltip: context.appLocalizations.bundleMembers,
+                  icon: GlyphIcon(
+                    isExpanded
+                        ? AppGlyphs.chevronDown
+                        : AppGlyphs.chevronForward,
+                  ),
+                  onPressed: toggle,
+                ),
               if (profile.type == ProfileType.custom)
                 _GroupsCountChip(profileId: profile.id)
               else

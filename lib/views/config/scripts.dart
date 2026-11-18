@@ -9,9 +9,12 @@ import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/pages/editor.dart';
 import 'package:fl_clash/providers/action.dart';
 import 'package:fl_clash/providers/app.dart';
+import 'package:fl_clash/providers/config.dart';
 import 'package:fl_clash/providers/database.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
+import 'package:fl_clash/views/profiles/managed_options.dart';
+import 'package:fl_clash/views/profiles/script_options.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -99,6 +102,33 @@ class _ScriptsViewState extends ConsumerState<ScriptsView> {
         label: appLocalizations.edit,
         onPressed: () {
           _handleToEditor(script);
+        },
+      ),
+      PopupMenuItem(
+        glyph: AppGlyphs.sliders,
+        label: appLocalizations.scriptOptions,
+        onPressed: () {
+          final current = ref.read(scriptCustomOptionsProvider);
+          final key = script.id.toString();
+          BaseNavigator.push(
+            context,
+            ScriptOptionsView(
+              title: script.label,
+              loadScript: () => script.content,
+              initialValues: current[key] ?? const {},
+              onChanged: (next) {
+                ref.read(scriptCustomOptionsProvider.notifier).update((state) {
+                  final updated = Map<String, Map<String, bool>>.from(state);
+                  if (next.isEmpty) {
+                    updated.remove(key);
+                  } else {
+                    updated[key] = next;
+                  }
+                  return updated;
+                });
+              },
+            ),
+          );
         },
       ),
       if (script.url != null) ...[
@@ -342,6 +372,14 @@ class _ScriptsViewState extends ConsumerState<ScriptsView> {
     return Scaffold(
       canSort: scripts.length > 1,
       isLoading: isLoading,
+      iconActions: [
+        IconButtonData(
+          glyph: AppGlyphs.rulePresets,
+          tooltip: appLocalizations.managedMode,
+          onPressed: () =>
+              BaseNavigator.push(context, const ManagedOptionsView()),
+        ),
+      ],
       actions: [
         PopupAnchor(
           targetBuilder: (open) {
