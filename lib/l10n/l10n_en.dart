@@ -1343,6 +1343,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filter => 'Filter';
 
   @override
+  String get showHiddenGroups => 'Show hidden groups';
+
+  @override
   String get hideTimeoutProxies => 'Hide timed-out proxies';
 
   @override
@@ -4372,4 +4375,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get httpConditionTip =>
       'Conditions on one field match any of them, on different fields all.';
+
+  @override
+  String get nodeTraffic => 'Node traffic';
+
+  @override
+  String get nodeTrafficSession => 'This session';
+
+  @override
+  String get nodeTrafficHint =>
+      'Proxy traffic since the last start. Direct traffic is excluded.';
+
+  @override
+  String get nodeTrafficEmpty =>
+      'No proxy traffic yet. Use a node to see its traffic here.';
 }

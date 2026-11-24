@@ -12,4 +12,7 @@ CoreController coreHandler(Ref ref) => coreController;
 ConnectionBook connectionBook(Ref ref) => ConnectionBook();
 
 @Riverpod(keepAlive: true)
+NodeTrafficBook nodeTrafficBook(Ref ref) => NodeTrafficBook();
+
+@Riverpod(keepAlive: true)
 CoreStateSync coreStateSync(Ref ref) => CoreStateSync();

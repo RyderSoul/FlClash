@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
@@ -168,18 +170,21 @@ void main() {
     test('default values', () {
       final value = container.read(proxiesStyleSettingProvider);
       expect(value.type, ProxiesType.list);
+      expect(value.showHiddenGroups, false);
     });
 
     test('can update state', () {
       container
           .read(proxiesStyleSettingProvider.notifier)
           .update(
-            (_) => const ProxiesStyleProps(sortType: ProxiesSortType.delay),
+            (_) => const ProxiesStyleProps(
+              sortType: ProxiesSortType.delay,
+              showHiddenGroups: true,
+            ),
           );
-      expect(
-        container.read(proxiesStyleSettingProvider).sortType,
-        ProxiesSortType.delay,
-      );
+      final updated = container.read(proxiesStyleSettingProvider);
+      expect(updated.sortType, ProxiesSortType.delay);
+      expect(updated.showHiddenGroups, true);
     });
   });
 
@@ -243,6 +248,19 @@ void main() {
 
       expect(container.read(patchClashConfigProvider).secret, hasLength(32));
     });
+  });
+
+  test('hidden group visibility survives config save and restore', () {
+    container
+        .read(proxiesStyleSettingProvider.notifier)
+        .update((state) => state.copyWith(showHiddenGroups: true));
+    final saved = Config.fromJson(
+      jsonDecode(jsonEncode(container.read(configProvider)))
+          as Map<String, Object?>,
+    );
+    final restored = ProviderContainer(overrides: buildConfigOverrides(saved));
+    addTearDown(restored.dispose);
+    expect(restored.read(proxiesStyleSettingProvider).showHiddenGroups, true);
   });
 
   group('buildConfigOverrides', () {

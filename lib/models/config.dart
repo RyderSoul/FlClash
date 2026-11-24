@@ -139,6 +139,7 @@ final List<HotKeyAction> defaultHotKeyActions = system.isWindows
 const List<DashboardWidget> defaultDashboardWidgets = [
   DashboardWidget.currentOutbound,
   DashboardWidget.networkSpeed,
+  DashboardWidget.nodeTraffic,
   DashboardWidget.outboundMode,
   DashboardWidget.vpnButton,
   DashboardWidget.networkTakeover,
@@ -155,6 +156,7 @@ final List<DashboardWidget> platformDefaultDashboardWidgets = system.isAndroid
     ? const [
         DashboardWidget.currentOutbound,
         DashboardWidget.networkSpeed,
+        DashboardWidget.nodeTraffic,
         DashboardWidget.outboundMode,
         DashboardWidget.profiles,
         DashboardWidget.proxyGroups,
@@ -457,6 +459,7 @@ abstract class ProxiesStyleProps with _$ProxiesStyleProps {
     @JsonKey(fromJson: proxyCardTypeSafeFromJson)
     ProxyCardType cardType,
     @Default(false) bool hideTimeoutProxies,
+    @Default(false) bool showHiddenGroups,
   }) = _ProxiesStyleProps;
 
   factory ProxiesStyleProps.fromJson(Map<String, Object?>? json) => json == null

@@ -1305,6 +1305,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get filter => '필터';
 
   @override
+  String get showHiddenGroups => '숨겨진 그룹 표시';
+
+  @override
   String get hideTimeoutProxies => '시간 초과된 프록시 숨기기';
 
   @override
@@ -4236,4 +4239,16 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get httpConditionTip =>
       '같은 필드의 조건은 하나만 맞으면 되고, 다른 필드의 조건은 모두 맞아야 합니다.';
+
+  @override
+  String get nodeTraffic => '노드별 트래픽';
+
+  @override
+  String get nodeTrafficSession => '현재 세션';
+
+  @override
+  String get nodeTrafficHint => '마지막 시작 이후의 프록시 트래픽입니다. 직접 연결은 제외됩니다.';
+
+  @override
+  String get nodeTrafficEmpty => '아직 프록시 트래픽이 없습니다. 노드를 사용하면 여기에 표시됩니다.';
 }

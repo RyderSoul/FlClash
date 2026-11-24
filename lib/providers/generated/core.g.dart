@@ -99,6 +99,48 @@ final class ConnectionBookProvider
 
 String _$connectionBookHash() => r'c084bac9d322cdd66b3e543b5a1766025705398c';
 
+@ProviderFor(nodeTrafficBook)
+final nodeTrafficBookProvider = NodeTrafficBookProvider._();
+
+final class NodeTrafficBookProvider
+    extends
+        $FunctionalProvider<NodeTrafficBook, NodeTrafficBook, NodeTrafficBook>
+    with $Provider<NodeTrafficBook> {
+  NodeTrafficBookProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'nodeTrafficBookProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$nodeTrafficBookHash();
+
+  @$internal
+  @override
+  $ProviderElement<NodeTrafficBook> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  NodeTrafficBook create(Ref ref) {
+    return nodeTrafficBook(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(NodeTrafficBook value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<NodeTrafficBook>(value),
+    );
+  }
+}
+
+String _$nodeTrafficBookHash() => r'753eb0d5af99f061673d1c7b543856401f6e8adf';
+
 @ProviderFor(coreStateSync)
 final coreStateSyncProvider = CoreStateSyncProvider._();
 

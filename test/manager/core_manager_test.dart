@@ -867,6 +867,7 @@ void main() {
       await tester.pump();
       expect(container.read(requestsProvider)[1]!.download, 6);
       expect(container.read(requestsProvider)[9], isNull);
+      expect(container.read(nodeTrafficBookProvider).snapshot(), isEmpty);
 
       demand
         ..release()
@@ -905,6 +906,66 @@ void main() {
 
     await tester.pumpWidget(const SizedBox.shrink());
   });
+
+  testWidgets(
+    'node traffic book aggregates proxy streams and clears on reconnect',
+    (tester) async {
+      final harness = _harness();
+      final watches = splitConnectionWatches(harness);
+      final container = await _pumpCoreManager(
+        tester,
+        harness.mocks.controller,
+      );
+
+      container.read(coreStatusProvider.notifier).value = CoreStatus.connected;
+      container.read(connectionBookProvider).demand.acquire();
+      await tester.pump();
+
+      watches.lifecycle.add(
+        const ConnectionsChanged(
+          ConnectionDelta(
+            opened: [
+              ConnectionInfo(
+                id: 1,
+                start: 1,
+                network: 'tcp',
+                sourceIp: '10.0.0.1',
+                sourcePort: 5001,
+                destinationPort: 443,
+                inboundType: 'tun',
+                chains: ['HK-1', 'Proxy'],
+                rule: 'MATCH',
+                upload: 100,
+                download: 200,
+              ),
+            ],
+          ),
+        ),
+      );
+      watches.counting.add(
+        const ConnectionsChanged(
+          ConnectionDelta(
+            counters: [ConnectionCounter(id: 1, upload: 150, download: 350)],
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(container.read(nodeTrafficBookProvider).snapshot(), const [
+        NodeTraffic(name: 'HK-1', up: 150, down: 350),
+      ]);
+
+      container.read(coreStatusProvider.notifier).value =
+          CoreStatus.disconnected;
+      await tester.pump();
+      container.read(coreStatusProvider.notifier).value = CoreStatus.connected;
+      await tester.pump();
+
+      expect(container.read(nodeTrafficBookProvider).snapshot(), isEmpty);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+    },
+  );
 
   testWidgets('the connection feed is not read while the app is in the '
       'background and catches up on return', (tester) async {

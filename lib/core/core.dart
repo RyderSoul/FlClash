@@ -4,6 +4,7 @@ export 'api/dto.dart';
 export 'api/errors.dart';
 export 'api/mapping.dart';
 export 'api/model_api.dart';
+export 'api/node_traffic_book.dart';
 export 'backend.dart';
 export 'controller.dart';
 export 'desktop/model.dart';

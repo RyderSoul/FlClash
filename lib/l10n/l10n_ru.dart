@@ -1344,6 +1344,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get filter => 'Фильтр';
 
   @override
+  String get showHiddenGroups => 'Показывать скрытые группы';
+
+  @override
   String get hideTimeoutProxies => 'Скрывать прокси с таймаутом';
 
   @override
@@ -4369,4 +4372,18 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get httpConditionTip =>
       'Условия по одному полю объединяются через «или», по разным полям — через «и».';
+
+  @override
+  String get nodeTraffic => 'Трафик узлов';
+
+  @override
+  String get nodeTrafficSession => 'Текущий сеанс';
+
+  @override
+  String get nodeTrafficHint =>
+      'Трафик прокси с последнего запуска. Прямые подключения не учитываются.';
+
+  @override
+  String get nodeTrafficEmpty =>
+      'Трафика прокси пока нет. Данные появятся после использования узла.';
 }

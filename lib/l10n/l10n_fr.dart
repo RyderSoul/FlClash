@@ -1358,6 +1358,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get filter => 'Filtrer';
 
   @override
+  String get showHiddenGroups => 'Afficher les groupes masqués';
+
+  @override
   String get hideTimeoutProxies => 'Masquer les proxys expirés';
 
   @override
@@ -4422,4 +4425,18 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get httpConditionTip =>
       'Les conditions d’un même champ en demandent une seule, celles de champs différents toutes.';
+
+  @override
+  String get nodeTraffic => 'Trafic par nœud';
+
+  @override
+  String get nodeTrafficSession => 'Cette session';
+
+  @override
+  String get nodeTrafficHint =>
+      'Trafic proxy depuis le dernier démarrage. Le trafic direct est exclu.';
+
+  @override
+  String get nodeTrafficEmpty =>
+      'Aucun trafic proxy pour le moment. Utilisez un nœud pour voir sa consommation.';
 }

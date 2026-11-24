@@ -416,6 +416,7 @@
   "iconStylePlain": "Simple",
   "iconStyleHidden": "Oculto",
   "filter": "Filtro",
+  "showHiddenGroups": "Mostrar grupos ocultos",
   "hideTimeoutProxies": "Ocultar proxies sin respuesta",
   "network": "Red",
   "bypassDomain": "Dominios excluidos",
@@ -1256,5 +1257,9 @@
   "selectHttpRequestHint": "Aquí aparecerán su solicitud, su respuesta y sus tiempos",
   "httpConditionShows": "Solicitudes mostradas: {count}",
   "httpConditionValuesIn": "{field} en la lista",
-  "httpConditionTip": "Las condiciones de un mismo campo se cumplen con una de ellas; las de campos distintos, todas."
+  "httpConditionTip": "Las condiciones de un mismo campo se cumplen con una de ellas; las de campos distintos, todas.",
+  "nodeTraffic": "Tráfico por nodo",
+  "nodeTrafficSession": "Esta sesión",
+  "nodeTrafficHint": "Tráfico proxy desde el último inicio. Se excluye el tráfico directo.",
+  "nodeTrafficEmpty": "Aún no hay tráfico proxy. Usa un nodo para ver su consumo."
 }

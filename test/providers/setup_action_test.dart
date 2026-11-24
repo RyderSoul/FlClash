@@ -2419,7 +2419,33 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 800));
         verifyNever(() => _applied(mocks.api));
 
+        scoped
+            .read(nodeTrafficBookProvider)
+            .applyConnections(
+              const ConnectionsChanged(
+                ConnectionDelta(
+                  opened: [
+                    ConnectionInfo(
+                      id: 1,
+                      start: 1,
+                      network: 'tcp',
+                      sourceIp: '10.0.0.1',
+                      sourcePort: 5001,
+                      destinationPort: 443,
+                      inboundType: 'tun',
+                      chains: ['HK-1'],
+                      rule: 'MATCH',
+                      upload: 50,
+                      download: 150,
+                    ),
+                  ],
+                ),
+              ),
+            );
+        expect(scoped.read(nodeTrafficBookProvider).snapshot(), isNotEmpty);
+
         await setupAction.setRunning(false);
+        expect(scoped.read(nodeTrafficBookProvider).snapshot(), isEmpty);
         scoped.read(patchClashConfigProvider.notifier).value = scoped
             .read(patchClashConfigProvider)
             .copyWith(testUrl: 'https://example.com/204');

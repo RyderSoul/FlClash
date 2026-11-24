@@ -43,7 +43,12 @@ void main() {
         hidden: false,
         all: [Proxy(name: 'Selected', type: 'Direct', now: 'runtime')],
       ),
-      const Group(name: 'Hidden', type: GroupType.Selector, hidden: true),
+      const Group(
+        name: 'Hidden',
+        type: GroupType.Selector,
+        hidden: true,
+        all: [Proxy(name: 'Hidden node', type: 'ss')],
+      ),
       Group(
         name: GroupName.GLOBAL.name,
         type: GroupType.Selector,
@@ -59,6 +64,24 @@ void main() {
     expect(ruleGroups.map((group) => group.name), ['Visible']);
     expect(ruleGroups.single.now, isEmpty);
     expect(ruleGroups.single.all.single.now, isEmpty);
+
+    container
+        .read(proxiesStyleSettingProvider.notifier)
+        .update((state) => state.copyWith(showHiddenGroups: true));
+    expect(container.read(currentGroupsStateProvider).value, hasLength(3));
+    expect(container.read(visibleGroupsStateProvider).value, hasLength(3));
+    expect(container.read(proxiesListStateProvider).groups, hasLength(3));
+    expect(container.read(proxiesTabStateProvider).groups, hasLength(3));
+    expect(
+      container.read(filterGroupsStateProvider('Hidden')).value.single.name,
+      'Hidden',
+    );
+    container
+        .read(proxiesStyleSettingProvider.notifier)
+        .update((state) => state.copyWith(showHiddenGroups: false));
+    expect(container.read(proxiesListStateProvider).groups, hasLength(1));
+    expect(container.read(proxiesTabStateProvider).groups, hasLength(1));
+    expect(container.read(filterGroupsStateProvider('Hidden')).value, isEmpty);
 
     container
         .read(patchClashConfigProvider.notifier)

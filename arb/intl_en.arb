@@ -465,6 +465,7 @@
   "iconStylePlain": "Plain",
   "iconStyleHidden": "Hidden",
   "filter": "Filter",
+  "showHiddenGroups": "Show hidden groups",
   "hideTimeoutProxies": "Hide timed-out proxies",
   "network": "Network",
   "bypassDomain": "Bypass domains",
@@ -1460,5 +1461,9 @@
       }
     }
   },
-  "httpConditionTip": "Conditions on one field match any of them, on different fields all."
+  "httpConditionTip": "Conditions on one field match any of them, on different fields all.",
+  "nodeTraffic": "Node traffic",
+  "nodeTrafficSession": "This session",
+  "nodeTrafficHint": "Proxy traffic since the last start. Direct traffic is excluded.",
+  "nodeTrafficEmpty": "No proxy traffic yet. Use a node to see its traffic here."
 }

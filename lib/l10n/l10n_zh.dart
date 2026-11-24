@@ -1299,6 +1299,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get filter => '筛选';
 
   @override
+  String get showHiddenGroups => '显示隐藏策略组';
+
+  @override
   String get hideTimeoutProxies => '隐藏超时代理';
 
   @override
@@ -4113,4 +4116,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get httpConditionTip => '同一字段的条件满足其一即可，不同字段的都要满足。';
+
+  @override
+  String get nodeTraffic => '节点流量';
+
+  @override
+  String get nodeTrafficSession => '本次运行';
+
+  @override
+  String get nodeTrafficHint => '统计本次启动后的代理流量，不含直连流量。';
+
+  @override
+  String get nodeTrafficEmpty => '暂无节点流量，使用代理后会显示用量。';
 }

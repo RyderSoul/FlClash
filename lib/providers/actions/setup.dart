@@ -388,6 +388,7 @@ class SetupAction extends _$SetupAction {
   @protected
   void resetCoreTraffic() {
     _core.api.resetTraffic();
+    ref.read(nodeTrafficBookProvider).resetTotals();
   }
 
   @visibleForTesting

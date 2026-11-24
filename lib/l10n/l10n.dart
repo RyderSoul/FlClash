@@ -2610,6 +2610,12 @@ abstract class AppLocalizations {
   /// **'Filter'**
   String get filter;
 
+  /// No description provided for @showHiddenGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'Show hidden groups'**
+  String get showHiddenGroups;
+
   /// No description provided for @hideTimeoutProxies.
   ///
   /// In en, this message translates to:
@@ -7655,6 +7661,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Conditions on one field match any of them, on different fields all.'**
   String get httpConditionTip;
+
+  /// No description provided for @nodeTraffic.
+  ///
+  /// In en, this message translates to:
+  /// **'Node traffic'**
+  String get nodeTraffic;
+
+  /// No description provided for @nodeTrafficSession.
+  ///
+  /// In en, this message translates to:
+  /// **'This session'**
+  String get nodeTrafficSession;
+
+  /// No description provided for @nodeTrafficHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Proxy traffic since the last start. Direct traffic is excluded.'**
+  String get nodeTrafficHint;
+
+  /// No description provided for @nodeTrafficEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No proxy traffic yet. Use a node to see its traffic here.'**
+  String get nodeTrafficEmpty;
 }
 
 class _AppLocalizationsDelegate

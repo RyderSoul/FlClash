@@ -416,6 +416,7 @@
   "iconStylePlain": "纯图标",
   "iconStyleHidden": "隐藏",
   "filter": "筛选",
+  "showHiddenGroups": "显示隐藏策略组",
   "hideTimeoutProxies": "隐藏超时代理",
   "network": "网络",
   "bypassDomain": "排除域名",
@@ -1256,5 +1257,9 @@
   "selectHttpRequestHint": "这里会显示它的请求、响应和耗时",
   "httpConditionShows": "将筛出 {count} 个请求",
   "httpConditionValuesIn": "当前请求里的{field}",
-  "httpConditionTip": "同一字段的条件满足其一即可，不同字段的都要满足。"
+  "httpConditionTip": "同一字段的条件满足其一即可，不同字段的都要满足。",
+  "nodeTraffic": "节点流量",
+  "nodeTrafficSession": "本次运行",
+  "nodeTrafficHint": "统计本次启动后的代理流量，不含直连流量。",
+  "nodeTrafficEmpty": "暂无节点流量，使用代理后会显示用量。"
 }

@@ -8,6 +8,7 @@ export 'connection_log.dart';
 export 'connection_query.dart';
 export 'core.dart';
 export 'ip_quality.dart';
+export 'node_traffic.dart';
 export 'profile.dart';
 export 'record_filter.dart';
 export 'references.dart';

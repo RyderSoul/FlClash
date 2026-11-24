@@ -1306,6 +1306,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get filter => 'フィルター';
 
   @override
+  String get showHiddenGroups => '非表示のグループを表示';
+
+  @override
   String get hideTimeoutProxies => 'タイムアウトしたプロキシを隠す';
 
   @override
@@ -4158,4 +4161,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get httpConditionTip => '同じフィールドの条件はいずれか一つ、異なるフィールドの条件はすべてに一致します。';
+
+  @override
+  String get nodeTraffic => 'ノード別通信量';
+
+  @override
+  String get nodeTrafficSession => '今回の起動';
+
+  @override
+  String get nodeTrafficHint => '前回の起動以降のプロキシ通信量です。直接接続は含みません。';
+
+  @override
+  String get nodeTrafficEmpty => 'プロキシ通信量はまだありません。ノードを使うとここに表示されます。';
 }

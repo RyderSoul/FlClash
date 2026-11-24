@@ -132,6 +132,7 @@ class _CoreContainerState extends ConsumerState<CoreManager>
     _closeFeeds();
     final api = _core.api;
     ref.read(connectionBookProvider).clear();
+    ref.read(nodeTrafficBookProvider).clear();
     ref.read(requestsProvider.notifier).startOver();
     ref.read(dnsQueriesProvider.notifier).startOver();
     _feed('dns', api.watchDns(), (entries) {
@@ -323,6 +324,7 @@ class _CoreContainerState extends ConsumerState<CoreManager>
 
   void _onConnections(ConnectionUpdate update) {
     final change = ref.read(connectionBookProvider).apply(update);
+    ref.read(nodeTrafficBookProvider).applyConnections(update);
     final requests = ref.read(requestsProvider.notifier);
     if (change.opened.isNotEmpty) {
       requests.addRequests(change.opened);
@@ -340,6 +342,7 @@ class _CoreContainerState extends ConsumerState<CoreManager>
 
   void _onCounters(ConnectionUpdate update) {
     final counters = ref.read(connectionBookProvider).countersOf(update);
+    ref.read(nodeTrafficBookProvider).applyCounters(update);
     if (counters.isNotEmpty) {
       ref.read(requestsProvider.notifier).updateTraffic(counters);
     }

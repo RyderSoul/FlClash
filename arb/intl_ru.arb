@@ -416,6 +416,7 @@
   "iconStylePlain": "Без подложки",
   "iconStyleHidden": "Скрыто",
   "filter": "Фильтр",
+  "showHiddenGroups": "Показывать скрытые группы",
   "hideTimeoutProxies": "Скрывать прокси с таймаутом",
   "network": "Сеть",
   "bypassDomain": "Исключённые домены",
@@ -1256,5 +1257,9 @@
   "selectHttpRequestHint": "Здесь появятся запрос, ответ и время",
   "httpConditionShows": "Останется запросов: {count}",
   "httpConditionValuesIn": "{field} в списке",
-  "httpConditionTip": "Условия по одному полю объединяются через «или», по разным полям — через «и»."
+  "httpConditionTip": "Условия по одному полю объединяются через «или», по разным полям — через «и».",
+  "nodeTraffic": "Трафик узлов",
+  "nodeTrafficSession": "Текущий сеанс",
+  "nodeTrafficHint": "Трафик прокси с последнего запуска. Прямые подключения не учитываются.",
+  "nodeTrafficEmpty": "Трафика прокси пока нет. Данные появятся после использования узла."
 }
