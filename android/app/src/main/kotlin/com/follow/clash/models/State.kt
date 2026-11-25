@@ -6,7 +6,7 @@ import com.google.gson.JsonObject
 data class SharedState(
     val startTip: String = "Starting VPN...",
     val stopTip: String = "Stopping VPN...",
-    val currentProfileName: String = "FlClash",
+    val currentProfileName: String = "Concord",
     val stopText: String = "Stop",
     val onlyStatisticsProxy: Boolean = false,
     val showStopAction: Boolean = true,
